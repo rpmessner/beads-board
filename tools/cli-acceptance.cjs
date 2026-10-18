@@ -4,12 +4,12 @@ const {spawnSync} = require('node:child_process');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const base = 'http://127.0.0.1:4759';
-const env = {...process.env, BOARD_URL: base, BOARD_TOKEN_FILE: `${process.cwd()}/tmp/cli-token`,
-  BOARD_DATABASE_URL: '', DATABASE_URL: '',
-  PGDATABASE: `beads_board_acceptance_${require('node:path').basename(process.cwd())}`};
+const env = {...process.env, FOREMAN_URL: base, FOREMAN_TOKEN_FILE: `${process.cwd()}/tmp/cli-token`,
+  FOREMAN_DATABASE_URL: '', DATABASE_URL: '',
+  PGDATABASE: `foreman_acceptance_${require('node:path').basename(process.cwd())}`};
 const evidence = [];
 function cli(...args) {
-  const r = spawnSync('./board', [...args, '--json'], {env, encoding: 'utf8', timeout: 15000});
+  const r = spawnSync('./foreman', [...args, '--json'], {env, encoding: 'utf8', timeout: 15000});
   assert.ifError(r.error);
   const body = JSON.parse(r.stdout);
   evidence.push({args, exit: r.status, body});

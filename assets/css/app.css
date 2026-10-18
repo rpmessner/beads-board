@@ -2,7 +2,7 @@
 @import "../../deps/fluxon/priv/static/theme.css";
 @source "../css";
 @source "../js";
-@source "../../lib/board_web";
+@source "../../lib/foreman_web";
 @source "../../deps/fluxon/lib";
 @plugin "../vendor/heroicons";
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));

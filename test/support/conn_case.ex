@@ -1,4 +1,4 @@
-defmodule BoardWeb.ConnCase do
+defmodule ForemanWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -11,7 +11,7 @@ defmodule BoardWeb.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use BoardWeb.ConnCase, async: true`, although
+  by setting `use ForemanWeb.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -20,20 +20,20 @@ defmodule BoardWeb.ConnCase do
   using do
     quote do
       # The default endpoint for testing
-      @endpoint BoardWeb.Endpoint
+      @endpoint ForemanWeb.Endpoint
 
-      use BoardWeb, :verified_routes
+      use ForemanWeb, :verified_routes
 
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
-      import BoardWeb.ConnCase
+      import ForemanWeb.ConnCase
     end
   end
 
   setup tags do
-    unless tags[:production_token_clock], do: BoardWeb.LiveViewClock.install()
-    if Application.get_env(:board, :start_repo, true), do: Board.DataCase.setup_sandbox(tags)
+    unless tags[:production_token_clock], do: ForemanWeb.LiveViewClock.install()
+    if Application.get_env(:foreman, :start_repo, true), do: Foreman.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

@@ -1,4 +1,4 @@
-// NODE_PATH=<Playwright node_modules> BOARD_URL=http://127.0.0.1:4771 node tools/flaky-acceptance.cjs
+// NODE_PATH=<Playwright node_modules> FOREMAN_URL=http://127.0.0.1:4771 node tools/flaky-acceptance.cjs
 // Read-only browser checks; run against an acceptance server without test_helper.exs.
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
@@ -11,7 +11,7 @@ const fs = require('node:fs');
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    const base = process.env.BOARD_URL || 'http://127.0.0.1:4771';
+    const base = process.env.FOREMAN_URL || 'http://127.0.0.1:4771';
     const out = 'docs/acceptance/bb-flaky';
     fs.mkdirSync(out, {recursive: true});
     const ready = () => page.locator('[data-phx-main].phx-connected').waitFor();
@@ -25,7 +25,7 @@ const fs = require('node:fs');
     assert.equal(await page.inputValue('#filters_q'), '');
     await page.screenshot({path: `${out}/bare-light.png`, fullPage: true, animations: 'disabled'});
 
-    await page.evaluate(() => localStorage.setItem('board:initiative-filters:v1',
+    await page.evaluate(() => localStorage.setItem('foreman:initiative-filters:v1',
       JSON.stringify({view: 'all', q: 'Clock'})));
     await page.goto(base + '/');
     await ready();

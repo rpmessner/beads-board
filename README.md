@@ -1,4 +1,6 @@
-# beads-board
+# foreman
+
+Source: [rpmessner/foreman](https://github.com/rpmessner/foreman).
 
 A local board for every beads repo on this machine, organised around epics.
 The worker reads configured repos through Oban and keeps a droppable Postgres
@@ -16,15 +18,15 @@ later slices; `/` currently opens Settings.
 ```sh
 mix deps.get
 mix precommit
-MIX_ENV=test mix board.fsm.docs
+MIX_ENV=test mix foreman.fsm.docs
 ```
 
 `mix test` and `mix precommit` create and migrate a checkout-local database on
-local Postgres: `beads_board_test_<checkout directory name>`. For example, the
-`bb-cli` and `bb-merge` worktrees use `beads_board_test_bb-cli` and
-`beads_board_test_bb-merge`. The name comes from the config file's directory, not
+local Postgres: `foreman_test_<checkout directory name>`. For example, the
+`bb-cli` and `bb-merge` worktrees use `foreman_test_bb-cli` and
+`foreman_test_bb-merge`. The name comes from the config file's directory, not
 the shell's working directory. `MIX_TEST_PARTITION` is appended unchanged:
-`MIX_TEST_PARTITION=_cli` in `bb-cli` uses `beads_board_test_bb-cli_cli`.
+`MIX_TEST_PARTITION=_cli` in `bb-cli` uses `foreman_test_bb-cli_cli`.
 Use distinct checkout directory names for concurrent worktrees.
 
 Database tests use the SQL sandbox. Repo and manual-mode Oban start, but the
@@ -34,7 +36,7 @@ register cleanup before writing. The suite checks for leaked committed rows
 before and after the run and fails rather than silently clearing them.
 
 Live CLI acceptance uses `MIX_ENV=acceptance` and the separate
-`beads_board_acceptance_<checkout directory name>` database with a normal pool.
+`foreman_acceptance_<checkout directory name>` database with a normal pool.
 The acceptance script refuses to run under `MIX_ENV=test`; it never changes the
 test sandbox to automatic mode. Prepare and start it with:
 
@@ -43,20 +45,32 @@ mkdir -p tmp
 (umask 077; set -C; openssl rand -hex 32 > tmp/cli-token)
 MIX_ENV=acceptance mix ecto.create
 MIX_ENV=acceptance mix ecto.migrate
-MIX_ENV=acceptance BOARD_ROLE=web PORT=4759 PHX_SERVER=true \
-  BOARD_TOKEN_FILE="$PWD/tmp/cli-token" \
+MIX_ENV=acceptance FOREMAN_ROLE=web PORT=4759 PHX_SERVER=true \
+  FOREMAN_TOKEN_FILE="$PWD/tmp/cli-token" \
   mix run --no-halt tools/cli-acceptance-server.exs
 ```
 
-Token and CLI details are in the [CLI report](docs/sessions/bb-cli.md).
+The [CLI report](docs/sessions/bb-cli.md) records the original contract using the
+old names. Current CLI setup:
+
+```sh
+mix escript.build
+install -m 755 foreman "$HOME/.local/bin/foreman"
+```
+
+Use `FOREMAN_TOKEN_FILE` (no default; the same token file as the web service),
+`FOREMAN_URL` (default `http://127.0.0.1:4747`), `FOREMAN_ACTOR` (default `user`),
+and `FOREMAN_SESSION`. Offline delivery uses `FOREMAN_DATABASE_URL`, then
+`DATABASE_URL`, then standard `PG*` settings; point these at the deployed database.
+Store credentials only in untracked environment files.
 The browser and offline acceptance scripts select this same acceptance database.
 They do not use `MIX_TEST_PARTITION`, seed a unit-test database, or start a beads reader.
-`Board.Stage` is the production pure machine; its persistence effects are not wired yet.
+`Foreman.Stage` is the production pure machine; its persistence effects are not wired yet.
 Epic remains a test fixture. Generated docs live in `docs/machines/` and tests compare them byte-for-byte.
 Elixir 1.19 scans both `.ex` and `.exs` under `test/`; manually loaded fixture files outside `test/support/` use the `_helper.exs` suffix to avoid discovery warnings.
 
 To run the Phoenix scaffold with Postgres, configure `config/dev.exs`, then run `mix setup` and `mix phx.server`.
-Development uses `beads_board_dev` and listens on `127.0.0.1:4747` (`PORT` overrides
+Development uses `foreman_dev` and listens on `127.0.0.1:4747` (`PORT` overrides
 the port, not the loopback bind). Migrate before starting Oban. Production still
 requires `DATABASE_URL`, plus `SECRET_KEY_BASE` for web/all; no systemd unit is installed.
 
@@ -64,7 +78,7 @@ requires `DATABASE_URL`, plus `SECRET_KEY_BASE` for web/all; no systemd unit is 
 
 These steps are for you to run on the host. Nothing in the build installs or
 starts services. The templates are in [`deploy/systemd/`](deploy/systemd/).
-They use one release at `~/.local/lib/beads-board/current`, two foreground BEAM
+They use one release at `~/.local/lib/foreman/current`, two foreground BEAM
 processes, and no terminal or Erlang distribution.
 
 ### Prepare the host and environment
@@ -72,13 +86,13 @@ processes, and no terminal or Erlang distribution.
 Use a Linux host with systemd user services, Postgres 16, `python3`, `inotifywait`,
 and the tested embedded-store `bd` available. On WSL, enable systemd in the
 host's WSL configuration first. Start the host's Postgres service and create the
-`beads_board` database with a dedicated database user. Do not run the release as
+`foreman` database with a dedicated database user. Do not run the release as
 root. Run `command -v bd python3 inotifywait` to find the executable directories.
 
 ```sh
-install -d -m 700 "$HOME/.config/beads-board"
-install -m 600 deploy/systemd/runtime.env.example "$HOME/.config/beads-board/runtime.env"
-install -m 600 deploy/systemd/web.env.example "$HOME/.config/beads-board/web.env"
+install -d -m 700 "$HOME/.config/foreman"
+install -m 600 deploy/systemd/runtime.env.example "$HOME/.config/foreman/runtime.env"
+install -m 600 deploy/systemd/web.env.example "$HOME/.config/foreman/web.env"
 mix phx.gen.secret
 ```
 
@@ -90,7 +104,7 @@ Keep both files untracked, mode 0600, outside a symlink into tracked dotfiles.
 Do not put Fluxon credentials in either file; they are build-time only.
 The API token belongs to the later API ticket, not these environment files.
 
-The units do not read shell startup files. `BOARD_ROLE`, `PHX_SERVER`,
+The units do not read shell startup files. `FOREMAN_ROLE`, `PHX_SERVER`,
 `RELEASE_DISTRIBUTION`, and `RELEASE_TMP` belong to the units; do not override them
 in environment files. The worker explicitly removes the endpoint secret and
 both units remove Fluxon variables inherited from the user manager.
@@ -107,9 +121,9 @@ MIX_ENV=prod mix assets.deploy
 MIX_ENV=prod mix release --overwrite
 
 release_id=$(date -u +%Y%m%dT%H%M%S)
-install -d -m 700 "$HOME/.local/lib/beads-board/releases"
-cp -a _build/prod/rel/board "$HOME/.local/lib/beads-board/releases/$release_id"
-ln -s "releases/$release_id" "$HOME/.local/lib/beads-board/current"
+install -d -m 700 "$HOME/.local/lib/foreman/releases"
+cp -a _build/prod/rel/foreman "$HOME/.local/lib/foreman/releases/$release_id"
+ln -s "releases/$release_id" "$HOME/.local/lib/foreman/current"
 ```
 
 Migrate before starting either service. Supply `DATABASE_URL` in the migration
@@ -120,9 +134,9 @@ Bash. Do not `source` systemd environment files; they are not shell scripts.
 read -r -s -p 'DATABASE_URL: ' DATABASE_URL; printf '\n'
 export DATABASE_URL
 (umask 077
- BOARD_ROLE=worker RELEASE_DISTRIBUTION=none \
-   "$HOME/.local/lib/beads-board/current/bin/board" eval \
-   '{:ok, _, _} = Ecto.Migrator.with_repo(Board.Repo, &Ecto.Migrator.run(&1, :up, all: true))')
+ FOREMAN_ROLE=worker RELEASE_DISTRIBUTION=none \
+   "$HOME/.local/lib/foreman/current/bin/foreman" eval \
+   '{:ok, _, _} = Ecto.Migrator.with_repo(Foreman.Repo, &Ecto.Migrator.run(&1, :up, all: true))')
 migration_status=$?
 unset DATABASE_URL
 test "$migration_status" -eq 0
@@ -132,10 +146,10 @@ Continue only if the migration succeeded. Then install and enable the units:
 
 ```sh
 install -d "$HOME/.config/systemd/user"
-cp deploy/systemd/beads-board-*.service "$HOME/.config/systemd/user/"
-systemd-analyze --user verify "$HOME/.config/systemd/user/"beads-board-*.service
+cp deploy/systemd/foreman-*.service "$HOME/.config/systemd/user/"
+systemd-analyze --user verify "$HOME/.config/systemd/user/"foreman-*.service
 systemctl --user daemon-reload
-systemctl --user enable --now beads-board-worker.service beads-board-web.service
+systemctl --user enable --now foreman-worker.service foreman-web.service
 ```
 
 Open `http://127.0.0.1:4747/settings`. Configure repositories using the TOML section
@@ -162,9 +176,9 @@ commands above, but do not repeat the initial `ln -s`. Never overwrite the relea
 files a running service uses. Back up Postgres before schema changes.
 
 ```sh
-systemctl --user stop beads-board-worker.service beads-board-web.service
-ln -s "releases/$release_id" "$HOME/.local/lib/beads-board/current.next"
-mv -Tf "$HOME/.local/lib/beads-board/current.next" "$HOME/.local/lib/beads-board/current"
+systemctl --user stop foreman-worker.service foreman-web.service
+ln -s "releases/$release_id" "$HOME/.local/lib/foreman/current.next"
+mv -Tf "$HOME/.local/lib/foreman/current.next" "$HOME/.local/lib/foreman/current"
 ```
 
 Run the migration command above against the new `current`. If it fails, leave
@@ -172,12 +186,12 @@ both services stopped and investigate. Restore an older release only if its code
 is compatible with the database schema. Refresh the unit templates if changed:
 
 ```sh
-cp deploy/systemd/beads-board-*.service "$HOME/.config/systemd/user/"
+cp deploy/systemd/foreman-*.service "$HOME/.config/systemd/user/"
 systemctl --user daemon-reload
-systemctl --user start beads-board-worker.service beads-board-web.service
+systemctl --user start foreman-worker.service foreman-web.service
 ```
 
-Use `systemctl --user restart beads-board-worker beads-board-web` after changing
+Use `systemctl --user restart foreman-worker foreman-web` after changing
 environment files. TOML edits hot-reload without a restart. Stop uses SIGTERM on
 the BEAM first, allowing Oban and its owned subprocesses to drain. After 90 seconds,
 systemd kills remaining processes in that service's cgroup. Explicit stops do not
@@ -187,15 +201,15 @@ Erlang distribution is disabled.
 ### Inspect logs and verify host recovery
 
 ```sh
-systemctl --user status beads-board-web beads-board-worker
-journalctl --user -u beads-board-web -u beads-board-worker -f
-systemctl --user is-enabled beads-board-web beads-board-worker
+systemctl --user status foreman-web foreman-worker
+journalctl --user -u foreman-web -u foreman-worker -f
+systemctl --user is-enabled foreman-web foreman-worker
 ```
 
 After installation, test recovery when no reads or writes are in progress:
 record each service's `MainPID` with `systemctl --user show -p MainPID`, kill only
 its main process with `systemctl --user kill --kill-whom=main --signal=SIGKILL
-beads-board-web`, and check that it returns with a new PID. Repeat for the worker.
+foreman-web`, and check that it returns with a new PID. Repeat for the worker.
 Check the page and a repository sync afterward. Restart WSL at a safe time, open
 the distro again, and check both units and the page before starting agents.
 These host checks cannot be proved by a build-only smoke test.
@@ -203,9 +217,9 @@ These host checks cannot be proved by a build-only smoke test.
 ### Uninstall the services
 
 ```sh
-systemctl --user disable --now beads-board-web.service beads-board-worker.service
-/usr/bin/rm "$HOME/.config/systemd/user/beads-board-web.service" \
-  "$HOME/.config/systemd/user/beads-board-worker.service"
+systemctl --user disable --now foreman-web.service foreman-worker.service
+/usr/bin/rm "$HOME/.config/systemd/user/foreman-web.service" \
+  "$HOME/.config/systemd/user/foreman-worker.service"
 systemctl --user daemon-reload
 systemctl --user reset-failed
 ```
@@ -214,11 +228,37 @@ Keep the database, TOML, environment files, and release directories until you
 choose to remove them. Remove service drop-ins too if you added any. Do not disable
 lingering if other user services need it. Uninstall does not drop Postgres data.
 
+### Migrating from beads-board
+
+The coordinator performs this host cutover; the repository build does not:
+
+1. Back up Postgres and record stage, session and history counts. Stop and disable
+   `beads-board-web` and `beads-board-worker` before starting either new unit.
+2. With all old database clients stopped, rename database `beads_board` to `foreman`
+   in place. Keep the existing tables and applied migrations; do not recreate data.
+3. Move `~/.config/beads-board` to `~/.config/foreman`; rename `board.toml` and
+   `board.local.toml` to `foreman.toml` and `foreman.local.toml`. Keep the `[board]`
+   TOML table unchanged. Rename `BOARD_*` environment settings to `FOREMAN_*` in
+   runtime and shell-local files; update database URLs to the renamed database.
+   Standard `DATABASE_URL`, `PG*`, `PHX_*` and release variables keep their names.
+4. Move the checkout and update its remote to `rpmessner/foreman`. Build and install
+   the new release under `~/.local/lib/foreman` and the `foreman` escript as above.
+   Update callers and the external skills repo. Remove the obsolete `board` CLI
+   only after its callers have moved over.
+5. Install the new `foreman-web` / `foreman-worker` units, remove the old unit files
+   and obsolete drop-ins, run `systemctl --user daemon-reload`, and enable/start
+   the new units. Do not run old and new workers together. Pending Oban jobs store
+   module names: inspect/drain old `Board.*` jobs before cutover, or explicitly
+   remap their worker names to `Foreman.*` while stopped before replaying them.
+6. Verify both services, sync, CLI delivery and the recorded data counts before
+   removing old release directories. Browser sessions/filter preferences may reset
+   because their application namespace changed.
+
 ### Run the release smoke test without installing
 
 After building the release, run `python3 tools/release-smoke.py`. It uses the
 local test Postgres credentials to create a unique disposable test database,
-starts the actual `bin/board start` twice on non-default ports, verifies role
+starts the actual `bin/foreman start` twice on non-default ports, verifies role
 children, HTTP and Postgres sync notification delivery, then sends SIGTERM and
 requires exit 0 from both. It drops its database afterward. Logs and generated
 runtime files stay in the checkout's ignored `tmp/release-smoke-*` directory.
@@ -228,11 +268,11 @@ never opens a real store. Real embedded-store safety remains covered by the
 
 ## Deployment roles and notifications
 
-One release supports two systemd user services, `beads-board-web` and
-`beads-board-worker`, without Erlang clustering. Set `BOARD_ROLE=web` in the web
-unit and `BOARD_ROLE=worker` in the worker unit. Both use the same database and
+One release supports two systemd user services, `foreman-web` and
+`foreman-worker`, without Erlang clustering. Set `FOREMAN_ROLE=web` in the web
+unit and `FOREMAN_ROLE=worker` in the worker unit. Both use the same database and
 Oban schema prefix. Set `RELEASE_DISTRIBUTION=none` in both release units.
-`BOARD_ROLE=all` is the default for development and tests; unknown values fail boot.
+`FOREMAN_ROLE=all` is the default for development and tests; unknown values fail boot.
 Role and code changes require a service restart; only TOML configuration is
 hot-reloaded. Do not use development code reloading as a worker deployment path.
 
@@ -243,25 +283,25 @@ hot-reloaded. Do not use development code reloading as a worker deployment path.
 - Both start Repo. Phoenix.PubSub remains for endpoint internals, not cross-role
   product events. DNS clustering is not started.
 
-`Board.Events` publishes versioned `config_changed`, `sync_status_changed`, and
+`Foreman.Events` publishes versioned `config_changed`, `sync_status_changed`, and
 `projection_changed` invalidations through `Oban.Notifiers.Postgres`. Subscribers
-receive `{:notification, :board_events, payload}`. Changed projection transactions
+receive `{:notification, :foreman_events, payload}`. Changed projection transactions
 publish at commit; unchanged export hashes publish nothing. A rolled-back
 transaction cannot notify. Tests exercise independent notifiers and a raw
 Postgres LISTEN connection, not an in-memory notifier replacement.
 
 Notifications are transient. Settings fetches Postgres on mount and every three
 seconds to recover missed notifications. Config installation and validation are
-persisted before publication. `Board.Runtime.ping/1` sends a `sync_requested`
+persisted before publication. `Foreman.Runtime.ping/1` sends a `sync_requested`
 notification across roles; it uses the same admission path as ticks and sweeps.
 Release packaging and installed systemd units remain later work.
 
 ## Export projection boundary
 
-`Board.Beads.Export.decode/1` validates a complete JSONL export, keeps raw fields,
+`Foreman.Beads.Export.decode/1` validates a complete JSONL export, keeps raw fields,
 and normalizes known enums through explicit tables. Unknown enum strings become
 `{:unknown, value}`. Bad records reject the entire export, never a partial snapshot.
-`Board.Beads.Projection.replace/2` takes a repo key and successful export bytes;
+`Foreman.Beads.Projection.replace/2` takes a repo key and successful export bytes;
 call it only after the reader has checked the command's exit status. It hashes
 bytes and skips all projection writes for an unchanged hash. Changed exports
 replace that repo's JSONB bead rows in a transaction. Embedded comments and edges
@@ -273,7 +313,7 @@ without changing stages or deleting facts. Stage backfill remains unimplemented.
 To rebuild the cache, delete its `bead_repos` row (cascading to `beads`), not only
 its bead rows; the hash belongs to that same cache. Overlay rows have no cache FK.
 
-`Board.Beads.JournalLock.check/2` passively matches journal device/inode against
+`Foreman.Beads.JournalLock.check/2` passively matches journal device/inode against
 Linux `/proc/locks`. Missing, unreadable or ambiguous evidence defers the read.
 It never acquires a store lock. `SyncJob` executes this check before each export.
 The probe's [read rule](docs/probe-bd-concurrency.md) remains mandatory.
@@ -285,7 +325,7 @@ independently; a fresh dependency build still has this upstream warning. The
 coordinator accepted this pinned-dependency warning; application code must still
 compile with zero warnings.
 
-`Board.Beads.Read` and `Schedule` now define the pure read/admission protocols,
+`Foreman.Beads.Read` and `Schedule` now define the pure read/admission protocols,
 with declared machines and generated goldens. Read timeout retains admission
 until the owned subprocess is reaped and discards late stdout. Schedule accepts
 three-second ticks even without changed signals, coalesces busy requests, and
@@ -314,10 +354,10 @@ pretend an unchanged snapshot was freshly written.
 
 ## Config contract
 
-The worker reads `~/.config/beads-board/board.toml`, then
-`board.local.toml` beside it, over `priv/board.defaults.toml`. The app never writes
+The worker reads `~/.config/foreman/foreman.toml`, then
+`foreman.local.toml` beside it, over `priv/foreman.defaults.toml`. The app never writes
 these files. No user files are needed to run the tests; they use temporary directories.
-`BOARD_CONFIG_DIR` overrides the directory for isolated runs; `BOARD_DISCOVERY_ROOT`
+`FOREMAN_CONFIG_DIR` overrides the directory for isolated runs; `FOREMAN_DISCOVERY_ROOT`
 overrides the default `~/dev` discovery root. Non-recursive directory notifications handle
 atomic editor saves; a 30-second reconciliation recovers missed notifications.
 If the config directory is absent, the watcher follows its nearest existing
@@ -363,12 +403,12 @@ duplicate keys/expanded paths, and unknown ticket stages are errors. Paths must 
 absolute or start with `~/`; no environment-variable expansion occurs. Path
 validation does not open or resolve repository stores or symlinks.
 
-`Board.Config.load(directory)` returns `{:ok, config}` or `{:error, message}`.
-All keys and configured enum values remain strings. `Board.Config.parse_layers/2`
-accepts named TOML contents for pure tests. Validation uses `Board.Stage`'s declared
+`Foreman.Config.load(directory)` returns `{:ok, config}` or `{:error, message}`.
+All keys and configured enum values remain strings. `Foreman.Config.parse_layers/2`
+accepts named TOML contents for pure tests. Validation uses `Foreman.Stage`'s declared
 states, not an independent stage list.
 
-`Board.Config.Reload` holds the last good config through its declared machine.
+`Foreman.Config.Reload` holds the last good config through its declared machine.
 Its read/broadcast effects are data, not executed callbacks. The runtime must run
 reads through Oban and supply every terminal result, including job failure, before
 another reload can start. Bad edits retain the previous config and expose an error.
@@ -383,11 +423,11 @@ Only run these with permission to write scratch copies. They never open original
 stores with bd. Server-mode acceptance uses copied metadata, not live PID/port files.
 
 ```sh
-python3 tools/prepare-board-acceptance.py
-BOARD_CONFIG_DIR=/tmp/bb-exec/config BOARD_DISCOVERY_ROOT=/tmp/bb-exec/repos mix phx.server
+python3 tools/prepare-foreman-acceptance.py
+FOREMAN_CONFIG_DIR=/tmp/bb-exec/config FOREMAN_DISCOVERY_ROOT=/tmp/bb-exec/repos mix phx.server
 # In another shell, with the board running:
-python3 tools/board-write-acceptance.py
-python3 tools/verify-board-acceptance.py
+python3 tools/foreman-write-acceptance.py
+python3 tools/verify-foreman-acceptance.py
 ```
 
 The writer runs for ten minutes, without retrying failed writes. Verification
@@ -403,7 +443,7 @@ The CSS theme and JS hooks are bundled through app.css/app.js, with no CDN scrip
 
 ## Repository hygiene
 
-`mix precommit` runs `mix board.hygiene` over tracked and nonignored untracked
+`mix precommit` runs `mix foreman.hygiene` over tracked and nonignored untracked
 files. The guard rejects local operator paths, literal Fluxon license assignments,
 and exact license environment values when present. It reports categories only,
 never matching content or secret paths. It does not read credential files.

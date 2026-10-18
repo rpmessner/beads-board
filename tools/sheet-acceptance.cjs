@@ -9,11 +9,11 @@ const fs = require('node:fs');
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  const base = process.env.BOARD_URL || 'http://127.0.0.1:4758';
+  const base = process.env.FOREMAN_URL || 'http://127.0.0.1:4758';
   const out = 'docs/acceptance/bb-sheet';
   fs.mkdirSync(out, {recursive: true});
   const ready = () => page.locator('[data-phx-main].phx-connected').waitFor();
-  for (const [repo, epic] of [['beads-board', 'bb-c2w'], ['form-engine', 'fe-lwp']]) {
+  for (const [repo, epic] of [['foreman', 'bb-c2w'], ['form-engine', 'fe-lwp']]) {
     await page.goto(`${base}/epics/${repo}/${epic}`);
     await ready();
     await page.locator('#epic-title').waitFor();
@@ -49,11 +49,11 @@ const fs = require('node:fs');
       await graph.evaluate(el => { el.scrollLeft = 0; });
     }
   }
-  const origin = '/epics/beads-board/bb-c2w?project=beads-board&type=task';
+  const origin = '/epics/foreman/bb-c2w?project=foreman&type=task';
   await page.goto(base + origin);
   await ready();
   await page.locator('[data-ticket="bb-c2w.5"]').click();
-  await page.waitForURL(url => url.searchParams.get('ticket') === 'beads-board:bb-c2w.5');
+  await page.waitForURL(url => url.searchParams.get('ticket') === 'foreman:bb-c2w.5');
   await page.locator('#ticket-sheet [role=dialog]').waitFor({state: 'visible'});
   assert.equal(await page.getByRole('dialog', {name: 'Initiatives view: epics as the spine'}).count(), 1);
   assert.ok(await page.locator('#ticket-history article').count() > 1);

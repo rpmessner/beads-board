@@ -1,0 +1,90 @@
+defmodule Foreman.RequestsTest do
+  use Foreman.DataCase, async: false
+  alias Foreman.{Requests, Overlay, Repo}
+
+  setup do
+    Overlay.backfill("sample", [%{bead_id: "s-1", status: "open", issue_type: "task"}])
+    :ok
+  end
+
+  defp ask do
+    Requests.ask({"sample", "s-1"}, "decision", %{
+      "actor" => "pi",
+      "session" => "build",
+      "facts" => %{
+        "question" => "Which layout?",
+        "options" => ["Wide", "Compact"],
+        "recommendation" => "Compact"
+      }
+    })
+  end
+
+  test "a decision stores immutable facts and asker, then returns the answer" do
+    assert {:ok, request} = ask()
+    assert request.state == "pending"
+    assert request.actor == "pi"
+    assert request.session == "build"
+    assert {:ok, answered} = Requests.resolve(request.id, :answer, %{"answer" => "Compact"})
+    assert answered.state == "answered"
+    assert answered.outcome == %{"answer" => "Compact"}
+    assert answered.facts == request.facts
+    assert {:error, :invalid} = Requests.resolve(request.id, :decline, %{})
+  end
+
+  test "decline records note and enqueues nothing" do
+    {:ok, request} = ask()
+    assert {:ok, result} = Requests.resolve(request.id, :decline, %{"note" => "Not this slice"})
+    assert result.state == "declined"
+    assert result.note == "Not this slice"
+    assert Repo.aggregate(Oban.Job, :count) == 0
+  end
+
+  test "bad kinds and facts are refused before recording" do
+    for {kind, facts} <- [
+          {"push", %{}},
+          {"decision", %{}},
+          {"decision", %{"question" => "?", "options" => [1]}}
+        ] do
+      assert {:error, _} = Requests.ask({"sample", "s-1"}, kind, %{"facts" => facts})
+    end
+
+    assert Requests.pending_count() == 0
+  end
+
+  test "ticketed draft keeps requests posted to either epic identity" do
+    Overlay.backfill("sample", [%{bead_id: "s-e", status: "open", issue_type: "epic"}])
+
+    {:ok, original} =
+      Requests.ask({"sample", "s-e"}, "decision", %{"facts" => %{"question" => "Original?"}})
+
+    key = {"sample", "draft:plan"}
+    Overlay.apply_event(key, {:create, %{title: "Plan"}})
+    {:ok, draft} = Requests.ask(key, "decision", %{"facts" => %{"question" => "Draft?"}})
+    Overlay.apply_event(key, :start_spec)
+    Overlay.apply_event(key, :approve_spec)
+    Overlay.apply_event(key, {:ticket, %{beads_epic_id: "s-e"}})
+    assert MapSet.new(Requests.for_ticket(key), & &1.id) == MapSet.new([original.id, draft.id])
+    assert {:ok, _} = Overlay.apply_event(key, :bead_epic_closed)
+    assert Requests.get(original.id).state == "superseded"
+    assert Requests.get(draft.id).state == "superseded"
+  end
+
+  test "blank answer is rejected without changing the request" do
+    {:ok, request} = ask()
+    assert {:error, :invalid} = Requests.resolve(request.id, :answer, %{"answer" => "   "})
+    assert Requests.get(request.id).state == "pending"
+    assert Repo.aggregate("request_events", :count) == 1
+  end
+
+  for event <- [:abandon, :bead_closed] do
+    test "#{event} supersedes pending requests, preserves answered ones, refuses fresh asks" do
+      {:ok, pending} = ask()
+      {:ok, answered} = ask()
+      Requests.resolve(answered.id, :answer, %{"answer" => "Other"})
+      Overlay.apply_event({"sample", "s-1"}, unquote(event))
+      assert Requests.get(pending.id).state == "superseded"
+      assert Requests.get(answered.id).state == "answered"
+      assert {:error, :ticket_finished} = ask()
+    end
+  end
+end

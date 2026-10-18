@@ -1,7 +1,7 @@
 // Requires Playwright on NODE_PATH; uses only the isolated acceptance config.
 const {chromium} = require('playwright');
 const fs = require('node:fs');
-const file = '/tmp/bb-exec/config/board.toml';
+const file = '/tmp/bb-exec/config/foreman.toml';
 
 (async () => {
   const original = fs.readFileSync(file, 'utf8');
@@ -9,7 +9,7 @@ const file = '/tmp/bb-exec/config/board.toml';
   const page = await browser.newPage({viewport: {width: 1440, height: 1240}});
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto(process.env.BOARD_URL || 'http://127.0.0.1:4751/settings');
+  await page.goto(process.env.FOREMAN_URL || 'http://127.0.0.1:4751/settings');
   await page.waitForSelector('#repo-form-engine');
   await page.waitForFunction(() => document.querySelector('[data-phx-main]')?.classList.contains('phx-connected'));
   try {

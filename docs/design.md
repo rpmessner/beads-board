@@ -1,6 +1,6 @@
-# beads-board: design
+# foreman: design
 
-Status: design pass, 2026-10-17. Nothing built yet. Visual mockup: the "Beads Board design" canvas, https://claude.ai/artifact/BwE6JCfLAQMnSgdEDSSdNg (six artboards: board, ticket sheet, epic, PR panel with merge flow, stage machine, settings).
+Status: design pass, 2026-10-17. Nothing built yet. Visual mockup: the "foreman design" canvas, https://claude.ai/artifact/BwE6JCfLAQMnSgdEDSSdNg (six artboards: board, ticket sheet, epic, PR panel with merge flow, stage machine, settings).
 
 ## 1. What it is
 
@@ -13,7 +13,7 @@ Beads stays the source of truth for tickets. The app reads beads and never write
 1. Discover and read the beads repos listed in config; show a cross-project board (columns = process stages, swimlanes by project or epic, filters by project, epic, type, label, beads status).
 2. Ticket detail: beads fields plus the overlay (stage, stage history, session, worktree, branch, report path, PR, agent notes).
 3. Epic view: child tickets, blocking graph, progress.
-4. Process stage per ticket, driven by a state machine, updated by agents through the `board` CLI and by observed facts (beads closed, PR opened or merged).
+4. Process stage per ticket, driven by a state machine, updated by agents through the `foreman` CLI and by observed facts (beads closed, PR opened or merged).
 5. PR panel per project: open PRs in stack order, check and mergeable status, linked beads, a merge action that respects the stack and asks for confirmation.
 6. Settings view: the loaded config, where it came from, whether it validated, and a reload button.
 
@@ -43,39 +43,39 @@ Beads stays the source of truth for tickets. The app reads beads and never write
 ## 3. Architecture
 
 ```
-            ~/.config/beads-board/board.toml   (declarative config, hand-edited)
+            ~/.config/foreman/foreman.toml   (declarative config, hand-edited)
                          | file watch + validate
                          v
-  bd export --------> Board.Beads (read model) ----+
+  bd export --------> Foreman.Beads (read model) ----+
   (per repo, Oban)                                  |      Phoenix.PubSub "board:*"
-                                                    +----> LiveViews: Board, Ticket, Epic, PRs, Settings
-  GitHub REST/GraphQL -> Board.GitHub (PR cache) --+
+                                                    +----> LiveViews: Foreman, Ticket, Epic, PRs, Settings
+  GitHub REST/GraphQL -> Foreman.GitHub (PR cache) --+
   (Req, Oban)                                       |
                                                     |
-  board CLI ---HTTP---> BoardWeb.API -> Board.Stage (pure FSM) -> Board.Overlay (Postgres, authoritative)
+  board CLI ---HTTP---> ForemanWeb.API -> Foreman.Stage (pure FSM) -> Foreman.Overlay (Postgres, authoritative)
   (agents)              (token)          step/3 -> effects          stage, events, sessions, notes, PR links
 ```
 
 - **Phoenix 1.8 + LiveView 1.1**, bound to `127.0.0.1:4747` only. Started like gw2 (`mix phx.server` or a release under a user systemd unit; open question 6).
-- **Postgres** database `beads_board_dev`, local. Two kinds of table (section 5): a projection of beads (derived, droppable) and the overlay (authoritative).
+- **Postgres** database `foreman_dev`, local. Two kinds of table (section 5): a projection of beads (derived, droppable) and the overlay (authoritative).
 - **Oban** (Postgres engine) for every external read and write: `RepoSyncJob` (unique per repo), `GitHubSyncJob` (unique per repo), `MergeJob`, `RetargetJob`. Oban gives retries, uniqueness, a timeout per job and a record of what ran. Cron: full beads sweep every 5 min, GitHub sweep every 2 min.
-- **`Board.Watch`**, one small GenServer: every 3 s it stats the cheap signals per repo (section 4.3) and enqueues a `RepoSyncJob` when one moved. It holds no ticket state.
-- **Pure core, effects at the edge.** `Board.Stage` and the UI machines are pure (`step/3`). The overlay context runs the effects inside a transaction, then broadcasts after commit.
+- **`Foreman.Watch`**, one small GenServer: every 3 s it stats the cheap signals per repo (section 4.3) and enqueues a `RepoSyncJob` when one moved. It holds no ticket state.
+- **Pure core, effects at the edge.** `Foreman.Stage` and the UI machines are pure (`step/3`). The overlay context runs the effects inside a transaction, then broadcasts after commit.
 
 ### Module map
 
 | Module | Job |
 |---|---|
-| `Board.Config` | Load, validate and hot-swap `board.toml`. |
-| `Board.Fsm` | The house state-machine macro (section 6). Copied into this repo; extract when a second repo needs it. |
-| `Board.Beads.Reader` | Runs `bd export` in a repo (`System.cmd("bd", ["export"], cd: path)`, timeout 20 s), decodes, normalises. The only module that knows bd's JSON shape. |
-| `Board.Beads` | Upserts the projection for one repo from a reader result; computes ready and blocked from edges; broadcasts diffs. |
-| `Board.Stage` | The ticket process-stage machine. |
-| `Board.Overlay` | Ecto context for stages, events, sessions, notes; `apply_event/3` is the one way a stage changes. |
-| `Board.GitHub` | Req client (REST + one GraphQL query per repo for PRs and checks), stack ordering, PR-to-bead linking. |
-| `Board.Merge` | The merge-action machine (UI) and `MergeJob`. |
-| `BoardWeb.API` | JSON API for the CLI. |
-| `board` (escript, `cli/`) | Agent-facing CLI. |
+| `Foreman.Config` | Load, validate and hot-swap `foreman.toml`. |
+| `Foreman.Fsm` | The house state-machine macro (section 6). Copied into this repo; extract when a second repo needs it. |
+| `Foreman.Beads.Reader` | Runs `bd export` in a repo (`System.cmd("bd", ["export"], cd: path)`, timeout 20 s), decodes, normalises. The only module that knows bd's JSON shape. |
+| `Foreman.Beads` | Upserts the projection for one repo from a reader result; computes ready and blocked from edges; broadcasts diffs. |
+| `Foreman.Stage` | The ticket process-stage machine. |
+| `Foreman.Overlay` | Ecto context for stages, events, sessions, notes; `apply_event/3` is the one way a stage changes. |
+| `Foreman.GitHub` | Req client (REST + one GraphQL query per repo for PRs and checks), stack ordering, PR-to-bead linking. |
+| `Foreman.Merge` | The merge-action machine (UI) and `MergeJob`. |
+| `ForemanWeb.API` | JSON API for the CLI. |
+| `foreman` (escript, `cli/`) | Agent-facing CLI. |
 
 ## 4. Reading beads
 
@@ -101,8 +101,8 @@ An agent may run `bd update` while the board runs `bd export` against the same e
 
 Every source of truth is polled; nothing is written into the repos (no git hook, no bd hook).
 
-1. **Cheap signals, every 3 s** (`Board.Watch`, `File.stat` only): mtime of `.beads/issues.jsonl`, `.beads/interactions.jsonl`, `.git/HEAD` and the ref it points at. Any change enqueues a sync.
-2. **Pings**: every `board` CLI write also asks for a sync of that repo, so agent work shows within a second or two.
+1. **Cheap signals, every 3 s** (`Foreman.Watch`, `File.stat` only): mtime of `.beads/issues.jsonl`, `.beads/interactions.jsonl`, `.git/HEAD` and the ref it points at. Any change enqueues a sync.
+2. **Pings**: every `foreman` CLI write also asks for a sync of that repo, so agent work shows within a second or two.
 3. **Sweep**: Oban cron re-reads every enabled repo every 5 min, which catches human `bd` edits that touch none of the signals (creates, notes).
 4. **Idempotent**: the sync hashes the export (`:crypto.hash(:sha256, output)`); an unchanged hash ends the job without touching the database. The projection upsert is per repo in one transaction; beads that vanished are deleted from the projection, and their overlay rows are marked `orphaned_at`, never deleted.
 
@@ -114,7 +114,7 @@ Rule: **a field lives where its writer is.** Beads owns ticket content; the over
 
 ### 5.1 Config file (hand-edited, declarative)
 
-`board.toml` (section 7). Repo list and paths, GitHub repo per project, board columns, status-to-stage defaults, colours and labels, per-epic display options. Not in Postgres because it changes rarely, is edited by a human, and should diff in version control.
+`foreman.toml` (section 7). Repo list and paths, GitHub repo per project, board columns, status-to-stage defaults, colours and labels, per-epic display options. Not in Postgres because it changes rarely, is edited by a human, and should diff in version control.
 
 ### 5.2 Beads projection (derived; truncate and rebuild any time)
 
@@ -131,7 +131,7 @@ Derived, not stored: `ready?` (open, every `blocks` target closed), epic progres
 
 | Table | Fields | Why here |
 |---|---|---|
-| `tickets` | `repo_key`, `bead_id`, `stage` (enum of `Board.Stage` states), `stage_changed_at`, `lock_version`, `orphaned_at` | Beads has no process stage. Keyed by `(repo_key, bead_id)`, not a projection foreign key, so a projection rebuild never touches it. |
+| `tickets` | `repo_key`, `bead_id`, `stage` (enum of `Foreman.Stage` states), `stage_changed_at`, `lock_version`, `orphaned_at` | Beads has no process stage. Keyed by `(repo_key, bead_id)`, not a projection foreign key, so a projection rebuild never touches it. |
 | `stage_events` | `ticket_id`, `event`, `payload` (jsonb), `source` (`claimed` / `observed` / `backfill`), `actor` (`claude`, `pi`, `user`, `github`, `beads`), `from_stage`, `to_stage`, `outcome` (`row`/`ignored`/`invalid`), `effects` (jsonb), `inserted_at` | Append-only history; audit trail and the input to any later replay. Invalid claims are logged too, so a confused agent is visible. |
 | `sessions` | `window`, `harness` (`pi`/`claude`), `model`, `workdir`, `branch`, `base_sha`, `brief_path`, `report_path`, `marker`, `started_at`, `last_seen_at`, `ended_at` | Mirrors the `dispatch` skill's slots (window, workdir, brief, report, base sha, marker). |
 | `ticket_sessions` | `ticket_id`, `session_id`, `role` (`build` / `review`) | One session can carry several tickets (dispatch groups tickets that share files). |
@@ -144,7 +144,7 @@ Stage for tickets first seen: a closed bead gets `done` and an open bead gets `q
 
 Epics get no stage. Their board card shows children's progress (closed / total) and a stage histogram.
 
-## 6. The state-machine DSL: `Board.Fsm`
+## 6. The state-machine DSL: `Foreman.Fsm`
 
 House principle `state-machine-skeleton`, Elixir row: own pure table plus a validator macro, `:gen_statem` only for long-lived processes that need state timeouts. Concepts match form-engine's `core/fsm.zig` (rows, groups, `any`, `stay`, explicit `ignore` and `invalid`, specificity ranking, compile-time coverage); the syntax is Elixir declarations.
 
@@ -179,22 +179,22 @@ Row resolution for a pair (state, event), same as the Zig kit: candidates are th
 9. an `ignore` or `invalid` row has effects;
 10. an `observed` event is `invalid` anywhere (facts are never refused; ignore them instead).
 
-Check 10 is a board-specific rule expressed as an option (`use Board.Fsm, observed_never_invalid: true`), not hard-coded.
+Check 10 is a board-specific rule expressed as an option (`use Foreman.Fsm, observed_never_invalid: true`), not hard-coded.
 
 ### 6.3 What it generates
 
 - `step(state, event, data) :: {next_state, [effect]} | {:error, {:invalid, state, event}}`. Pure and total. `event` is an atom or `{atom, payload}`. Ignored pairs return `{state, []}`. Effects are `{name, arg}` tuples in order: exit effects, row effects, entry effects (exit and entry only when the state changes).
 - `__fsm__(:states | :events | :groups | :rows | :initial)` for introspection, tests and the UI (allowed next events per state).
-- `to_mermaid/0` and `matrix/0` (strings). `mix board.fsm.docs` writes `docs/machines/<name>.md`; a test fails when the committed file differs from a fresh render, so a behaviour change always shows in the diff.
+- `to_mermaid/0` and `matrix/0` (strings). `mix foreman.fsm.docs` writes `docs/machines/<name>.md`; a test fails when the committed file differs from a fresh render, so a behaviour change always shows in the diff.
 
 ### 6.4 Prototype: the ticket process stage
 
 Prototype snippet, not final code.
 
 ```elixir
-defmodule Board.Stage do
+defmodule Foreman.Stage do
   @moduledoc "Process stage of one ticket. Beads owns the ticket; this owns where it is in the house workflow."
-  use Board.Fsm, observed_never_invalid: true
+  use Foreman.Fsm, observed_never_invalid: true
 
   initial :queued
 
@@ -271,16 +271,16 @@ end
 Pure use, and the adapter:
 
 ```elixir
-iex> Board.Stage.step(:building, {:report, %{path: "docs/sessions/fe-loop.md"}}, data)
+iex> Foreman.Stage.step(:building, {:report, %{path: "docs/sessions/fe-loop.md"}}, data)
 {:reported, [record: :report, emit: :stage]}
 
-iex> Board.Stage.step(:pr_open, :review, data)
+iex> Foreman.Stage.step(:pr_open, :review, data)
 {:error, {:invalid, :pr_open, :review}}          # API answers 409: "fe-813.4 is pr_open; review not accepted"
 
-iex> Board.Stage.step(:abandoned, {:pr_merged, %{number: 6}}, data)
+iex> Foreman.Stage.step(:abandoned, {:pr_merged, %{number: 6}}, data)
 {:abandoned, []}                                  # ignored, logged with outcome "ignored"
 
-# Board.Overlay.apply_event/3: lock the ticket row, step, insert stage_event,
+# Foreman.Overlay.apply_event/3: lock the ticket row, step, insert stage_event,
 # update stage, run DB effects (record/append/link/unlink/flag) in the same
 # transaction; after commit run :emit (PubSub) and :suggest (UI hint).
 ```
@@ -333,7 +333,7 @@ stateDiagram-v2
 
 ### 6.6 Other machines in the MVP
 
-- **`Board.Merge.Action`** (PR panel, pure, held in the LiveView assign): `idle`, `confirming`, `merging`, `retargeting`, `merged`, `failed`. `request` from `idle` goes to `confirming` only under guard `mergeable_now?` (bottom of stack, checks pass, not draft, mergeable), else stays `idle` with `{:toast, reason}`. `confirm` goes to `merging` under `head_unchanged?` (enqueue `MergeJob` with the head sha), else back to `confirming` with a "head moved, re-check" warning. `merge_ok` goes to `retargeting` when a child PR exists, else `merged`. `merge_failed` and `job_timeout` (the job's own Oban timeout, 60 s) go to `failed`. Shown live in the mockup.
+- **`Foreman.Merge.Action`** (PR panel, pure, held in the LiveView assign): `idle`, `confirming`, `merging`, `retargeting`, `merged`, `failed`. `request` from `idle` goes to `confirming` only under guard `mergeable_now?` (bottom of stack, checks pass, not draft, mergeable), else stays `idle` with `{:toast, reason}`. `confirm` goes to `merging` under `head_unchanged?` (enqueue `MergeJob` with the head sha), else back to `confirming` with a "head moved, re-check" warning. `merge_ok` goes to `retargeting` when a child PR exists, else `merged`. `merge_failed` and `job_timeout` (the job's own Oban timeout, 60 s) go to `failed`. Shown live in the mockup.
 - **Repo sync status** is data (`sync_status` column), not a machine: it does not change which events are handled.
 
 ## 7. Config: one TOML file
@@ -342,33 +342,33 @@ stateDiagram-v2
 
 | Kind | Where | Examples |
 |---|---|---|
-| Declarative, hand-edited, slow | `board.toml` | Repos and paths, GitHub repo per project, enabled flag, board columns (which stages, in what order, titles), default stage for beads statuses on backfill, colours and labels, swimlane default, stale-session threshold, per-epic display options (pin, collapse, colour). |
+| Declarative, hand-edited, slow | `foreman.toml` | Repos and paths, GitHub repo per project, enabled flag, board columns (which stages, in what order, titles), default stage for beads statuses on backfill, colours and labels, swimlane default, stale-session threshold, per-epic display options (pin, collapse, colour). |
 | Live, written by agents and the UI | Postgres overlay | Stage per ticket, events, sessions, notes, PR links, merge audit. |
-| Behaviour | Code (`Board.Stage`) | States, events, transitions. |
+| Behaviour | Code (`Foreman.Stage`) | States, events, transitions. |
 
-Config may **name** stages and events but cannot define or change them. `Board.Config` validates every stage name against `Board.Stage.__fsm__(:states)`; a column naming an unknown stage is a load error. That keeps the state machine's compile-time checks meaningful: a typo in TOML cannot invent a stage.
+Config may **name** stages and events but cannot define or change them. `Foreman.Config` validates every stage name against `Foreman.Stage.__fsm__(:states)`; a column naming an unknown stage is a load error. That keeps the state machine's compile-time checks meaningful: a typo in TOML cannot invent a stage.
 
 Rejected for config: YAML front matter in markdown (good for per-document metadata, poor for a typed config with tables of repos), and YAML (whitespace-sensitive, `no` becomes false). TOML matches `utils/skills/catalog.toml`.
 
 ### 7.2 Where the file lives
 
-**Recommended: one global file, `~/.config/beads-board/board.toml`, kept in dotfiles like the other `~/.config/<tool>` dirs.** It diffs and travels in version control, and the repos stay clean. Two constraints from the house setup:
+**Recommended: one global file, `~/.config/foreman/foreman.toml`, kept in dotfiles like the other `~/.config/<tool>` dirs.** It diffs and travels in version control, and the repos stay clean. Two constraints from the house setup:
 
 - dotfiles is pushed to GitHub and the commit hook blocks local operator paths, so paths in it are `~`-relative (`path = "~/dev/music/form-engine"`), expanded at load.
-- Machine-specific overrides go in an untracked `~/.config/beads-board/board.local.toml` (same convention as `~/.zshrc.local`), merged over the main file.
+- Machine-specific overrides go in an untracked `~/.config/foreman/foreman.local.toml` (same convention as `~/.zshrc.local`), merged over the main file.
 
-Not recommended for the MVP: per-repo `.beads/board.toml`. It travels with the code but adds a file to every repo, and the user wants no board cruft in repos. The loader can accept one later as a lower-priority layer without changing the schema.
+Not recommended for the MVP: per-repo `.beads/foreman.toml`. It travels with the code but adds a file to every repo, and the user wants no board cruft in repos. The loader can accept one later as a lower-priority layer without changing the schema.
 
-Defaults ship in the app (`priv/board.defaults.toml`), so the user file only holds what differs.
+Defaults ship in the app (`priv/foreman.defaults.toml`), so the user file only holds what differs.
 
 ### 7.3 Reload
 
-`Board.Config` watches the directory (not the file: editors save by rename) with `file_system` (inotify; works under `/home` on WSL2). `file_system` already arrives with `phoenix_live_reload`, but only in dev, so it is declared explicitly for runtime use (same version, no new transitive tree). On change: parse, validate, and only then swap (`:persistent_term`) and broadcast `config:changed`; on error keep the last good config and show the error in Settings. Settings also has a Reload button and shows the file path, last load time and validation result.
+`Foreman.Config` watches the directory (not the file: editors save by rename) with `file_system` (inotify; works under `/home` on WSL2). `file_system` already arrives with `phoenix_live_reload`, but only in dev, so it is declared explicitly for runtime use (same version, no new transitive tree). On change: parse, validate, and only then swap (`:persistent_term`) and broadcast `config:changed`; on error keep the last good config and show the error in Settings. Settings also has a Reload button and shows the file path, last load time and validation result.
 
 ### 7.4 Shape
 
 ```toml
-# ~/.config/beads-board/board.toml
+# ~/.config/foreman/foreman.toml
 [board]
 swimlanes = "project"           # project | epic | none
 stale_session_after = "2h"
@@ -418,20 +418,20 @@ Repo discovery: the Settings view lists `.beads` dirs found under `~/dev` that a
 
 | Option | For | Against |
 |---|---|---|
-| **`board` CLI over a local HTTP API** (recommended) | Claude Code and pi both run shell commands; nothing harness-specific. Easy to put in a brief. Same verbs a human can type. Testable. | Needs the app's HTTP API (wanted anyway) and an installed escript. |
+| **`foreman` CLI over a local HTTP API** (recommended) | Claude Code and pi both run shell commands; nothing harness-specific. Easy to put in a brief. Same verbs a human can type. Testable. | Needs the app's HTTP API (wanted anyway) and an installed escript. |
 | MCP server | Typed tools in Claude Code. | Claude-specific setup per harness; pi support unverified; another long-running process. |
 | HTTP API only (curl) | No install. | Agents hand-write JSON; error-prone; noisy briefs. |
 | Skill only | Teaches when to call. | A skill still needs a tool to call. |
 
-**Recommendation: the HTTP API plus a `board` escript, taught by a short `board` skill in utils/skills.** The skill says which verb to run at which workflow step; the CLI does the work. An MCP wrapper can be added later over the same API if Claude-side typed tools prove worth it.
+**Recommendation: the HTTP API plus a `foreman` escript, taught by a short `foreman` skill in utils/skills.** The skill says which verb to run at which workflow step; the CLI does the work. An MCP wrapper can be added later over the same API if Claude-side typed tools prove worth it.
 
 ### 8.2 CLI behaviour
 
-- Built from this repo (`mix escript.build` in `cli/`), installed to `~/.local/bin/board` by the user.
-- Talks to `http://127.0.0.1:4747/api` with a bearer token read from `~/.local/state/beads-board/token` (created by the app on first boot, mode 600, outside any repo).
+- Built from this repo (`mix escript.build` in `cli/`), installed to `~/.local/bin/foreman` by the user.
+- Talks to `http://127.0.0.1:4747/api` with a bearer token read from `~/.local/state/foreman/token` (created by the app on first boot, mode 600, outside any repo).
 - Resolves the repo from the bead id prefix; `--repo` overrides.
-- `--actor` defaults from `BOARD_ACTOR` (`claude`, `pi`), `--session` from `BOARD_SESSION` (the tmux window name). The dispatch brief sets both.
-- **Never blocks an agent.** If the app is down, the CLI appends the request to `~/.local/state/beads-board/spool.jsonl`, prints a one-line warning and exits 0; the app replays the spool on boot. Out-of-order claims exit 3 with the reason (stage, allowed events), so an agent sees it and the coordinator can decide.
+- `--actor` defaults from `FOREMAN_ACTOR` (`claude`, `pi`), `--session` from `FOREMAN_SESSION` (the tmux window name). The dispatch brief sets both.
+- **Never blocks an agent.** If the app is down, the CLI appends the request to `~/.local/state/foreman/spool.jsonl`, prints a one-line warning and exits 0; the app replays the spool on boot. Out-of-order claims exit 3 with the reason (stage, allowed events), so an agent sees it and the coordinator can decide.
 - `--json` on every command for scripts.
 
 ### 8.3 Commands per workflow step
@@ -439,15 +439,15 @@ Repo discovery: the Settings view lists `.beads` dirs found under `~/dev` that a
 | Step (flow skill) | Who | Command |
 |---|---|---|
 | tight-spec, to-tickets | coordinator | none: tickets appear from beads within a sync |
-| dispatch | coordinator | `board dispatch fe-813.4 --window fe-loop --harness pi --model gpt-6-astra --workdir ~/dev/music/form-engine --branch pr/looper --base 460b13a --brief docs/briefs/fe-loop.md --report docs/sessions/fe-loop.md` (several ids allowed for a grouped window) |
-| build | pi session | `board progress fe-813.4 "count-in and record work; loop wrap next"` |
-| report | pi session | `board report fe-813.4 --path docs/sessions/fe-loop.md` |
-| verify and review | coordinator | `board review fe-813.4`; findings back: `board changes fe-813.4 "Important: loop length not rounded to bars"` |
-| commit | coordinator | `board commit fe-813.4 --sha 9c1e2f0` |
-| stacked PR | coordinator / user | none: observed from GitHub (bead id in title or branch). Fix a miss with `board link fe-813.4 --pr 6` |
+| dispatch | coordinator | `foreman dispatch fe-813.4 --window fe-loop --harness pi --model gpt-6-astra --workdir ~/dev/music/form-engine --branch pr/looper --base 460b13a --brief docs/briefs/fe-loop.md --report docs/sessions/fe-loop.md` (several ids allowed for a grouped window) |
+| build | pi session | `foreman progress fe-813.4 "count-in and record work; loop wrap next"` |
+| report | pi session | `foreman report fe-813.4 --path docs/sessions/fe-loop.md` |
+| verify and review | coordinator | `foreman review fe-813.4`; findings back: `foreman changes fe-813.4 "Important: loop length not rounded to bars"` |
+| commit | coordinator | `foreman commit fe-813.4 --sha 9c1e2f0` |
+| stacked PR | coordinator / user | none: observed from GitHub (bead id in title or branch). Fix a miss with `foreman link fe-813.4 --pr 6` |
 | merge | user | in the PR panel |
 | close bead | coordinator | `bd close fe-813.4 --reason ...` as today; the board observes it |
-| any | anyone | `board show fe-813.4` (stage, session, allowed next events), `board ls --stage building` |
+| any | anyone | `foreman show fe-813.4` (stage, session, allowed next events), `foreman ls --stage building` |
 
 ### 8.4 HTTP API
 
@@ -484,7 +484,7 @@ The MVP must not foreclose writing to beads. What keeps it open:
 
 1. **One writer per field.** Beads fields are never stored as authoritative in the overlay. A later write goes `UI or agent -> command -> bd CLI -> next sync observes it -> projection`. No dual write, no conflict resolution.
 2. **Writes only through `bd`,** never into Dolt files or `issues.jsonl`, so bd's own audit and export keep working.
-3. **Effects are already data.** The `merged` state's entry effect is `suggest: :close_bead`. Two-way sync adds an effect kind `{:bd, :close, reason}` and a `Board.Beads.Writer` adapter; the machine changes by a row edit that shows in the golden matrix.
+3. **Effects are already data.** The `merged` state's entry effect is `suggest: :close_bead`. Two-way sync adds an effect kind `{:bd, :close, reason}` and a `Foreman.Beads.Writer` adapter; the machine changes by a row edit that shows in the golden matrix.
 4. **The sync is idempotent and hash-based,** so the echo of our own write is a no-op.
 5. **Keys are `(repo_key, bead_id)`,** which `bd` accepts directly.
 
@@ -492,14 +492,14 @@ Writes then need what reads do not: the concurrency probe result from 4.2, a per
 
 ## 12. Open questions (with recommended answers)
 
-1. **Config location.** Global `~/.config/beads-board/board.toml` in dotfiles plus untracked `board.local.toml`, or per-repo `.beads/board.toml`? *Recommend global* (section 7.2).
+1. **Config location.** Global `~/.config/foreman/foreman.toml` in dotfiles plus untracked `foreman.local.toml`, or per-repo `.beads/foreman.toml`? *Recommend global* (section 7.2).
 2. **we_go_next_dev runs Dolt in server mode** with auto-start off, against the house rule, and its server is down. *Recommend:* show it as unreachable in the board; migrate it to embedded in a ticket of its own in that repo. The board never starts servers.
 3. **cooldown-o-matic** has no remote and its `cdo-uha.6` plans to merge its beads into ui-o-matic. *Recommend:* include it read-only now; drop it from config when the merge lands.
 4. **Delete merged branches?** *Recommend no* for the MVP: retarget the child PR instead; branch cleanup stays manual.
-5. **Should the `dispatch` skill call `board dispatch` itself** (in `pi-window`)? *Recommend yes,* as a separate skills ticket after the CLI exists, plus `BOARD_ACTOR`/`BOARD_SESSION` in the brief template.
+5. **Should the `dispatch` skill call `foreman dispatch` itself** (in `pi-window`)? *Recommend yes,* as a separate skills ticket after the CLI exists, plus `FOREMAN_ACTOR`/`FOREMAN_SESSION` in the brief template.
 6. **How it runs.** *Recommend* `MIX_ENV=prod` release under a user systemd unit (WSL2 systemd is on, Postgres runs as a service), port 4747, so it is up whenever agents are.
 7. **Write auth.** *Recommend* a bearer token for the API (any local process or browser page could otherwise POST a merge to localhost) and LiveView's CSRF for the UI.
-8. **Where `Board.Fsm` lives.** *Recommend* in this repo (`lib/board/fsm.ex`), extracted to a shared lib when a second Elixir repo needs it, per the principle.
+8. **Where `Foreman.Fsm` lives.** *Recommend* in this repo (`lib/foreman/fsm.ex`), extracted to a shared lib when a second Elixir repo needs it, per the principle.
 9. **Stage for historic tickets.** *Recommend* backfill closed beads to `done`, open to `queued`, recorded as `backfill` events.
 10. **Ticket in several PRs, or PR for several tickets.** *Recommend* allow both (link table); the ticket's stage follows the `other_open_pr?` guard.
 
@@ -511,14 +511,14 @@ Vertical slices; each ends with something visible and a passing `mix precommit`.
 |---|---|---|---|
 | S0 | **Probe: bd concurrency.** Embedded store, `bd export` loop against `bd note` loop in a scratch copy. | Written result: safe, or back-off rule. | none |
 | S1 | **Scaffold.** `phx.new` (Phoenix 1.8.7, LiveView 1.1.31), Postgres, Oban, Fluxon wired, `mix precommit` alias, license guard. Empty Fluxon-themed shell with sidebar, dark mode. | App boots at 127.0.0.1:4747; precommit passes; no license material in the tree. | none |
-| S2 | **`Board.Fsm` macro** with all section 6.2 checks, `step/3`, Mermaid and matrix, golden-file test, StreamData property test (random event sequences never raise, observed events never invalid). | Each check has a failing-fixture test that asserts the compile error. | none |
-| S3 | **Config.** TOML load, validate against `Board.Stage` states, watch and hot swap, Settings view. | Edit the file, the Settings view updates; a bad stage name shows an error and keeps the old config. | S1, S2 (stage names) |
-| S4 | **Beads read model.** Reader over `bd export`, projection tables, sync job, watcher, hash skip, unreachable state. Board view with beads status only. | All six repos appear; we_go_next_dev shows unreachable; a `bd note` in form-engine shows within 5 s. | S0, S1, S3 |
-| S5 | **Stage overlay.** `Board.Stage`, overlay tables, `apply_event/3`, backfill, board columns from config, ticket detail sheet with history. | Backfilled stages match beads status; events from iex move cards live. | S2, S4 |
-| S6 | **Agent API and `board` CLI.** Token, events endpoint, spool when down, `board` skill draft. | A pi session's `board progress` and `board report` move a card; with the app stopped the CLI exits 0 and the spool replays on boot. | S5 |
+| S2 | **`Foreman.Fsm` macro** with all section 6.2 checks, `step/3`, Mermaid and matrix, golden-file test, StreamData property test (random event sequences never raise, observed events never invalid). | Each check has a failing-fixture test that asserts the compile error. | none |
+| S3 | **Config.** TOML load, validate against `Foreman.Stage` states, watch and hot swap, Settings view. | Edit the file, the Settings view updates; a bad stage name shows an error and keeps the old config. | S1, S2 (stage names) |
+| S4 | **Beads read model.** Reader over `bd export`, projection tables, sync job, watcher, hash skip, unreachable state. Foreman view with beads status only. | All six repos appear; we_go_next_dev shows unreachable; a `bd note` in form-engine shows within 5 s. | S0, S1, S3 |
+| S5 | **Stage overlay.** `Foreman.Stage`, overlay tables, `apply_event/3`, backfill, board columns from config, ticket detail sheet with history. | Backfilled stages match beads status; events from iex move cards live. | S2, S4 |
+| S6 | **Agent API and `foreman` CLI.** Token, events endpoint, spool when down, `foreman` skill draft. | A pi session's `foreman progress` and `foreman report` move a card; with the app stopped the CLI exits 0 and the spool replays on boot. | S5 |
 | S7 | **Epic view.** Children, blocking graph, progress, stage histogram. | `fe-813` renders its 9 children and edges matching `bd graph`. | S5 |
 | S8 | **GitHub read.** PR sync, stack order, linking, PR panel read-only, `pr_opened` / `pr_merged` / `pr_closed` events. | A test stack (two draft PRs in a scratch GitHub repo) shows in order with links. | S5 |
-| S9 | **Merge action.** `Board.Merge.Action` machine, confirm modal, `MergeJob` with sha guard, `RetargetJob`, audit table. | In the scratch repo: out-of-order refused, bottom PR merges with a merge commit, child retargets to main, stage goes to merged. | S8 |
-| S10 | **Dispatch integration** (utils/skills ticket): `pi-window` calls `board dispatch`, brief template sets `BOARD_*`. | A real dispatch shows on the board with window, branch and brief. | S6 |
+| S9 | **Merge action.** `Foreman.Merge.Action` machine, confirm modal, `MergeJob` with sha guard, `RetargetJob`, audit table. | In the scratch repo: out-of-order refused, bottom PR merges with a merge commit, child retargets to main, stage goes to merged. | S8 |
+| S10 | **Dispatch integration** (utils/skills ticket): `pi-window` calls `foreman dispatch`, brief template sets `FOREMAN_*`. | A real dispatch shows on the board with window, branch and brief. | S6 |
 
 S1 and S2 can run in parallel; S7 and S8 can run in parallel after S5.

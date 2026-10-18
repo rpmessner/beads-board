@@ -1,6 +1,6 @@
 # Session launcher
 
-Status: approved 2026-10-18. Board draft epic `draft:session-launcher`. Builds after the rename (bb-c2w.17) and the approvals inbox backbone (bb-zgd.1); names below use foreman.
+Status: approved 2026-10-18. Foreman draft epic `draft:session-launcher`. Builds after the rename (bb-c2w.17) and the approvals inbox backbone (bb-zgd.1); names below use foreman.
 
 ## Goal
 
@@ -29,7 +29,7 @@ Loose tickets and unspecced epics have no home today: starting work on one means
 6a. **Usage limits** (user, 2026-10-18). Session waiting carries a reason: input, permission or usage_limit. A provider limit (Codex usage limit, Anthropic extra-usage refusal, HTTP 429) on a launched session is reported through a per-launch API-error hook if Claude Code offers one, else by reading the pane; on a pi build session the coordinator reports it when `pi-wait` exits LIMITED. The request names the provider and the reset time when the message gives one, and clears when the session produces output again. Its **Continue** button sends exactly `continue` and Enter to that window, only on the user's click; it is the only text the board ever types into a session, and only on usage_limit requests.
 7. **Notification drawer** (user). A drawer opened from the Needs you badge on any page lists pending requests, session waiting included, so the user can act without leaving the page; Needs you stays the full page.
 8. **Tracking** (user). Each launch gets a fixed Claude session id (`--session-id <uuid>`) stored on the board's session record with project, ticket, window and launch time. The ticket shows the session's state and a copyable attach command (`tmux -L foreman attach -t <project>` plus the window). The board reads liveness from tmux (window present, pane process alive) and activity from the hooks.
-9. **Session machine** (agent call), on `Board.Fsm`:
+9. **Session machine** (agent call), on `Foreman.Fsm`:
 
    | From | Event | To | Effects |
    |---|---|---|---|

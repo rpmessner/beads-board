@@ -1,0 +1,26 @@
+[Unit]
+Description=foreman queues, reader, scheduler and config watcher
+StartLimitIntervalSec=0
+
+[Service]
+Type=exec
+WorkingDirectory=%h/.local/lib/foreman/current
+EnvironmentFile=%h/.config/foreman/runtime.env
+Environment=FOREMAN_ROLE=worker RELEASE_DISTRIBUTION=none
+Environment=RELEASE_TMP=%t/foreman-worker
+UnsetEnvironment=SECRET_KEY_BASE PHX_SERVER FLUXON_LICENSE_KEY FLUXON_KEY_FINGERPRINT
+ExecStart=%h/.local/lib/foreman/current/bin/foreman start
+Restart=always
+RestartSec=5s
+KillSignal=SIGTERM
+KillMode=mixed
+TimeoutStopSec=90s
+RuntimeDirectory=foreman-worker
+RuntimeDirectoryMode=0700
+UMask=0077
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=foreman-worker
+
+[Install]
+WantedBy=default.target

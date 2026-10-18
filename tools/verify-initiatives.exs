@@ -1,10 +1,10 @@
-# Run with BOARD_ROLE=web mix run tools/verify-initiatives.exs after the guarded
+# Run with FOREMAN_ROLE=web mix run tools/verify-initiatives.exs after the guarded
 # sync has loaded the intended read-only repositories. No bd write is performed.
 Logger.configure(level: :warning)
-alias Board.Beads.{Command, JournalLock, Store}
+alias Foreman.Beads.{Command, JournalLock, Store}
 
-snapshot = Board.Initiatives.snapshot()
-checks = [{"form-engine", "fe-813"}, {"form-engine", "fe-lwp"}, {"beads-board", "bb-c2w"}]
+snapshot = Foreman.Initiatives.snapshot()
+checks = [{"form-engine", "fe-813"}, {"form-engine", "fe-lwp"}, {"foreman", "bb-c2w"}]
 
 exports =
   for repo_key <- Enum.uniq(Enum.map(checks, &elem(&1, 0))), into: %{} do

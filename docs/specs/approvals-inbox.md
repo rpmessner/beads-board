@@ -1,6 +1,6 @@
 # Approvals inbox
 
-Status: approved 2026-10-18. Board draft epic `draft:approvals-inbox`.
+Status: approved 2026-10-18. Foreman draft epic `draft:approvals-inbox`.
 
 ## Goal
 
@@ -39,7 +39,7 @@ The user wants the board to own the ticket lifecycle from `/to-tickets` on, and 
    A push or PR asked while the ticket is not yet `committed` is refused at creation.
 
    **Default branch** (user): a push to the repo's default branch is allowed only for a one-off ticket (no parent epic: the Unplanned group), fast-forward only. Work inside an epic reaches the default branch only through a PR; a default-branch push for it is refused at creation and again in the job.
-7. **Request machine** (agent call), on `Board.Fsm`:
+7. **Request machine** (agent call), on `Foreman.Fsm`:
 
    | From | Event | To | Effects |
    |---|---|---|---|
@@ -56,19 +56,19 @@ The user wants the board to own the ticket lifecycle from `/to-tickets` on, and 
    | everything else: claimed events invalid, observed events ignored | | | |
 
    A failed or superseded request is never retried in place; the asker posts a new one.
-8. **Asking and waiting** (agent call). The CLI gains `board ask <kind> <ticket> …` (returns the request id at once) and `board wait <request> [--timeout]` (prints the outcome as JSON when it resolves). Both keep the CLI rule: never fail an agent; a timeout prints the current state and exits 0. Build sessions ask a decision and wait in their own shell; the coordinator asks for push and PR at close-out and waits in the background.
+8. **Asking and waiting** (agent call). The CLI gains `foreman ask <kind> <ticket> …` (returns the request id at once) and `foreman wait <request> [--timeout]` (prints the outcome as JSON when it resolves). Both keep the CLI rule: never fail an agent; a timeout prints the current state and exits 0. Build sessions ask a decision and wait in their own shell; the coordinator asks for push and PR at close-out and waits in the background.
 9. **The page** (agent call; Fluxon, house copy rules). A "Needs you" page, linked first in the sidebar with a count badge, lists pending requests oldest first. Each card shows the facts from Decision 6 and the ticket, then Approve and Decline (with an optional note); a decision shows its options with the recommendation marked, plus free text. Recent outcomes (done, failed, declined, superseded) below, collapsed. The ticket sheet shows that ticket's requests in a Requests tab.
-10. **Notifications** (user). An in-app count in the sidebar and the tab title (`(2) beads-board`), plus one browser notification per new pending request through the Notification API, which shows as a native toast on Windows and in Notification Center on macOS. Permission is asked only from an explicit "Turn on notifications" control, never on load. Needs a board tab open (any, background is fine); no push service.
-11. **Skills integration** (user: board owns the lifecycle after `/to-tickets`). `dispatch`: build briefs say to ask build-time questions through `board ask decision` and wait; close-out posts push and open_pr requests after the commit instead of asking in the terminal, and waits for them before the next step. `board` skill documents the new verbs. The "agents never push" rule stays and gains a line: pushes go through board requests.
+10. **Notifications** (user). An in-app count in the sidebar and the tab title (`(2) foreman`), plus one browser notification per new pending request through the Notification API, which shows as a native toast on Windows and in Notification Center on macOS. Permission is asked only from an explicit "Turn on notifications" control, never on load. Needs a board tab open (any, background is fine); no push service.
+11. **Skills integration** (user: board owns the lifecycle after `/to-tickets`). `dispatch`: build briefs say to ask build-time questions through `foreman ask decision` and wait; close-out posts push and open_pr requests after the commit instead of asking in the terminal, and waits for them before the next step. `foreman` skill documents the new verbs. The "agents never push" rule stays and gains a line: pushes go through board requests.
 
 ## Acceptance checks
 
-1. Push, against `rpmessner/beads-board-scratch`: a request created by the CLI for a committed ticket appears on the page and fires one browser notification; approving it puts the branch on GitHub at exactly the named sha; the audit shows one attempt.
+1. Push, against `rpmessner/foreman-scratch`: a request created by the CLI for a committed ticket appears on the page and fires one browser notification; approving it puts the branch on GitHub at exactly the named sha; the audit shows one attempt.
 2. Moving the local branch after asking marks the request superseded before approval; approving a request whose remote branch diverged fails with "not a fast-forward" and pushes nothing.
 3. Open PR, scratch repo: approval creates the PR with the named base, title and body; the ticket moves to `pr_open` through the observed read, not through the request.
 4. Merge: approving a merge request runs the existing confirm flow; acceptance check 8 of the MVP spec still passes.
 5. Decision: a real pi build session posts a question, the user answers on the board, and the session's pane shows it continuing with that answer, with no terminal input.
-6. Decline with a note: the asker's `board wait` prints declined and the note; nothing executes.
+6. Decline with a note: the asker's `foreman wait` prints declined and the note; nothing executes.
 7. Killing the worker while a push job runs leaves the request `failed` with "outcome unknown" after rescue, and no second push happens.
 8. Notifications: the badge and tab title track the pending count across two open tabs; no permission prompt appears without the control being clicked; with permission, exactly one notification per new request.
 9. A real dispatch close-out (next ticket after this lands) pushes and opens its PR through board requests, with no push or PR question in the terminal, and the agent push hook still blocks a direct `git push` by an agent.
@@ -85,7 +85,7 @@ The user wants the board to own the ticket lifecycle from `/to-tickets` on, and 
 
 ## Ask-first boundaries
 
-- Any push, PR or merge outside `rpmessner/beads-board-scratch` during the build.
+- Any push, PR or merge outside `rpmessner/foreman-scratch` during the build.
 - Changing the agent push hook or any harness file.
 - Adding a push service, a native notifier, or new credentials.
 - Any local git command other than `push`.

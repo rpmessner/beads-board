@@ -7,7 +7,7 @@ const fs = require('node:fs');
   const page = await browser.newPage({viewport: {width: 1440, height: 1000}});
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  const base = process.env.BOARD_URL || 'http://127.0.0.1:4758';
+  const base = process.env.FOREMAN_URL || 'http://127.0.0.1:4758';
   const out = 'docs/acceptance/bb-forge';
   fs.mkdirSync(out, {recursive:true});
   await page.goto(base + '/pull-requests?project=form-engine');

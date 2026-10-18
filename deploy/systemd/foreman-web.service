@@ -1,0 +1,27 @@
+[Unit]
+Description=foreman web endpoint
+StartLimitIntervalSec=0
+
+[Service]
+Type=exec
+WorkingDirectory=%h/.local/lib/foreman/current
+EnvironmentFile=%h/.config/foreman/runtime.env
+EnvironmentFile=%h/.config/foreman/web.env
+Environment=FOREMAN_ROLE=web PHX_SERVER=true RELEASE_DISTRIBUTION=none
+Environment=RELEASE_TMP=%t/foreman-web
+UnsetEnvironment=FLUXON_LICENSE_KEY FLUXON_KEY_FINGERPRINT
+ExecStart=%h/.local/lib/foreman/current/bin/foreman start
+Restart=always
+RestartSec=5s
+KillSignal=SIGTERM
+KillMode=mixed
+TimeoutStopSec=90s
+RuntimeDirectory=foreman-web
+RuntimeDirectoryMode=0700
+UMask=0077
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=foreman-web
+
+[Install]
+WantedBy=default.target
