@@ -2,7 +2,7 @@
 id: fm-axu.4
 title: "Skills and house rules switch to board ticket commands"
 type: task
-status: open
+status: in_progress
 priority: 2
 parent: fm-axu
 blocked_by: ["fm-axu.3"]
