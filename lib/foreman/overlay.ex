@@ -25,6 +25,21 @@ defmodule Foreman.Overlay do
     :inserted_at
   ]
 
+  @doc "Whether this exact document path was recorded for the project."
+  def document_reference?(repo, path) when is_binary(path) do
+    fields = ~w(brief brief_path report report_path path spec spec_path spec_link)
+
+    predicate =
+      Enum.reduce(fields, dynamic(false), fn field, query ->
+        dynamic([e], ^query or fragment("? ->> ? = ?", e.payload, ^field, ^path))
+      end)
+
+    Repo.exists?(from e in "stage_events", where: e.repo_key == ^repo, where: ^predicate) or
+      Repo.exists?(from e in "epics", where: e.repo_key == ^repo and e.spec_link == ^path)
+  end
+
+  def document_reference?(_, _), do: false
+
   def backfill(repo, beads) do
     {:ok, :ok} =
       Repo.transaction(fn ->

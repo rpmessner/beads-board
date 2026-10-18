@@ -1,0 +1,7 @@
+≈ tailwindcss v4.1.12
+
+Done in 177ms
+
+  ../priv/static/assets/js/app.js  761.9kb
+
+⚡ Done in 38ms

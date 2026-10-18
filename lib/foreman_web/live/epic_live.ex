@@ -73,7 +73,9 @@ defmodule ForemanWeb.EpicLive do
             <p class="text-xs text-foreground-softer">
               {@epic.planned_count} planned · {@epic.fallout_count} fallout
             </p>
-            <p :if={@epic.spec_link} class="font-mono text-xs">{@epic.spec_link}</p>
+            <p :if={@epic.spec_link}>
+              <ForemanWeb.TicketDetail.document_link repo={elem(@epic_key, 0)} path={@epic.spec_link} />
+            </p>
           </div>
           <div :if={@epic.total > 0} class="w-64 space-y-2">
             <p class="flex justify-between text-xs">
@@ -97,6 +99,7 @@ defmodule ForemanWeb.EpicLive do
               :for={{id, event} <- @streams.epic_history}
               id={id}
               event={event}
+              repo={elem(@epic_key, 0)}
             />
           </div>
         </section>

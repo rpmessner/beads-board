@@ -32,6 +32,23 @@ defmodule ForemanWeb.InitiativesLiveTest do
     :ok
   end
 
+  test "ticket sections render Markdown and disabled acceptance checkboxes", %{conn: conn} do
+    raw =
+      b("markdown", "task")
+      |> Map.merge(%{
+        description: "## Reader\n\n[Spec](docs/spec.md)\n\n<script>alert(1)</script>",
+        acceptance_criteria: "- [x] Complete\n- [ ] Pending",
+        design: "**Design**"
+      })
+
+    Foreman.Beads.Projection.replace("sample", Jason.encode!(raw))
+    {:ok, view, _} = live(conn, "/?ticket=sample:markdown")
+    assert has_element?(view, "#ticket-overview .fm-markdown h2", "Reader")
+    assert has_element?(view, "#ticket-overview input[type=checkbox][disabled][checked]")
+    assert has_element?(view, "#ticket-overview a[href='/documents/sample?path=docs%2Fspec.md']")
+    refute has_element?(view, "#ticket-overview script")
+  end
+
   test "overview omits absent fields and empty relationship sections", %{conn: conn} do
     raw =
       b("empty", "task") |> Map.merge(%{close_reason: nil, labels: [], closed_at: nil, notes: ""})
@@ -256,7 +273,19 @@ defmodule ForemanWeb.InitiativesLiveTest do
     assert has_element?(view, "#ticket-history [data-outcome=row]", "docs/brief.md")
     assert has_element?(view, "#ticket-history [data-outcome=row]", "builder")
     assert has_element?(view, "#ticket-history dt", "Report")
-    assert has_element?(view, "#ticket-history dd", "docs/report.md")
+
+    assert has_element?(
+             view,
+             "#ticket-history a[href='/documents/sample?path=docs%2Freport.md']",
+             "docs/report.md"
+           )
+
+    assert has_element?(
+             view,
+             "#ticket-history a[href='/documents/sample?path=docs%2Fbrief.md']",
+             "docs/brief.md"
+           )
+
     assert has_element?(view, "#ticket-history dd", "Verified result")
     refute has_element?(view, "#ticket-history [data-outcome=row] [data-history-outcome]")
     refute has_element?(view, "#ticket-history", "hidden-detail")
@@ -335,6 +364,7 @@ defmodule ForemanWeb.InitiativesLiveTest do
 
     {:ok, view, _} = live(conn, "/")
     assert has_element?(view, "#drafts [data-bead='draft:next']", "idea")
+    assert has_element?(view, "#drafts a[href='/documents/sample?path=docs%2Fnext.md']")
     assert has_element?(view, "#drafts-panel ~ #epics-panel")
     view |> form("#initiative-filters", filters: %{status: "closed"}) |> render_change()
     refute has_element?(view, "#drafts-panel")
