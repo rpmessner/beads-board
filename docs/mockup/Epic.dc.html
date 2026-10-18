@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Epic fe-813</title>
+<title>Epic view</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -12,58 +12,167 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0}
-.fx{--bg:oklch(100% 0 0);--sunken:oklch(96.7% .001 286.375);--surface:#fff;--border:oklch(92% .004 286.32);--fg:oklch(37% .013 285.805);--fg-strong:oklch(21% .006 285.885);--fg-soft:oklch(44.2% .017 285.786);--fg-softer:oklch(55.2% .016 285.938);--primary:oklch(27.4% .006 286.033);--on-primary:#fff;--accent:oklch(96.7% .001 286.375);--danger:oklch(57.7% .245 27.325);--success:oklch(62.7% .194 149.214);--warning:oklch(82.8% .189 84.429);--info:oklch(54.6% .245 262.881);--mix:10%;--fgmix:black 15%;--wfgmix:black 45%;--shadow:0 1px 2px 0 #0000000d;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--fg);background:var(--bg);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+.fx{--bg:oklch(100% 0 0);--sunken:oklch(96.7% .001 286.375);--surface:#fff;--border:oklch(92% .004 286.32);--fg:oklch(37% .013 285.805);--fg-strong:oklch(21% .006 285.885);--fg-soft:oklch(44.2% .017 285.786);--fg-softer:oklch(55.2% .016 285.938);--primary:oklch(27.4% .006 286.033);--on-primary:#fff;--accent:oklch(96.7% .001 286.375);--danger:oklch(57.7% .245 27.325);--success:oklch(62.7% .194 149.214);--warning:oklch(82.8% .189 84.429);--info:oklch(54.6% .245 262.881);--h-queued:oklch(87.1% .006 286.286);--h-done:oklch(55.2% .016 285.938);--mix:10%;--fgmix:black 15%;--wfgmix:black 45%;--shadow:0 1px 2px 0 #0000000d;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--fg);background:var(--bg);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+.fx.dark{--bg:oklch(21% .006 285.885);--sunken:oklch(19.1% .006 285.885);--surface:oklch(28.6% .006 285.885);--border:#ffffff1f;--fg:oklch(92% .004 286.32);--fg-strong:#fff;--fg-soft:oklch(87.1% .006 286.286);--fg-softer:oklch(70.5% .015 286.067);--primary:#fff;--on-primary:oklch(27.4% .006 286.033);--accent:oklch(37% .013 285.805);--h-queued:oklch(44.2% .017 285.786);--h-done:oklch(70.5% .015 286.067);--mix:20%;--fgmix:white 60%;--wfgmix:white 30%;--shadow:0 1px 2px 0 #0000004d}
 .mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
 .badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--fg-soft)}
 .b-neutral{background:var(--sunken)}
 .b-info{background:color-mix(in oklab,var(--info) var(--mix),var(--bg));color:color-mix(in oklab,var(--info),var(--fgmix));border-color:color-mix(in oklab,var(--info) 30%,var(--bg))}
 .b-success{background:color-mix(in oklab,var(--success) var(--mix),var(--bg));color:color-mix(in oklab,var(--success),var(--fgmix));border-color:color-mix(in oklab,var(--success) 30%,var(--bg))}
 .b-warning{background:color-mix(in oklab,var(--warning) var(--mix),var(--bg));color:color-mix(in oklab,var(--warning),var(--wfgmix));border-color:color-mix(in oklab,var(--warning) 50%,var(--bg))}
+.b-solid{background:var(--success);color:#fff;border-color:transparent}
 .b-dashed{border-style:dashed;background:transparent}
 .dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
 .sec{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-softer)}
 .muted{color:var(--fg-softer);font-size:12px;line-height:16px}
+.nav a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--fg-soft);text-decoration:none;font-weight:500}
+.nav a:hover{background:var(--accent);color:var(--fg-strong)}
+.nav a.on{background:var(--accent);color:var(--fg-strong)}
+.seg{display:inline-flex;padding:3px;gap:2px;background:var(--sunken);border:1px solid var(--border);border-radius:8px}
+.seg button{height:28px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--fg-soft);font:500 13px/20px Inter,system-ui,sans-serif;cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--fg-strong);box-shadow:var(--shadow)}
+.tcard{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);text-decoration:none;color:var(--fg)}
+.tcard:hover{border-color:color-mix(in oklab,var(--fg-softer) 50%,var(--border))}
+.ttl{color:var(--fg-strong);font-weight:500;font-size:13px;line-height:18px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.step{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);min-width:0}
+.step.past{background:color-mix(in oklab,var(--success) 6%,var(--bg));border-color:color-mix(in oklab,var(--success) 30%,var(--bg))}
+.step.now{background:color-mix(in oklab,var(--info) 8%,var(--bg));border-color:color-mix(in oklab,var(--info) 45%,var(--bg))}
+.step.none{border-style:dashed;background:transparent;box-shadow:none}
 .gcard{position:absolute;width:160px;height:64px;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);display:flex;align-items:center;font-size:12px;line-height:16px;color:var(--fg-strong)}
 .g-done{background:color-mix(in oklab,var(--success) 8%,var(--bg));border-color:color-mix(in oklab,var(--success) 30%,var(--bg))}
 .g-live{background:color-mix(in oklab,var(--info) 10%,var(--bg));border-color:color-mix(in oklab,var(--info) 45%,var(--bg))}
 .g-ext{border-style:dashed;background:transparent;box-shadow:none}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th{text-align:left;font-weight:500;color:var(--fg-softer);font-size:12px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--sunken)}
-td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong);vertical-align:top}
+.g-fall{border-color:color-mix(in oklab,var(--warning) 70%,var(--bg));border-style:dashed}
 </style>
 </helmet>
-<div class="fx" style="min-height: 100vh; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px; background: var(--bg)">
+<div class="{{rootClass}}" style="min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg)">
+
+<aside style="flex: 1 1 240px; max-width: 260px; min-width: 220px; box-sizing: border-box; padding: 16px 12px; border-right: 1px solid var(--border); background: var(--sunken); display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="color: var(--fg-strong)"><circle cx="5" cy="12" r="2.5"></circle><circle cx="12" cy="12" r="2.5"></circle><circle cx="19" cy="12" r="2.5"></circle><path d="M7.5 12h2M14.5 12h2"></path></svg>
+<span style="font-weight: 600; color: var(--fg-strong); font-size: 15px">beads-board</span>
+</div>
+<nav class="nav" aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
+<a class="on" href="Main.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h7"></path><circle cx="19" cy="18" r="2"></circle></svg>Initiatives</a>
+<a href="PRs.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="5" r="2"></circle><circle cx="6" cy="19" r="2"></circle><circle cx="18" cy="19" r="2"></circle><path d="M6 7v10M18 17V9a3 3 0 0 0-3-3h-3"></path></svg>Pull requests<span class="badge b-neutral" style="margin-left: auto; height: 20px">2</span></a>
+<a href="Settings.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"></path></svg>Settings</a>
+</nav>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div class="muted" style="padding: 0 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; font-size: 11px">Epics in form-engine</div>
+<sc-for list="{{epicNav}}" as="n" hint-placeholder-count="2">
+<button onClick="{{n.pick}}" style="{{n.style}}"><span class="mono" style="font-size: 11px; color: var(--fg-softer)">{{n.id}}</span><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{n.title}}</span></button>
+</sc-for>
+</div>
+<div style="margin-top: auto; padding: 0 10px" class="muted">Synced via <span class="mono">bd export</span>, 4 s ago</div>
+</aside>
+
+<main style="flex: 999 1 640px; min-width: 0; box-sizing: border-box; padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 24px">
 
 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
-<a href="Main.dc.html" style="color: var(--fg-soft); font-size: 13px">Board</a><span class="muted">/</span>
+<a href="Main.dc.html" style="color: var(--fg-soft); font-size: 13px">Initiatives</a><span class="muted">/</span>
 <span style="width: 8px; height: 8px; border-radius: 3px; background: oklch(58% .2 295)"></span><span class="muted" style="font-size: 13px">form-engine</span><span class="muted">/</span>
-<span class="mono" style="color: var(--fg-strong)">fe-813</span>
+<span class="mono" style="color: var(--fg-strong)">{{ep.id}}</span>
 </div>
 
 <header style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end">
 <div style="flex: 999 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
-<div style="display: flex; gap: 6px"><span class="badge">epic</span><span class="badge">P2</span><span class="badge b-dashed">bd: open</span></div>
-<h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: var(--fg-strong)">Doodler step 1: Record mode looper</h1>
-<div class="muted" style="font-size: 13px">9 children · blocking edges from <span class="mono">bd export</span> · one outside blocker (<span class="mono">fe-lwp.7</span>, hardware bring-up)</div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="badge b-info"><span class="dot"></span>Stage: {{ep.stage}}</span><span class="badge">epic</span><span class="badge">{{ep.prio}}</span><span class="badge b-dashed">bd: open</span></div>
+<h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: var(--fg-strong)">{{ep.title}}</h1>
+<div class="muted" style="font-size: 13px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"></path><path d="M14 3v5h5"></path></svg>
+<span class="mono" style="color: var(--fg-soft)">{{ep.spec}}</span><span>·</span><span>{{ep.counts}}</span>
+</div>
 </div>
 <div style="flex: 1 1 340px; display: flex; flex-direction: column; gap: 8px">
-<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: var(--fg-strong); font-weight: 500">3 of 9 closed</span><span class="muted">33%</span></div>
-<div role="img" aria-label="Stages: 3 done, 1 building, 5 queued" style="display: flex; height: 10px; border-radius: 99px; overflow: hidden; gap: 2px; background: var(--sunken)">
-<div style="flex: 3; background: var(--success)"></div>
-<div style="flex: 1; background: var(--info)"></div>
-<div style="flex: 5; background: oklch(87.1% .006 286.286)"></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: var(--fg-strong); font-weight: 500">{{ep.closed}} of {{ep.total}} closed</span><span class="muted">{{ep.pct}}%</span></div>
+<div role="img" aria-label="{{ep.histLabel}}" style="display: flex; height: 10px; border-radius: 99px; overflow: hidden; gap: 2px; background: var(--sunken)">
+<sc-for list="{{ep.bar}}" as="b" hint-placeholder-count="3">
+<div style="flex: {{b.n}}; background: {{b.c}}"></div>
+</sc-for>
 </div>
 <div style="display: flex; gap: 14px; flex-wrap: wrap" class="muted">
-<span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--success)"></span>done 3</span>
-<span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--info)"></span>building 1</span>
-<span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(87.1% .006 286.286)"></span>queued 5 (1 ready, 4 blocked)</span>
+<sc-for list="{{ep.bar}}" as="b" hint-placeholder-count="3">
+<span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{b.c}}"></span>{{b.label}} {{b.n}}</span>
+</sc-for>
 </div>
 </div>
 </header>
 
 <section style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+<div class="sec">Epic stage history · Board.Epic</div>
+<span class="muted">{{ep.historyNote}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{ep.steps}}" as="s" hint-placeholder-count="5">
+<div class="{{s.cls}}">
+<span class="mono" style="color: var(--fg-strong); font-weight: 500">{{s.name}}</span>
+<span class="muted">{{s.when}}</span>
+<span class="muted" style="overflow-wrap: anywhere">{{s.detail}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+<div class="sec">Tickets by stage · columns from board.toml</div>
+<span style="flex: 1"></span>
+<span class="muted">Demo: open epic</span>
+<div class="seg" role="group" aria-label="Demo epic">
+<sc-for list="{{epicSeg}}" as="g" hint-placeholder-count="2">
+<button class="{{g.cls}}" onClick="{{g.pick}}">{{g.id}}</button>
+</sc-for>
+</div>
+</div>
+<div style="overflow-x: auto; padding-bottom: 4px">
+<div style="min-width: 1040px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 132px repeat(5, minmax(0, 1fr)); gap: 12px; padding: 0 0 10px; border-bottom: 1px solid var(--border)">
+<span></span>
+<sc-for list="{{cols}}" as="c" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-weight: 600; color: var(--fg-strong)">{{c.title}}</span>
+<span class="badge b-neutral" style="height: 20px; padding: 0 6px">{{c.count}}</span>
+<span class="muted" style="margin-left: auto">{{c.stages}}</span>
+</div>
+</sc-for>
+</div>
+<sc-for list="{{bands}}" as="band" hint-placeholder-count="2">
+<div style="display: grid; grid-template-columns: 132px repeat(5, minmax(0, 1fr)); gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border)">
+<div style="display: flex; flex-direction: column; gap: 4px; padding-top: 4px">
+<span style="font-weight: 600; color: var(--fg-strong); font-size: 13px">{{band.name}}</span>
+<span class="muted">{{band.sub}}</span>
+</div>
+<sc-for list="{{band.cells}}" as="cell" hint-placeholder-count="5">
+<div style="{{band.cellStyle}}">
+<sc-for list="{{cell.cards}}" as="t" hint-placeholder-count="2">
+<a class="tcard" href="Ticket.dc.html">
+<div style="display: flex; align-items: center; gap: 6px"><span class="mono" style="color: var(--fg-soft)">{{t.id}}</span><span class="muted" style="margin-left: auto">{{t.type}} · {{t.prio}}</span></div>
+<div class="ttl">{{t.title}}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+<span class="{{t.stageCls}}"><span class="dot"></span>{{t.stage}}</span>
+<span class="badge b-dashed" title="beads status">bd: {{t.bd}}</span>
+</div>
+<sc-if value="{{t.meta}}" hint-placeholder-val="{{ true }}"><div class="muted mono" style="font-size: 11px">{{t.meta}}</div></sc-if>
+<sc-if value="{{t.flag}}" hint-placeholder-val="{{ false }}"><span class="badge b-warning" style="align-self: flex-start">{{t.flag}}</span></sc-if>
+</a>
+</sc-for>
+<sc-if value="{{cell.more}}" hint-placeholder-val="{{ false }}"><span class="muted" style="padding: 4px 6px">{{cell.more}}</span></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
 <div class="sec">Blocking graph · arrows point from blocker to blocked</div>
+<span class="muted">{{ep.graphNote}}</span>
+</div>
 <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--sunken)">
+<sc-if value="{{isFe}}" hint-placeholder-val="{{ true }}">
 <div style="position: relative; width: 1272px; height: 320px">
 <svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 176px; top: 68px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
 <svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 176px; top: 168px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
@@ -81,7 +190,6 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <svg width="27" height="8" viewBox="0 0 27 8" preserveAspectRatio="none" style="position: absolute; left: 852px; top: 168px; width: 27px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-5" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 23 4" marker-end="url(#dc-arrow-head-filled-5)"></path></svg>
 <svg width="55" height="8" viewBox="0 0 55 8" preserveAspectRatio="none" style="position: absolute; left: 1040px; top: 168px; width: 55px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-6" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 51 4" marker-end="url(#dc-arrow-head-filled-6)"></path></svg>
 <svg width="8" height="51" viewBox="0 0 8 51" preserveAspectRatio="none" style="position: absolute; left: 1172px; top: 88px; width: 8px; height: 51px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 5 5"><defs><marker id="dc-arrow-head-filled-7" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 47" marker-end="url(#dc-arrow-head-filled-7)"></path></svg>
-
 <div class="gcard g-done" style="left: 16px; top: 40px"><span><span class="mono">fe-813.1</span> done<br>Zig state-machine kit</span></div>
 <div class="gcard g-done" style="left: 16px; top: 140px"><span><span class="mono">fe-813.2</span> done<br>Time model: meters</span></div>
 <div class="gcard g-done" style="left: 16px; top: 240px"><span><span class="mono">fe-813.3</span> done<br>Output-clock scheduling</span></div>
@@ -93,34 +201,149 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <div class="gcard" style="left: 1096px; top: 140px"><span><span class="mono">fe-813.9</span> queued<br>First Launchkey session</span></div>
 <div class="gcard g-ext" style="left: 1096px; top: 24px"><span><span class="mono">fe-lwp.7</span> other epic<br>Hardware bring-up day</span></div>
 </div>
+</sc-if>
+<sc-if value="{{isLwp}}" hint-placeholder-val="{{ false }}">
+<div style="position: relative; width: 1272px; height: 440px">
+<svg width="55" height="8" viewBox="0 0 55 8" preserveAspectRatio="none" style="position: absolute; left: 176px; top: 68px; width: 55px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-101" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 51 4" marker-end="url(#dc-arrow-head-filled-101)"></path></svg>
+<svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 392px; top: 68px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
+<svg width="8" height="100" viewBox="0 0 8 100" preserveAspectRatio="none" style="position: absolute; left: 416px; top: 72px; width: 8px; height: 100px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 100"></path></svg>
+<svg width="271" height="8" viewBox="0 0 271 8" preserveAspectRatio="none" style="position: absolute; left: 176px; top: 168px; width: 271px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-102" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 267 4" marker-end="url(#dc-arrow-head-filled-102)"></path></svg>
+<svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 176px; top: 268px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
+<svg width="8" height="100" viewBox="0 0 8 100" preserveAspectRatio="none" style="position: absolute; left: 200px; top: 172px; width: 8px; height: 100px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 100 L 4 0"></path></svg>
+<svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 608px; top: 168px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
+<svg width="8" height="120" viewBox="0 0 8 120" preserveAspectRatio="none" style="position: absolute; left: 632px; top: 112px; width: 8px; height: 120px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 120"></path></svg>
+<svg width="27" height="8" viewBox="0 0 27 8" preserveAspectRatio="none" style="position: absolute; left: 636px; top: 108px; width: 27px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-103" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 23 4" marker-end="url(#dc-arrow-head-filled-103)"></path></svg>
+<svg width="27" height="8" viewBox="0 0 27 8" preserveAspectRatio="none" style="position: absolute; left: 636px; top: 228px; width: 27px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-104" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 23 4" marker-end="url(#dc-arrow-head-filled-104)"></path></svg>
+<svg width="55" height="8" viewBox="0 0 55 8" preserveAspectRatio="none" style="position: absolute; left: 176px; top: 368px; width: 55px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-105" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 51 4" marker-end="url(#dc-arrow-head-filled-105)"></path></svg>
+<svg width="55" height="8" viewBox="0 0 55 8" preserveAspectRatio="none" style="position: absolute; left: 392px; top: 368px; width: 55px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-106" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 51 4" marker-end="url(#dc-arrow-head-filled-106)"></path></svg>
+<div class="gcard g-done" style="left: 16px; top: 40px"><span><span class="mono">fe-lwp.2</span> done<br>Scaffold repo</span></div>
+<div class="gcard g-done" style="left: 16px; top: 140px"><span><span class="mono">fe-lwp.4</span> done<br>Launchkey 37 driver</span></div>
+<div class="gcard g-done" style="left: 16px; top: 240px"><span><span class="mono">fe-lwp.5</span> done<br>Field estimator core</span></div>
+<div class="gcard g-done" style="left: 16px; top: 340px"><span><span class="mono">fe-lwp.18</span> done<br>Platform seam</span></div>
+<div class="gcard g-live" style="left: 232px; top: 40px"><span><span class="mono">fe-lwp.3</span> building<br>MIDI probe exe</span></div>
+<div class="gcard g-fall" style="left: 232px; top: 340px"><span><span class="mono">fe-lwp.16</span> fallout<br>Linux backend: ALSA</span></div>
+<div class="gcard" style="left: 448px; top: 140px"><span><span class="mono">fe-lwp.7</span> queued<br>Hardware bring-up day</span></div>
+<div class="gcard" style="left: 448px; top: 340px"><span><span class="mono">fe-lwp.19</span> queued<br>macOS backend</span></div>
+<div class="gcard" style="left: 664px; top: 80px"><span><span class="mono">fe-lwp.8</span> queued<br>Something follows me</span></div>
+<div class="gcard g-ext" style="left: 664px; top: 200px"><span><span class="mono">fe-813.9</span> other epic<br>First Launchkey session</span></div>
+<div style="position: absolute; left: 1096px; top: 16px; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--fg-softer)">no blocking edges</div>
+<div class="gcard" style="left: 1096px; top: 40px"><span><span class="mono">fe-lwp.11</span> queued<br>Fixtures from real charts</span></div>
+<div class="gcard" style="left: 1096px; top: 140px"><span><span class="mono">fe-lwp.12</span> queued<br>Follow SMF meter changes</span></div>
+</div>
+</sc-if>
 </div>
 </section>
-
-<section style="display: flex; flex-direction: column; gap: 10px">
-<div class="sec">Children</div>
-<div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 10px">
-<table>
-<thead><tr><th>Bead</th><th>Title</th><th>Stage</th><th>bd status</th><th>Blocked by</th><th>Session · PR</th></tr></thead>
-<tbody>
-<tr><td class="mono">fe-813.1</td><td>Zig state-machine kit; migrate the form-listen transport onto it</td><td><span class="badge b-success"><span class="dot"></span>done</span></td><td>closed</td><td></td><td class="muted">fe-kit · PR #3 merged</td></tr>
-<tr><td class="mono">fe-813.2</td><td>Time model: meters as beat groups, subdivisions, per-track cycles</td><td><span class="badge b-success"><span class="dot"></span>done</span> <span class="badge b-warning">PR #4 open</span></td><td>closed</td><td></td><td class="muted">fe-time · PR #4</td></tr>
-<tr><td class="mono">fe-813.3</td><td>Output-clock scheduling (replaces frame-clocked echo, fe-lwp.15)</td><td><span class="badge b-success"><span class="dot"></span>done</span> <span class="badge b-warning">PR #5 open</span></td><td>closed</td><td></td><td class="muted">fe-sched · PR #5</td></tr>
-<tr><td class="mono">fe-813.4</td><td>One-track loop end to end: voice pick, count-in, record, loop, stop/play</td><td><span class="badge b-info"><span class="dot"></span>building</span></td><td>open</td><td class="muted">.1 .2 .3 (closed)</td><td class="muted">fe-loop · pi</td></tr>
-<tr><td class="mono">fe-813.5</td><td>Overdub, multitrack and the standard voice set</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.4</td><td></td></tr>
-<tr><td class="mono">fe-813.6</td><td>Per-track length and polyrhythm</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.5</td><td></td></tr>
-<tr><td class="mono">fe-813.7</td><td>Quantise on/off and undo history</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.5</td><td></td></tr>
-<tr><td class="mono">fe-813.8</td><td>Keep and load: sketch-mode document subset</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.6, fe-813.7</td><td></td></tr>
-<tr><td class="mono">fe-813.9</td><td>First Launchkey session: map the looper, write it up, measure speed</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.8, fe-lwp.7</td><td></td></tr>
-</tbody>
-</table>
-</div>
-<div class="muted">Titles, statuses and edges are fe-813's real beads data. Stages, sessions and PRs #4/#5 are illustrative.</div>
-</section>
+<div class="muted">Titles, statuses, parent, blocking and discovered-from edges are real (bd list, 2026-10-17). Ticket stages, sessions, PRs #4/#5 and fe-813's stage history are illustrative: the overlay does not exist yet.</div>
+</main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1720}}'>
 class Component extends DCLogic {
-  renderVals() { return {}; }
+  constructor(props) { super(props); this.state = { epic: 'fe-813' }; }
+  renderVals() {
+    const S = {
+      queued: ['queued', 'badge b-neutral', 0], dispatched: ['dispatched', 'badge b-info b-dashed', 1], building: ['building', 'badge b-info', 1],
+      reported: ['reported', 'badge b-warning', 2], in_review: ['in review', 'badge b-warning', 2], committed: ['committed', 'badge b-success b-dashed', 3],
+      pr_open: ['PR open', 'badge b-success', 3], merged: ['merged', 'badge b-solid', 3], done: ['done', 'badge b-neutral', 4]
+    };
+    // band (p planned, f fallout), id, title, type, prio, stage, bd, meta, flag
+    const EP = {
+      'fe-813': {
+        id: 'fe-813', title: 'Doodler step 1: Record mode looper', prio: 'P2', stage: 'building', spec: 'docs/specs/doodler-step1-looper.md',
+        counts: '9 planned · 0 fallout · 1 blocker outside the epic', closed: 3, total: 9,
+        historyNote: 'Drafted and specced through /tight-spec, ticketed by /to-tickets.',
+        graphNote: 'One outside blocker: fe-lwp.7, hardware bring-up.',
+        steps: [
+          ['past', 'idea', '10-14 09:12', 'create · draft:doodler-step1'],
+          ['past', 'speccing', '10-14 09:40', 'start_spec · /tight-spec'],
+          ['past', 'spec_approved', '10-15 18:05', 'approve_spec · docs/specs/doodler-step1-looper.md'],
+          ['past', 'ticketed', '10-15 18:31', 'ticket · linked fe-813'],
+          ['now', 'building', 'derived now', 'fe-813.4 is past queued']
+        ],
+        T: [
+          ['p', 'fe-813.1', 'Zig state-machine kit; migrate the form-listen transport onto it', 'task', 'P2', 'done', 'closed', 'fe-kit · PR #3 merged', ''],
+          ['p', 'fe-813.2', 'Time model: meters as beat groups, subdivisions, per-track cycles', 'task', 'P2', 'done', 'closed', 'pr/time-model', 'closed, PR #4 still open'],
+          ['p', 'fe-813.3', 'Output-clock scheduling (replaces frame-clocked echo, fe-lwp.15)', 'task', 'P2', 'done', 'closed', 'pr/scheduler', 'closed, PR #5 still open'],
+          ['p', 'fe-813.4', 'One-track loop end to end: voice pick, count-in, record, loop, stop/play', 'task', 'P2', 'building', 'open', 'fe-loop · pi · note 9m ago', ''],
+          ['p', 'fe-813.5', 'Overdub, multitrack and the standard voice set', 'task', 'P2', 'queued', 'open', 'blocked by fe-813.4', ''],
+          ['p', 'fe-813.6', 'Per-track length and polyrhythm', 'task', 'P2', 'queued', 'open', 'blocked by fe-813.5', ''],
+          ['p', 'fe-813.7', 'Quantise on/off and undo history', 'task', 'P2', 'queued', 'open', 'blocked by fe-813.5', ''],
+          ['p', 'fe-813.8', 'Keep and load: sketch-mode document subset', 'task', 'P2', 'queued', 'open', 'blocked by fe-813.6, .7', ''],
+          ['p', 'fe-813.9', 'First Launchkey session: map the looper, write it up, measure speed', 'task', 'P2', 'queued', 'open', 'blocked by fe-813.8, fe-lwp.7', '']
+        ],
+        more: {}
+      },
+      'fe-lwp': {
+        id: 'fe-lwp', title: 'Crawl: keyboard in, harmony out', prio: 'P1', stage: 'building', spec: 'no spec link recorded',
+        counts: '17 planned · 2 fallout · 1 blocks another epic', closed: 12, total: 19,
+        historyNote: 'Predates the board: backfilled to ticketed on first sight, so no draft history.',
+        graphNote: 'Open tickets and their direct blockers; closed tickets with no open dependents are left out.',
+        steps: [
+          ['none', 'idea', 'not recorded', 'epic predates the board'],
+          ['none', 'speccing', 'not recorded', ''],
+          ['none', 'spec_approved', 'not recorded', ''],
+          ['past', 'ticketed', '10-17 21:46', 'backfill · first sight, bead open'],
+          ['now', 'building', 'derived now', 'fe-lwp.3 is past queued']
+        ],
+        T: [
+          ['p', 'fe-lwp.3', 'MIDI probe exe: list ports, print timestamped input, log take', 'task', 'P1', 'building', 'in_progress', 'fe-probe · pi · note 14m ago', ''],
+          ['p', 'fe-lwp.7', 'Hardware bring-up day: firmware, ports, pads, live field readout, first take', 'task', 'P1', 'queued', 'open', 'blocked by fe-lwp.3', ''],
+          ['p', 'fe-lwp.8', 'Something follows me: drone/pad follows your field at phrase boundaries', 'feature', 'P2', 'queued', 'open', 'blocked by fe-lwp.7', ''],
+          ['p', 'fe-lwp.11', 'Fixtures from real_book_ex charts: lines cooked over real changes', 'task', 'P2', 'queued', 'open', 'ready', ''],
+          ['p', 'fe-lwp.12', 'form field: follow SMF meter changes', 'task', 'P3', 'queued', 'open', 'ready', ''],
+          ['p', 'fe-lwp.19', 'macOS backend: CoreMIDI + mach clock behind shell/platform (needs a Mac to test)', 'task', 'P4', 'queued', 'open', 'blocked by fe-lwp.16', ''],
+          ['p', 'fe-lwp.14', 'H1 calm listen window: raylib Windows exe showing live field/chord', 'feature', 'P1', 'done', 'closed', '', ''],
+          ['p', 'fe-lwp.18', 'Platform seam: neutral shell/platform/{midi,clock,font}.h', 'task', 'P2', 'done', 'closed', '', ''],
+          ['f', 'fe-lwp.16', 'Linux backend: ALSA sequencer MIDI + native/WSLg build of form-listen and the probe', 'task', 'P2', 'queued', 'open', 'discovered from fe-lwp.14 · ready', ''],
+          ['f', 'fe-lwp.15', 'form-listen: echo replay notes off the frame clock (sub-ms timing)', 'task', 'P3', 'done', 'closed', 'discovered from fe-lwp.14', '']
+        ],
+        more: { p4: '+ 9 more done' }
+      }
+    };
+    const key = this.state.epic;
+    const e = EP[key];
+    const cards = e.T.map((t) => ({ band: t[0], id: t[1], title: t[2], type: t[3], prio: t[4], stage: S[t[5]][0], stageCls: S[t[5]][1], col: S[t[5]][2], bd: t[6], meta: t[7], flag: t[8] }));
+    const colDefs = [['Queued', 'queued'], ['In flight', 'dispatched · building'], ['Review', 'reported · in review'], ['Shipping', 'committed · PR · merged'], ['Done', 'done']];
+    const extraDone = key === 'fe-lwp' ? 9 : 0;
+    const cols = colDefs.map((c, i) => ({ title: c[0], stages: c[1], count: cards.filter((x) => x.col === i).length + (i === 4 ? extraDone : 0) }));
+    const mk = (band, label, sub, style) => ({
+      name: label, sub: sub, cellStyle: style,
+      cells: colDefs.map((c, i) => {
+        const list = cards.filter((x) => x.band === band && x.col === i);
+        return { cards: list, more: e.more[band + i] || (band === 'f' && !fallout && i === 0 ? 'No fallout yet' : '') };
+      })
+    });
+    const planned = cards.filter((x) => x.band === 'p').length + extraDone;
+    const fallout = cards.filter((x) => x.band === 'f').length;
+    const cellBase = 'display: flex; flex-direction: column; gap: 8px; min-height: 48px; padding: 6px; border-radius: 10px; ';
+    const bands = [
+      mk('p', 'Planned · ' + planned, 'children of ' + e.id + ', any depth', cellBase + 'background: var(--sunken)'),
+      mk('f', 'Fallout · ' + fallout, fallout ? 'discovered-from a ticket under ' + e.id : 'none yet: discovered-from links to anything under ' + e.id + ' land here', cellBase + 'background: transparent; border: 1px dashed color-mix(in oklab, var(--warning) 60%, var(--bg))')
+    ];
+    const qn = cards.filter((x) => x.col === 0).length, fn = cards.filter((x) => x.col === 1).length, dn = cards.filter((x) => x.col === 4).length + extraDone;
+    const bar = [
+      { n: dn, c: 'var(--success)', label: 'done' },
+      { n: fn, c: 'var(--info)', label: 'in flight' },
+      { n: qn, c: 'var(--h-queued)', label: 'queued' }
+    ];
+    const ep = {
+      id: e.id, title: e.title, prio: e.prio, stage: e.stage, spec: e.spec, counts: e.counts, closed: e.closed, total: e.total,
+      pct: Math.round(100 * e.closed / e.total), bar: bar, histLabel: bar.map((b) => b.label + ' ' + b.n).join(', '),
+      historyNote: e.historyNote, graphNote: e.graphNote,
+      steps: e.steps.map((s) => ({ cls: 'step ' + s[0], name: s[1], when: s[2], detail: s[3] }))
+    };
+    const ids = ['fe-813', 'fe-lwp'];
+    const epicSeg = ids.map((id) => ({ id: id, cls: key === id ? 'on' : '', pick: () => this.setState({ epic: id }) }));
+    const navBase = 'display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 6px 10px; border: 0; border-radius: 8px; font: 500 13px/18px Inter, system-ui, sans-serif; text-align: left; cursor: pointer; min-width: 0; ';
+    const epicNav = ids.map((id) => ({
+      id: id, title: EP[id].title, pick: () => this.setState({ epic: id }),
+      style: navBase + (key === id ? 'background: var(--accent); color: var(--fg-strong)' : 'background: transparent; color: var(--fg-soft)')
+    }));
+    return {
+      rootClass: this.props.dark ? 'fx dark' : 'fx',
+      ep, cols, bands, epicSeg, epicNav, isFe: key === 'fe-813', isLwp: key === 'fe-lwp'
+    };
+  }
 }
 </script>
 </body>

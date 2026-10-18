@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Board, all projects</title>
+<title>Initiatives</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -12,8 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0}
-.fx{--bg:oklch(100% 0 0);--sunken:oklch(96.7% .001 286.375);--surface:#fff;--border:oklch(92% .004 286.32);--fg:oklch(37% .013 285.805);--fg-strong:oklch(21% .006 285.885);--fg-soft:oklch(44.2% .017 285.786);--fg-softer:oklch(55.2% .016 285.938);--primary:oklch(27.4% .006 286.033);--on-primary:#fff;--accent:oklch(96.7% .001 286.375);--danger:oklch(57.7% .245 27.325);--success:oklch(62.7% .194 149.214);--warning:oklch(82.8% .189 84.429);--info:oklch(54.6% .245 262.881);--mix:10%;--fgmix:black 15%;--wfgmix:black 45%;--shadow:0 1px 2px 0 #0000000d;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--fg);background:var(--bg);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
-.fx.dark{--bg:oklch(21% .006 285.885);--sunken:oklch(19.1% .006 285.885);--surface:oklch(28.6% .006 285.885);--border:#ffffff1f;--fg:oklch(92% .004 286.32);--fg-strong:#fff;--fg-soft:oklch(87.1% .006 286.286);--fg-softer:oklch(70.5% .015 286.067);--primary:#fff;--on-primary:oklch(27.4% .006 286.033);--accent:oklch(37% .013 285.805);--mix:20%;--fgmix:white 60%;--wfgmix:white 30%;--shadow:0 1px 2px 0 #0000004d}
+.fx{--bg:oklch(100% 0 0);--sunken:oklch(96.7% .001 286.375);--surface:#fff;--border:oklch(92% .004 286.32);--fg:oklch(37% .013 285.805);--fg-strong:oklch(21% .006 285.885);--fg-soft:oklch(44.2% .017 285.786);--fg-softer:oklch(55.2% .016 285.938);--primary:oklch(27.4% .006 286.033);--on-primary:#fff;--accent:oklch(96.7% .001 286.375);--danger:oklch(57.7% .245 27.325);--success:oklch(62.7% .194 149.214);--warning:oklch(82.8% .189 84.429);--info:oklch(54.6% .245 262.881);--h-queued:oklch(87.1% .006 286.286);--h-done:oklch(55.2% .016 285.938);--mix:10%;--fgmix:black 15%;--wfgmix:black 45%;--shadow:0 1px 2px 0 #0000000d;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--fg);background:var(--bg);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+.fx.dark{--bg:oklch(21% .006 285.885);--sunken:oklch(19.1% .006 285.885);--surface:oklch(28.6% .006 285.885);--border:#ffffff1f;--fg:oklch(92% .004 286.32);--fg-strong:#fff;--fg-soft:oklch(87.1% .006 286.286);--fg-softer:oklch(70.5% .015 286.067);--primary:#fff;--on-primary:oklch(27.4% .006 286.033);--accent:oklch(37% .013 285.805);--h-queued:oklch(44.2% .017 285.786);--h-done:oklch(70.5% .015 286.067);--mix:20%;--fgmix:white 60%;--wfgmix:white 30%;--shadow:0 1px 2px 0 #0000004d}
 .mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
 .badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--fg-soft)}
 .b-neutral{background:var(--sunken);color:var(--fg-soft);border-color:var(--border)}
@@ -26,19 +26,37 @@ body{margin:0}
 .dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg-strong);font:500 14px/20px Inter,system-ui,sans-serif;box-shadow:var(--shadow);cursor:pointer}
 .btn:hover{background:var(--accent)}
-.btn-primary{background:var(--primary);color:var(--on-primary);border-color:transparent}
-.btn-primary:hover{background:color-mix(in oklab,var(--primary),var(--bg) 15%)}
 .seg{display:inline-flex;padding:3px;gap:2px;background:var(--sunken);border:1px solid var(--border);border-radius:8px}
 .seg button{height:28px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--fg-soft);font:500 13px/20px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .seg button.on{background:var(--surface);color:var(--fg-strong);box-shadow:var(--shadow)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--fg-soft);font:500 12px/16px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.chip:hover{background:var(--accent)}
+.chip.on{background:color-mix(in oklab,var(--info) var(--mix),var(--bg));color:color-mix(in oklab,var(--info),var(--fgmix));border-color:color-mix(in oklab,var(--info) 30%,var(--bg))}
+.chip.dash{border-style:dashed;background:transparent}
 .nav a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--fg-soft);text-decoration:none;font-weight:500}
 .nav a:hover{background:var(--accent);color:var(--fg-strong)}
 .nav a.on{background:var(--accent);color:var(--fg-strong)}
+.sec{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-softer)}
+.muted{color:var(--fg-softer);font-size:12px;line-height:16px}
+.grid{display:grid;grid-template-columns:150px minmax(280px,1fr) 124px 150px 92px 76px 64px;gap:16px;align-items:center}
+.ghead{padding:0 16px 8px;font-size:12px;font-weight:500;color:var(--fg-softer)}
+.erow{padding:12px 16px;border-top:1px solid var(--border);text-decoration:none;color:var(--fg)}
+.erow:hover{background:var(--sunken)}
+.etitle{color:var(--fg-strong);font-weight:500;font-size:14px;line-height:20px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.pbar{height:6px;border-radius:99px;background:var(--sunken);border:1px solid var(--border);overflow:hidden}
+.pbar span{display:block;height:100%;background:var(--success)}
+.hist{display:flex;align-items:flex-end;gap:3px;height:28px;border-bottom:1px solid var(--border)}
+.hist span{width:12px;border-radius:2px 2px 0 0}
 .tcard{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);text-decoration:none;color:var(--fg)}
 .tcard:hover{border-color:color-mix(in oklab,var(--fg-softer) 50%,var(--border))}
 .ttl{color:var(--fg-strong);font-weight:500;font-size:13px;line-height:18px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.muted{color:var(--fg-softer);font-size:12px;line-height:16px}
+.box{border:1px solid var(--border);border-radius:10px;background:var(--surface);overflow:hidden}
 input.search{height:36px;padding:0 12px 0 34px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg-strong);font:400 14px Inter,system-ui,sans-serif;width:240px;box-sizing:border-box}
+.sw{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--fg-strong)}
+.sw input{width:32px;height:18px;margin:0;appearance:none;-webkit-appearance:none;border-radius:99px;background:color-mix(in oklab,var(--bg),black 12%);position:relative;cursor:pointer}
+.sw input::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:99px;background:#fff;box-shadow:0 1px 2px #0003;transition:left .15s}
+.sw input:checked{background:var(--primary)}
+.sw input:checked::after{left:16px}
 </style>
 </helmet>
 <div class="{{rootClass}}" style="min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg)">
@@ -49,14 +67,13 @@ input.search{height:36px;padding:0 12px 0 34px;border-radius:8px;border:1px soli
 <span style="font-weight: 600; color: var(--fg-strong); font-size: 15px">beads-board</span>
 </div>
 <nav class="nav" aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
-<a class="on" href="Main.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"></rect><rect x="10" y="4" width="5" height="10" rx="1"></rect><rect x="17" y="4" width="4" height="13" rx="1"></rect></svg>Board</a>
-<a href="Epic.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h6"></path></svg>Epics</a>
+<a class="on" href="Main.dc.html" aria-current="page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h7"></path><circle cx="19" cy="18" r="2"></circle></svg>Initiatives</a>
 <a href="PRs.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="5" r="2"></circle><circle cx="6" cy="19" r="2"></circle><circle cx="18" cy="19" r="2"></circle><path d="M6 7v10M18 17V9a3 3 0 0 0-3-3h-3"></path></svg>Pull requests<span class="badge b-neutral" style="margin-left: auto; height: 20px">2</span></a>
 <a href="Settings.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"></path></svg>Settings</a>
 </nav>
 <div style="display: flex; flex-direction: column; gap: 6px">
-<div class="muted" style="padding: 0 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; font-size: 11px">Projects</div>
-<sc-for list="{{repos}}" as="r" hint-placeholder-count="6">
+<div class="muted" style="padding: 0 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; font-size: 11px">Projects · tickets</div>
+<sc-for list="{{repos}}" as="r" hint-placeholder-count="7">
 <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px; font-size: 13px">
 <span style="width: 8px; height: 8px; border-radius: 3px; background: {{r.color}}; flex: none"></span>
 <span style="color: var(--fg-strong); font-weight: 500">{{r.name}}</span>
@@ -70,29 +87,33 @@ input.search{height:36px;padding:0 12px 0 34px;border-radius:8px;border:1px soli
 <main style="flex: 999 1 640px; min-width: 0; box-sizing: border-box; padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 20px">
 <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px">
 <div style="display: flex; flex-direction: column; gap: 2px; margin-right: auto">
-<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; color: var(--fg-strong)">Board</h1>
-<div class="muted" style="font-size: 13px">Process stage per ticket, across 6 beads repos. Stage is the board's overlay; beads status is shown on each card.</div>
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; color: var(--fg-strong)">Initiatives</h1>
+<div class="muted" style="font-size: 13px">Every epic across your beads repos, from idea to shipped. Open one to see its tickets, its fallout and the blocking graph.</div>
 </div>
 <div style="position: relative">
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="position: absolute; left: 11px; top: 10px; color: var(--fg-softer)"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
-<label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search tickets</label>
+<label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search epics and tickets</label>
 <input id="q" class="search" type="search" placeholder="Search id, title, label">
-</div>
-<div class="seg" role="group" aria-label="Swimlanes">
-<button class="{{laneProjectCls}}" onClick="{{lanesProject}}">By project</button>
-<button class="{{laneNoneCls}}" onClick="{{lanesNone}}">No lanes</button>
 </div>
 </header>
 
 <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
 <span class="muted" style="margin-right: 4px">Project</span>
-<sc-for list="{{filters}}" as="f" hint-placeholder-count="7">
-<button class="{{f.cls}}" onClick="{{f.pick}}" style="cursor: pointer; height: 28px; font-family: Inter, system-ui, sans-serif"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{f.color}}"></span>{{f.name}}<span style="color: var(--fg-softer)">{{f.count}}</span></button>
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="8">
+<button class="{{f.cls}}" onClick="{{f.pick}}"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{f.color}}"></span>{{f.name}}</button>
 </sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center">
+<div class="seg" role="group" aria-label="Beads status">
+<sc-for list="{{statuses}}" as="s" hint-placeholder-count="3">
+<button class="{{s.cls}}" onClick="{{s.pick}}">{{s.label}}</button>
+</sc-for>
+</div>
+<button class="chip">Type: any<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+<button class="chip dash">+ Label</button>
+<label class="sw"><input type="checkbox" checked="{{staleOnly}}" onChange="{{toggleStale}}">Stale only</label>
 <span style="flex: 1"></span>
-<span class="badge b-neutral">Epic: any</span>
-<span class="badge b-neutral">Type: any</span>
-<span class="badge b-dashed">+ Label</span>
+<span class="muted">{{summary}}</span>
 </div>
 
 <sc-if value="{{showWeBanner}}" hint-placeholder-val="{{ true }}">
@@ -103,113 +124,206 @@ input.search{height:36px;padding:0 12px 0 34px;border-radius:8px;border:1px soli
 </sc-if>
 
 <div style="overflow-x: auto; padding-bottom: 4px">
-<div style="min-width: 1080px; display: flex; flex-direction: column; gap: 0">
-<div style="display: grid; grid-template-columns: 150px repeat(5, minmax(0, 1fr)); gap: 12px; padding: 0 0 10px; border-bottom: 1px solid var(--border)">
-<span></span>
-<sc-for list="{{cols}}" as="c" hint-placeholder-count="5">
-<div style="display: flex; align-items: center; gap: 8px">
-<span style="font-weight: 600; color: var(--fg-strong)">{{c.title}}</span>
-<span class="badge b-neutral" style="height: 20px; padding: 0 6px">{{c.count}}</span>
-<span class="muted" style="margin-left: auto">{{c.stages}}</span>
+<div style="min-width: 1040px; display: flex; flex-direction: column; gap: 20px">
+
+<sc-if value="{{hasDrafts}}" hint-placeholder-val="{{ true }}">
+<section class="box" aria-label="Draft epics">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--sunken)">
+<span style="font-weight: 600; color: var(--fg-strong)">Drafts</span>
+<span class="badge b-neutral" style="height: 20px; padding: 0 6px">{{draftCount}}</span>
+<span class="muted">Ideas and specs with no beads epic yet. They live only in the board until <span class="mono">/to-tickets</span> sends <span class="mono">ticket</span>.</span>
+</div>
+<sc-for list="{{drafts}}" as="d" hint-placeholder-count="3">
+<div class="grid erow">
+<div style="display: flex; align-items: center; gap: 8px; min-width: 0"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{d.color}}; flex: none"></span><span style="font-size: 13px; color: var(--fg-strong)">{{d.repoName}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span class="etitle">{{d.title}}</span>
+<span class="muted"><span class="mono" style="font-size: 11px">{{d.slug}}</span> · {{d.when}}</span>
+</div>
+<div><span class="{{d.stageCls}}"><span class="dot"></span>{{d.stage}}</span></div>
+<div style="grid-column: span 4; display: flex; align-items: center; gap: 8px; min-width: 0">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color: var(--fg-softer); flex: none"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"></path><path d="M14 3v5h5"></path></svg>
+<span class="mono" style="color: var(--fg-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{d.spec}}</span>
+<span class="muted" style="margin-left: auto; white-space: nowrap">{{d.next}}</span>
+</div>
 </div>
 </sc-for>
+</section>
+</sc-if>
+
+<section class="box" aria-label="Epics">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--sunken)">
+<span style="font-weight: 600; color: var(--fg-strong)">Epics</span>
+<span class="badge b-neutral" style="height: 20px; padding: 0 6px">{{epicCount}}</span>
+<span class="muted">Stage is derived from the children once ticketed. Fallout: tickets linked <span class="mono">discovered-from</span> to anything under the epic.</span>
 </div>
-<sc-for list="{{lanes}}" as="lane" hint-placeholder-count="5">
-<div style="display: grid; grid-template-columns: 150px repeat(5, minmax(0, 1fr)); gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border)">
-<div style="display: flex; flex-direction: column; gap: 4px; padding-top: 4px">
-<div style="display: flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{lane.color}}"></span><span style="font-weight: 600; color: var(--fg-strong); font-size: 13px">{{lane.name}}</span></div>
-<span class="muted">{{lane.sub}}</span>
+<div class="grid ghead" style="padding-top: 10px; background: var(--sunken); border-top: 1px solid var(--border)">
+<span>Project</span><span>Epic</span><span>Stage</span><span>Progress</span>
+<span title="Queued, In flight, Review, Shipping, Done">Q · F · R · S · D</span><span>Fallout</span><span>CRs</span>
 </div>
-<sc-for list="{{lane.cells}}" as="cell" hint-placeholder-count="5">
-<div style="display: flex; flex-direction: column; gap: 8px; min-height: 40px; padding: 6px; border-radius: 10px; background: var(--sunken)">
+<sc-for list="{{epics}}" as="e" hint-placeholder-count="8">
+<a class="grid erow" href="Epic.dc.html">
+<div style="display: flex; align-items: center; gap: 8px; min-width: 0"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{e.color}}; flex: none"></span><span style="font-size: 13px; color: var(--fg-strong)">{{e.repoName}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span class="etitle">{{e.title}}</span>
+<span class="muted" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap"><span class="mono" style="font-size: 11px; color: var(--fg-soft)">{{e.id}}</span><span>{{e.sub}}</span><sc-if value="{{e.stale}}" hint-placeholder-val="{{ false }}"><span class="badge b-warning" style="height: 18px; padding: 0 6px; font-size: 11px" title="In-flight tickets with no session heartbeat for over 2 h">stale</span></sc-if></span>
+</div>
+<div><span class="{{e.stageCls}}"><span class="dot"></span>{{e.stage}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; font-size: 12px; line-height: 16px"><span style="color: var(--fg-strong); font-weight: 500">{{e.closed}} / {{e.total}}</span><span class="muted">{{e.pct}}%</span></div>
+<div class="pbar"><span style="width: {{e.pct}}%"></span></div>
+</div>
+<div class="hist" role="img" aria-label="{{e.histLabel}}">
+<sc-for list="{{e.hist}}" as="h" hint-placeholder-count="5">
+<span style="height: {{h.h}}px; background: {{h.c}}" title="{{h.t}}"></span>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="color: var(--fg-strong); font-weight: 500">{{e.fallout}}</span><span class="muted">{{e.falloutSub}}</span></div>
+<div><span class="{{e.crCls}}">{{e.crs}}</span></div>
+</a>
+</sc-for>
+<div class="muted" style="padding: 10px 16px; border-top: 1px solid var(--border)">{{moreEpics}}</div>
+</section>
+
+<section class="box" aria-label="Unplanned">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--sunken)">
+<span style="font-weight: 600; color: var(--fg-strong)">Unplanned</span>
+<span class="badge b-neutral" style="height: 20px; padding: 0 6px">{{orphanCount}}</span>
+<span class="muted">Open tickets with no epic above them and no <span class="mono">discovered-from</span> link. {{orphanSplit}}</span>
+<button class="btn" style="margin-left: auto; height: 30px; font-size: 13px">Show all</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; padding: 12px 16px 0">
+<sc-for list="{{cols}}" as="c" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 8px"><span style="font-weight: 600; color: var(--fg-strong); font-size: 13px">{{c.title}}</span><span class="muted" style="margin-left: auto">{{c.stages}}</span></div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; padding: 10px 16px 16px">
+<sc-for list="{{cells}}" as="cell" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 8px; min-height: 48px; padding: 6px; border-radius: 10px; background: var(--sunken)">
 <sc-for list="{{cell.cards}}" as="t" hint-placeholder-count="2">
 <a class="tcard" href="Ticket.dc.html">
-<div style="display: flex; align-items: center; gap: 6px"><span class="mono" style="color: var(--fg-soft)">{{t.id}}</span><span class="muted" style="margin-left: auto">{{t.type}} · P{{t.prio}}</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{t.color}}"></span><span class="mono" style="color: var(--fg-soft)">{{t.id}}</span><span class="muted" style="margin-left: auto">{{t.type}} · P{{t.prio}}</span></div>
 <div class="ttl">{{t.title}}</div>
 <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
 <span class="{{t.stageCls}}"><span class="dot"></span>{{t.stage}}</span>
 <span class="badge b-dashed" title="beads status">bd: {{t.bd}}</span>
 </div>
-<sc-if value="{{t.meta}}" hint-placeholder-val="{{ true }}"><div class="muted mono" style="font-size: 11px">{{t.meta}}</div></sc-if>
-<sc-if value="{{t.flag}}" hint-placeholder-val="{{ false }}"><span class="badge b-warning" style="align-self: flex-start">{{t.flag}}</span></sc-if>
+<sc-if value="{{t.flag}}" hint-placeholder-val="{{ false }}"><span class="{{t.flagCls}}" style="align-self: flex-start">{{t.flag}}</span></sc-if>
 </a>
 </sc-for>
+<sc-if value="{{cell.empty}}" hint-placeholder-val="{{ false }}"><span class="muted" style="padding: 8px 6px">{{cell.empty}}</span></sc-if>
 </div>
 </sc-for>
 </div>
-</sc-for>
+</section>
+
 </div>
 </div>
-<div class="muted">Beads fields are real (bd export, 2026-10-17). Stages, sessions and PR #4/#5 are illustrative: the overlay does not exist yet.</div>
+<div class="muted">Epics, titles, counts and links are real (bd list, 2026-10-17). Draft epics, stages, sessions, stale flags and CRs #4/#5 are illustrative: the overlay does not exist yet.</div>
 </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1240}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1560}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { project: 'all', lanes: 'project' }; }
+  constructor(props) { super(props); this.state = { project: 'all', status: 'all', stale: false }; }
   renderVals() {
     const repos = [
       { key: 'fe', name: 'form-engine', color: 'oklch(58% .2 295)', sync: '30' },
+      { key: 'bb', name: 'beads-board', color: 'oklch(62% .16 340)', sync: '12' },
+      { key: 'sk', name: 'skills', color: 'oklch(62% .12 175)', sync: '17' },
       { key: 'cdo', name: 'cooldown-o-matic', color: 'oklch(72% .16 70)', sync: '47' },
       { key: 'wow', name: 'ui-o-matic', color: 'oklch(58% .17 245)', sync: '417' },
-      { key: 'sk', name: 'skills', color: 'oklch(62% .12 175)', sync: '15' },
       { key: 'dot', name: 'dotfiles', color: 'oklch(55% .01 286)', sync: '3' },
       { key: 'we', name: 'we_go_next_dev', color: 'oklch(60% .2 27)', sync: 'down' }
     ];
-    const S = {
+    const R = {}; repos.forEach((r) => { R[r.key] = r; });
+    const ES = {
+      idea: 'badge b-dashed', speccing: 'badge b-warning b-dashed', spec_approved: 'badge b-warning',
+      ticketed: 'badge b-neutral', building: 'badge b-info', shipping: 'badge b-success', shipped: 'badge b-solid', done: 'badge b-neutral'
+    };
+    const TS = {
       queued: ['queued', 'badge b-neutral', 0], dispatched: ['dispatched', 'badge b-info b-dashed', 1], building: ['building', 'badge b-info', 1],
       reported: ['reported', 'badge b-warning', 2], in_review: ['in review', 'badge b-warning', 2], committed: ['committed', 'badge b-success b-dashed', 3],
       pr_open: ['PR open', 'badge b-success', 3], merged: ['merged', 'badge b-solid', 3], done: ['done', 'badge b-neutral', 4]
     };
-    const T = [
-      ['fe', 'fe-813.4', 'One-track loop end to end: voice pick, count-in, record, loop, stop/play', 'task', 2, 'building', 'open', 'fe-loop · pi · note 9m ago', ''],
-      ['fe', 'fe-813.5', 'Overdub, multitrack and the standard voice set', 'task', 2, 'queued', 'open', 'blocked by fe-813.4', ''],
-      ['fe', 'fe-lwp.11', 'Fixtures from real_book_ex charts: lines cooked over real changes', 'task', 2, 'queued', 'open', 'ready', ''],
-      ['fe', 'fe-lwp.3', 'MIDI probe exe: list ports, print timestamped input, log take', 'task', 1, 'building', 'in_progress', 'fe-probe · pi · note 14m ago', ''],
-      ['fe', 'fe-813.2', 'Time model: meters as beat groups, subdivisions, per-track cycles', 'task', 2, 'done', 'closed', 'pr/time-model', 'closed, PR #4 still open'],
-      ['fe', 'fe-813.3', 'Output-clock scheduling (replaces frame-clocked echo, fe-lwp.15)', 'task', 2, 'done', 'closed', 'pr/scheduler', 'closed, PR #5 still open'],
-      ['cdo', 'cdo-4m3.1', 'Probe trait-config APIs on live client', 'task', 1, 'queued', 'open', 'ready · needs you in game', ''],
-      ['cdo', 'cdo-uha.2.4.1', 'Import v119 spellbook-known fallback', 'task', 1, 'building', 'in_progress', 'cdo-v119 · pi · note 6m ago', ''],
-      ['cdo', 'cdo-uha.2.4.2', 'Import v119 duplicate-aura LayoutNext support', 'task', 1, 'building', 'in_progress', 'cdo-v119 · pi · note 6m ago', ''],
-      ['cdo', 'cdo-uha.2.4.5', 'Import v119 cooldown usability-state refresh', 'task', 1, 'reported', 'in_progress', 'report: drafts/sessions/cdo-v119.md', ''],
-      ['wow', 'wow-v0f2', 'Port Coolinator 126–127 changes into cooldown-o-matic', 'task', 1, 'queued', 'in_progress', 'bd says in_progress; no session on record', ''],
-      ['wow', 'wow-k0j4', 'UnitFrames: target aura rows overlap in the middle on overflow (buffs grow-right)', 'bug', 2, 'dispatched', 'in_progress', 'uf-auras · claude · no heartbeat yet', ''],
-      ['wow', 'wow-7vb3', 'cdo Next lane: SetAlpha on forbidden engine aura buttons during restriction', 'bug', 1, 'in_review', 'in_progress', 'review by coordinator', ''],
-      ['sk', 'sk-81s.8', 'Optional: weekly scheduled report-only skills-sync agent', 'task', 3, 'queued', 'open', 'ready', ''],
-      ['dot', 'dot-4at', 'Decide zsh formatting: shfmt corrupts zsh, so dprint no longer formats .zsh', 'task', 3, 'queued', 'open', 'ready', ''],
-      ['dot', 'dot-vcx', 'Remove or wire committed.toml (commit-msg hook uses cog)', 'chore', 4, 'queued', 'open', 'ready', '']
+    const D = [
+      ['bb', 'draft:board-two-way-sync', 'Two-way sync: the board proposes bd writes and applies them on confirm', 'speccing', 'docs/specs/two-way-sync.md (in progress)', 'started 2 h ago', '/tight-spec running'],
+      ['sk', 'draft:skill-evals', 'Skill evals: score house skills against recorded sessions', 'spec_approved', 'docs/specs/skill-evals.md', 'approved yesterday', 'next: /to-tickets'],
+      ['fe', 'draft:doodler-arrange', 'Doodler step 2: arrange mode over kept sketches', 'idea', 'no spec yet', 'noted 3 d ago', 'next: /tight-spec']
     ];
-    const proj = this.state.project;
-    const cards = T.filter((t) => proj === 'all' || t[0] === proj).map((t) => ({
-      repo: t[0], id: t[1], title: t[2], type: t[3], prio: t[4], stage: S[t[5]][0], stageCls: S[t[5]][1], col: S[t[5]][2], bd: t[6], meta: t[7], flag: t[8]
+    // repo, id, title, bdStatus, stage, closed, total, [Q,F,R,S,D], fallout, falloutOpen, crs, sub, stale
+    const E = [
+      ['bb', 'bb-c2w', 'beads-board MVP: an epic-first work board for every local beads repo', 'open', 'building', 0, 11, [8, 3, 0, 0, 0], 0, 0, 0, 'spec docs/spec.md', false],
+      ['fe', 'fe-813', 'Doodler step 1: Record mode looper', 'open', 'building', 3, 9, [5, 1, 0, 0, 3], 0, 0, 2, 'spec docs/specs/doodler-step1-looper.md', false],
+      ['fe', 'fe-lwp', 'Crawl: keyboard in, harmony out', 'open', 'building', 12, 19, [6, 1, 0, 0, 12], 2, 1, 0, 'no spec link', false],
+      ['cdo', 'cdo-uha', '0007 merge-first integration then house-style refactor', 'in_progress', 'building', 5, 15, [4, 5, 1, 0, 5], 0, 0, 0, '5 sub-epics', true],
+      ['sk', 'sk-81s', 'House skill set: one rationalized system from Matt Pocock, superpowers, pstack + own skills', 'open', 'building', 13, 14, [1, 0, 0, 0, 13], 0, 0, 0, '', false],
+      ['wow', 'wow-140', 'Epic: Code Health — performance, static analysis & clarity', 'open', 'building', 30, 34, [4, 0, 0, 0, 30], 0, 0, 0, '1 sub-epic', false],
+      ['wow', 'wow-227', 'Epic: Owned cooldown bars — CDM claim-model takeover', 'open', 'building', 5, 13, [8, 0, 0, 0, 5], 0, 0, 0, '', false],
+      ['wow', 'wow-2fr5', '[epic] MoP Classic flavor bring-up + cooldown data', 'open', 'ticketed', 0, 13, [13, 0, 0, 0, 0], 0, 0, 0, '', false],
+      ['cdo', 'cdo-4m3', 'Key design selection off talent loadouts', 'open', 'ticketed', 0, 5, [5, 0, 0, 0, 0], 0, 0, 0, '', false],
+      ['cdo', 'cdo-oks', 'Unified pip bars (single-unit segmented resources)', 'open', 'ticketed', 0, 3, [3, 0, 0, 0, 0], 0, 0, 0, '', false],
+      ['wow', 'wow-jz94', '[epic] cooldown-o-matic phase 0 characterization safety net', 'closed', 'done', 10, 10, [0, 0, 0, 0, 10], 2, 2, 0, 'bd closed', false]
+    ];
+    // repo, id, title, type, prio, stage, bd, flag, flagCls
+    const T = [
+      ['sk', 'sk-5o2', 'Board wiring: board skill, dispatch and the brief template', 'task', 2, 'queued', 'open', 'names bb-c2w in its description', 'badge b-dashed'],
+      ['sk', 'sk-osj', 'Board wiring: tight-spec and to-tickets epics, coordinator close-out', 'task', 2, 'queued', 'open', 'names bb-c2w in its description', 'badge b-dashed'],
+      ['wow', 'wow-ni8i', 'CastBar shield errors: SetAlphaFromBoolean(nil) when notInterruptible missing', 'bug', 1, 'queued', 'open', '', ''],
+      ['wow', 'wow-v0f2', 'Port Coolinator 126–127 changes into cooldown-o-matic', 'task', 1, 'queued', 'in_progress', 'stale: bd in_progress, no session', 'badge b-warning'],
+      ['dot', 'dot-4at', 'Decide zsh formatting: shfmt corrupts zsh, so dprint no longer formats .zsh', 'task', 3, 'queued', 'open', '', ''],
+      ['dot', 'dot-vcx', 'Remove or wire committed.toml (commit-msg hook uses cog)', 'chore', 4, 'queued', 'open', '', ''],
+      ['wow', 'wow-k0j4', 'UnitFrames: target aura rows overlap in the middle on overflow (buffs grow-right vs debuffs grow-left)', 'bug', 2, 'dispatched', 'in_progress', 'uf-auras · claude · no heartbeat yet', 'badge'],
+      ['wow', 'wow-7vb3', 'cdo Next lane: SetAlpha on forbidden engine aura buttons during restriction', 'bug', 1, 'in_review', 'in_progress', 'review by coordinator', 'badge']
+    ];
+    const proj = this.state.project, status = this.state.status, staleOnly = this.state.stale;
+    const inProj = (k) => proj === 'all' || proj === k;
+    const inStatus = (bd) => status === 'all' || (status === 'open' ? bd !== 'closed' : bd === 'closed');
+    const drafts = D.filter((d) => inProj(d[0]) && status !== 'closed' && !staleOnly).map((d) => ({
+      color: R[d[0]].color, repoName: R[d[0]].name, slug: d[1], title: d[2], stage: d[3].replace('_', ' '), stageCls: ES[d[3]], spec: d[4], when: d[5], next: d[6]
+    }));
+    const HC = ['var(--h-queued)', 'var(--info)', 'var(--warning)', 'var(--success)', 'var(--h-done)'];
+    const HN = ['queued', 'in flight', 'review', 'shipping', 'done'];
+    const epicsAll = E.filter((e) => inProj(e[0]) && inStatus(e[3]) && (!staleOnly || e[12]));
+    const epics = epicsAll.map((e) => {
+      const max = Math.max.apply(null, e[7].concat([1]));
+      return {
+        color: R[e[0]].color, repoName: R[e[0]].name, id: e[1], title: e[2], stage: e[4], stageCls: ES[e[4]],
+        closed: e[5], total: e[6], pct: Math.round(100 * e[5] / e[6]),
+        hist: e[7].map((n, i) => ({ h: n ? Math.max(3, Math.round(26 * n / max)) : 1, c: n ? HC[i] : 'var(--border)', t: HN[i] + ': ' + n })),
+        histLabel: e[7].map((n, i) => HN[i] + ' ' + n).join(', '),
+        fallout: e[8] ? String(e[8]) : '–', falloutSub: e[8] ? (e[9] + ' open') : '',
+        crs: e[10] ? e[10] + ' open' : 'none', crCls: e[10] ? 'badge b-success' : 'muted',
+        sub: e[11], stale: e[12]
+      };
+    });
+    const cards = T.filter((t) => inProj(t[0]) && status !== 'closed' && (!staleOnly || t[7].indexOf('stale') === 0)).map((t) => ({
+      color: R[t[0]].color, id: t[1], title: t[2], type: t[3], prio: t[4], stage: TS[t[5]][0], stageCls: TS[t[5]][1], col: TS[t[5]][2], bd: t[6], flag: t[7], flagCls: t[8]
     }));
     const colDefs = [['Queued', 'queued'], ['In flight', 'dispatched · building'], ['Review', 'reported · in review'], ['Shipping', 'committed · PR · merged'], ['Done', 'done']];
-    const cols = colDefs.map((c, i) => ({ title: c[0], stages: c[1], count: cards.filter((x) => x.col === i).length }));
-    const cellsFor = (list) => colDefs.map((c, i) => ({ cards: list.filter((x) => x.col === i) }));
-    let lanes;
-    if (this.state.lanes === 'project') {
-      lanes = repos.filter((r) => r.key !== 'we' && (proj === 'all' || r.key === proj)).map((r) => {
-        const list = cards.filter((x) => x.repo === r.key);
-        return { name: r.name, color: r.color, sub: list.length + ' on board', cells: cellsFor(list) };
-      }).filter((l) => l.cells.some((c) => c.cards.length));
-    } else {
-      lanes = [{ name: 'All projects', color: 'var(--fg-softer)', sub: cards.length + ' tickets', cells: cellsFor(cards) }];
-    }
-    const counts = { all: T.length };
-    T.forEach((t) => { counts[t[0]] = (counts[t[0]] || 0) + 1; });
+    const cols = colDefs.map((c) => ({ title: c[0], stages: c[1] }));
+    const cells = colDefs.map((c, i) => {
+      const list = cards.filter((x) => x.col === i);
+      return { cards: list, empty: list.length ? '' : (i === 4 ? 'Closed orphans are hidden' : 'None') };
+    });
+    const orphanBy = { wow: 172, sk: 2, dot: 2 };
+    const orphanCount = proj === 'all' ? 176 : (orphanBy[proj] || 0);
     const filters = [{ key: 'all', name: 'All', color: 'var(--fg-softer)' }].concat(repos).map((r) => ({
-      name: r.name, color: r.color, count: r.key === 'we' ? '–' : String(counts[r.key] || 0),
-      cls: proj === r.key ? 'badge b-info' : 'badge',
-      pick: () => this.setState({ project: r.key })
+      name: r.name, color: r.color, cls: proj === r.key ? 'chip on' : 'chip', pick: () => this.setState({ project: r.key })
+    }));
+    const statuses = [['open', 'Open'], ['closed', 'Closed'], ['all', 'All']].map((s) => ({
+      label: s[1], cls: status === s[0] ? 'on' : '', pick: () => this.setState({ status: s[0] })
     }));
     return {
       rootClass: this.props.dark ? 'fx dark' : 'fx',
-      repos, filters, cols, lanes,
-      showWeBanner: proj === 'all' || proj === 'we',
-      laneProjectCls: this.state.lanes === 'project' ? 'on' : '',
-      laneNoneCls: this.state.lanes === 'none' ? 'on' : '',
-      lanesProject: () => this.setState({ lanes: 'project' }),
-      lanesNone: () => this.setState({ lanes: 'none' })
+      repos, filters, statuses, drafts, epics, cols, cells,
+      hasDrafts: drafts.length > 0, draftCount: drafts.length, epicCount: epics.length,
+      staleOnly, toggleStale: () => this.setState({ stale: !staleOnly }),
+      orphanCount: String(orphanCount),
+      orphanSplit: proj === 'all' ? 'ui-o-matic 172 · skills 2 · dotfiles 2. Showing the 8 most recently touched.' : '',
+      moreEpics: proj === 'all' || proj === 'cdo' || proj === 'wow' ? 'Plus 7 more ticketed epics, none started: cdo-3ks, cdo-50h, cdo-97h, cdo-tik, wow-ytwj, wow-7lcd, wow-you1. Canceled epics are hidden.' : 'All epics shown.',
+      summary: drafts.length + ' drafts · ' + epics.length + ' epics · ' + orphanCount + ' unplanned',
+      showWeBanner: proj === 'all' || proj === 'we'
     };
   }
 }

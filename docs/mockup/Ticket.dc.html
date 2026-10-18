@@ -40,9 +40,11 @@ body{margin:0}
 
 <div aria-hidden="true" style="position: absolute; inset: 0; display: flex; gap: 16px; padding: 24px; box-sizing: border-box">
 <div class="ghost" style="width: 220px"></div>
-<div style="flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-content: start; padding-top: 88px">
-<div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div>
-<div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div><div></div><div class="ghost" style="height: 120px"></div><div></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding-top: 24px">
+<div class="ghost" style="height: 64px; width: 60%"></div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px"><div class="ghost" style="height: 64px"></div><div class="ghost" style="height: 64px"></div><div class="ghost" style="height: 64px"></div><div class="ghost" style="height: 64px"></div><div class="ghost" style="height: 64px"></div></div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px"><div class="ghost" style="height: 360px"></div><div class="ghost" style="height: 140px"></div><div></div><div></div><div class="ghost" style="height: 300px"></div></div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px"><div style="height: 80px; border: 1px dashed var(--border); border-radius: 8px"></div><div></div><div></div><div></div><div></div></div>
 </div>
 </div>
 <div aria-hidden="true" style="position: absolute; inset: 0; background: oklch(21% .006 285.885 / .35)"></div>
@@ -50,13 +52,15 @@ body{margin:0}
 <section role="dialog" aria-label="Ticket fe-813.4" style="position: relative; margin-left: auto; width: min(760px, 100%); min-height: 100vh; box-sizing: border-box; background: var(--bg); border-left: 1px solid var(--border); box-shadow: -12px 0 32px -8px #0000002e; padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 20px">
 
 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+<a href="Main.dc.html" style="color: var(--fg-soft); font-size: 13px">Initiatives</a>
+<span class="muted">/</span>
 <span style="width: 8px; height: 8px; border-radius: 3px; background: oklch(58% .2 295)"></span>
 <span class="muted" style="font-size: 13px">form-engine</span>
 <span class="muted">/</span>
 <a href="Epic.dc.html" class="mono" style="color: var(--fg-soft)">fe-813</a>
 <span class="muted">/</span>
 <span class="mono" style="color: var(--fg-strong)">fe-813.4</span>
-<a class="btn" href="Main.dc.html" aria-label="Close" style="margin-left: auto; width: 36px; padding: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></a>
+<a class="btn" href="Epic.dc.html" aria-label="Close and return to fe-813" style="margin-left: auto; width: 36px; padding: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></a>
 </div>
 
 <div style="display: flex; flex-direction: column; gap: 10px">
@@ -67,6 +71,7 @@ body{margin:0}
 <span class="badge">task</span>
 <span class="badge">P2</span>
 <span class="badge b-success">ready: 3 blockers closed</span>
+<a class="badge" href="Epic.dc.html" style="text-decoration: none">planned under <span class="mono">fe-813</span> · building</a>
 </div>
 </div>
 

@@ -36,9 +36,28 @@ body{margin:0}
 .pr{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);box-shadow:var(--shadow)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{width:14px;height:14px;border-radius:99px;border:2px solid currentColor;border-right-color:transparent;animation:spin .8s linear infinite}
+.nav a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--fg-soft);text-decoration:none;font-weight:500}
+.nav a:hover{background:var(--accent);color:var(--fg-strong)}
+.nav a.on{background:var(--accent);color:var(--fg-strong)}
+a.badge{text-decoration:none}
 </style>
 </helmet>
-<div class="{{rootClass}}" style="min-height: 100vh; position: relative; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 20px; background: var(--bg)">
+<div class="{{rootClass}}" style="min-height: 100vh; position: relative; display: flex; flex-wrap: wrap; background: var(--bg)">
+
+<aside style="flex: 1 1 240px; max-width: 260px; min-width: 220px; box-sizing: border-box; padding: 16px 12px; border-right: 1px solid var(--border); background: var(--sunken); display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="color: var(--fg-strong)"><circle cx="5" cy="12" r="2.5"></circle><circle cx="12" cy="12" r="2.5"></circle><circle cx="19" cy="12" r="2.5"></circle><path d="M7.5 12h2M14.5 12h2"></path></svg>
+<span style="font-weight: 600; color: var(--fg-strong); font-size: 15px">beads-board</span>
+</div>
+<nav class="nav" aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
+<a href="Main.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h7"></path><circle cx="19" cy="18" r="2"></circle></svg>Initiatives</a>
+<a class="on" href="PRs.dc.html" aria-current="page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="5" r="2"></circle><circle cx="6" cy="19" r="2"></circle><circle cx="18" cy="19" r="2"></circle><path d="M6 7v10M18 17V9a3 3 0 0 0-3-3h-3"></path></svg>Pull requests<span class="badge b-neutral" style="margin-left: auto; height: 20px">2</span></a>
+<a href="Settings.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"></path></svg>Settings</a>
+</nav>
+<div style="margin-top: auto; padding: 0 10px" class="muted">Synced via <span class="mono">bd export</span>, 4 s ago</div>
+</aside>
+
+<main style="flex: 999 1 640px; min-width: 0; box-sizing: border-box; padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 20px">
 
 <header style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
 <div style="display: flex; flex-direction: column; gap: 2px; margin-right: auto">
@@ -52,6 +71,7 @@ body{margin:0}
 <div class="tabs" role="tablist">
 <button class="on" role="tab">form-engine <span class="badge" style="height: 20px">2</span></button>
 <button role="tab">ui-o-matic <span class="badge" style="height: 20px">0</span></button>
+<button role="tab">beads-board <span class="badge" style="height: 20px">0</span></button>
 <button role="tab">skills <span class="badge" style="height: 20px">0</span></button>
 <button role="tab">dotfiles <span class="badge" style="height: 20px">0</span></button>
 <button role="tab">we_go_next_dev <span class="badge" style="height: 20px">0</span></button>
@@ -79,7 +99,8 @@ body{margin:0}
 <span class="badge mono">62c242d</span>
 <span class="badge">6 commits</span>
 <span class="badge">checks: none</span>
-<span class="badge b-info">bead fe-813.2 (title)</span>
+<a class="badge b-info" href="Ticket.dc.html">bead <span class="mono">fe-813.2</span></a>
+<a class="badge" href="Epic.dc.html">epic <span class="mono">fe-813</span></a>
 </div>
 </div>
 <div style="display: flex; gap: 8px; align-items: center">
@@ -100,7 +121,8 @@ body{margin:0}
 <span class="badge mono">357a083</span>
 <span class="badge">4 commits</span>
 <span class="badge">checks: none</span>
-<span class="badge b-info">bead fe-813.3 (title)</span>
+<a class="badge b-info" href="Ticket.dc.html">bead <span class="mono">fe-813.3</span></a>
+<a class="badge" href="Epic.dc.html">epic <span class="mono">fe-813</span></a>
 </div>
 </div>
 <div style="display: flex; gap: 8px; align-items: center">
@@ -123,6 +145,8 @@ body{margin:0}
 <div class="muted">Illustrative: PRs #4 and #5 do not exist yet; they show the local branches pr/time-model and pr/scheduler as the next stack.</div>
 </section>
 
+</main>
+
 <sc-if value="{{confirming}}" hint-placeholder-val="{{ false }}">
 <div style="position: absolute; inset: 0; background: oklch(21% .006 285.885 / .45); display: flex; align-items: flex-start; justify-content: center; padding: 120px 16px 16px">
 <div role="dialog" aria-modal="true" aria-labelledby="mt" style="width: min(520px, 100%); box-sizing: border-box; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 16px 48px -12px #00000040; padding: 24px; display: flex; flex-direction: column; gap: 16px">
@@ -131,6 +155,7 @@ body{margin:0}
 <dt class="muted" style="font-size: 13px">Method</dt><dd style="margin: 0; color: var(--fg-strong)">Merge commit</dd>
 <dt class="muted" style="font-size: 13px">Head</dt><dd style="margin: 0" class="mono">pr/time-model @ 62c242d</dd>
 <dt class="muted" style="font-size: 13px">Beads</dt><dd style="margin: 0" class="mono">fe-813.2 (closed)</dd>
+<dt class="muted" style="font-size: 13px">Epic</dt><dd style="margin: 0; color: var(--fg-strong)"><span class="mono">fe-813</span> · 3 of 9 closed</dd>
 <dt class="muted" style="font-size: 13px">Then</dt><dd style="margin: 0; color: var(--fg-strong)">Retarget #5 from pr/time-model onto main</dd>
 </dl>
 <div class="muted" style="font-size: 13px; line-height: 18px">GitHub refuses the merge if the head moved after this dialog opened. No branches are deleted and no local git runs.</div>

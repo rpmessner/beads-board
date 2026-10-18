@@ -24,6 +24,9 @@ body{margin:0}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg-strong);font:500 14px/20px Inter,system-ui,sans-serif;box-shadow:var(--shadow);cursor:pointer;white-space:nowrap}
 .btn:hover{background:var(--accent)}
 .muted{color:var(--fg-softer);font-size:12px;line-height:16px}
+.nav a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--fg-soft);text-decoration:none;font-weight:500}
+.nav a:hover{background:var(--accent);color:var(--fg-strong)}
+.nav a.on{background:var(--accent);color:var(--fg-strong)}
 .sec{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-softer)}
 .panel{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
 table{border-collapse:collapse;width:100%;font-size:13px}
@@ -36,7 +39,22 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 .sw input:checked::after{left:18px}
 </style>
 </helmet>
-<div class="{{rootClass}}" style="min-height: 100vh; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 20px; background: var(--bg)">
+<div class="{{rootClass}}" style="min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg)">
+
+<aside style="flex: 1 1 240px; max-width: 260px; min-width: 220px; box-sizing: border-box; padding: 16px 12px; border-right: 1px solid var(--border); background: var(--sunken); display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="color: var(--fg-strong)"><circle cx="5" cy="12" r="2.5"></circle><circle cx="12" cy="12" r="2.5"></circle><circle cx="19" cy="12" r="2.5"></circle><path d="M7.5 12h2M14.5 12h2"></path></svg>
+<span style="font-weight: 600; color: var(--fg-strong); font-size: 15px">beads-board</span>
+</div>
+<nav class="nav" aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
+<a href="Main.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h7"></path><circle cx="19" cy="18" r="2"></circle></svg>Initiatives</a>
+<a href="PRs.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="5" r="2"></circle><circle cx="6" cy="19" r="2"></circle><circle cx="18" cy="19" r="2"></circle><path d="M6 7v10M18 17V9a3 3 0 0 0-3-3h-3"></path></svg>Pull requests<span class="badge b-neutral" style="margin-left: auto; height: 20px">2</span></a>
+<a class="on" href="Settings.dc.html" aria-current="page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"></path></svg>Settings</a>
+</nav>
+<div style="margin-top: auto; padding: 0 10px" class="muted">Synced via <span class="mono">bd export</span>, 4 s ago</div>
+</aside>
+
+<main style="flex: 999 1 640px; min-width: 0; box-sizing: border-box; padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 20px">
 
 <header style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
 <div style="display: flex; flex-direction: column; gap: 2px; margin-right: auto">
@@ -66,7 +84,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <sc-if value="{{bad}}" hint-placeholder-val="{{ false }}">
 <div role="alert" style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 8px; border: 1px solid color-mix(in oklab, var(--danger) 30%, var(--bg)); background: color-mix(in oklab, var(--danger) var(--mix), var(--bg)); color: color-mix(in oklab, var(--danger), var(--fgmix))">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16h.01"></path></svg>
-<div style="display: flex; flex-direction: column; gap: 4px"><b>board.toml line 15: columns[2].stages names an unknown stage "reviewing".</b><span>Known stages come from Board.Stage: queued, dispatched, building, reported, in_review, committed, pr_open, merged, done, abandoned. The last good config stays in use.</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><b>board.toml line 15: columns[2].stages names "speccing", which is not a ticket stage.</b><span>Columns group ticket stages from Board.Stage only: queued, dispatched, building, reported, in_review, committed, pr_open, merged, done, abandoned. "speccing" is an epic stage (Board.Epic), and epic stages are fixed, not configurable. The last good config stays in use.</span></div>
 </div>
 </sc-if>
 
@@ -79,7 +97,8 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <thead><tr><th>Key</th><th>Path</th><th>GitHub</th><th>bd store</th><th>Read</th><th>Enabled</th></tr></thead>
 <tbody>
 <tr><td>form-engine</td><td class="mono">~/dev/music/form-engine</td><td class="mono">rpmessner/form-engine</td><td>embedded</td><td><span class="badge b-success">30 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="form-engine enabled"></label></td></tr>
-<tr><td>skills</td><td class="mono">~/dev/utils/skills</td><td class="mono">rpmessner/skills</td><td>embedded</td><td><span class="badge b-success">15 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="skills enabled"></label></td></tr>
+<tr><td>beads-board</td><td class="mono">~/dev/utils/beads-board</td><td class="mono">rpmessner/beads-board</td><td>embedded</td><td><span class="badge b-success">12 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="beads-board enabled"></label></td></tr>
+<tr><td>skills</td><td class="mono">~/dev/utils/skills</td><td class="mono">rpmessner/skills</td><td>embedded</td><td><span class="badge b-success">17 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="skills enabled"></label></td></tr>
 <tr><td>dotfiles</td><td class="mono">~/dev/dotfiles</td><td class="mono">rpmessner/dotfiles</td><td>embedded</td><td><span class="badge b-success">3 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="dotfiles enabled"></label></td></tr>
 <tr><td>ui-o-matic</td><td class="mono">~/dev/games/wow-addons/ui-o-matic</td><td class="mono">rpmessner/ui-o-matic</td><td>embedded</td><td><span class="badge b-success">417 · 5 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="ui-o-matic enabled"></label></td></tr>
 <tr><td>cooldown-o-matic</td><td class="mono">~/dev/games/wow-addons/cooldown-o-matic</td><td class="muted">no remote</td><td>embedded</td><td><span class="badge b-success">47 · 5 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="cooldown-o-matic enabled"></label></td></tr>
@@ -99,12 +118,16 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <div class="panel" style="padding: 12px; gap: 8px"><b style="color: var(--fg-strong)">Shipping</b><div style="display: flex; flex-wrap: wrap; gap: 4px"><span class="badge mono">committed</span><span class="badge mono">pr_open</span><span class="badge mono">merged</span></div></div>
 <div class="panel" style="padding: 12px; gap: 8px"><b style="color: var(--fg-strong)">Done</b><div style="display: flex; flex-wrap: wrap; gap: 4px"><span class="badge mono">done</span><span class="muted">collapsed</span></div></div>
 </div>
-<div class="muted">Config can name and group stages, never invent them. Abandoned tickets are hidden unless filtered for.</div>
+<div class="muted">These columns lay out the epic view and the Unplanned lane. They group ticket stages only; config can name and group them, never invent them. Abandoned tickets are hidden unless filtered for.</div>
+<div class="panel" style="padding: 12px 16px; gap: 8px; box-shadow: none; background: var(--sunken)">
+<span class="sec">Epic stages · fixed by Board.Epic, not configurable</span>
+<div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center"><span class="badge mono">idea</span><span class="badge mono">speccing</span><span class="badge mono">spec_approved</span><span class="badge mono">ticketed</span><span class="muted">then derived:</span><span class="badge b-dashed mono">building</span><span class="badge b-dashed mono">shipping</span><span class="badge b-dashed mono">shipped</span><span class="muted">·</span><span class="badge mono">done</span><span class="badge mono">abandoned</span></div>
+</div>
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 10px">
 <div class="sec">Found under ~/dev, not in config</div>
-<div class="panel" style="padding: 12px 16px"><span class="muted" style="font-size: 13px">None. All 6 .beads directories are configured.</span></div>
+<div class="panel" style="padding: 12px 16px"><span class="muted" style="font-size: 13px">None. All 7 .beads directories are configured.</span></div>
 </section>
 </div>
 
@@ -113,14 +136,16 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <pre class="mono" style="margin: 0; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--sunken); color: var(--fg-strong); font-size: 12px; line-height: 19px; white-space: pre; overflow-x: auto">{{toml}}</pre>
 </aside>
 </div>
+<div class="muted">Repo paths, remotes and ticket counts are real (2026-10-17). Load times and the rejected edit are illustrative: the app does not exist yet.</div>
+</main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1120}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1240}}'>
 class Component extends DCLogic {
   constructor(props) { super(props); this.state = { bad: false, loadedAt: '21:44:02' }; }
   renderVals() {
     const bad = this.state.bad;
-    const stage = bad ? 'reviewing' : 'in_review';
+    const stage = bad ? 'speccing' : 'in_review';
     const toml = [
       '[board]',
       'swimlanes = "project"',
@@ -159,7 +184,7 @@ class Component extends DCLogic {
       statusLabel: bad ? 'Invalid edit, last good config in use' : 'Valid · watching for changes',
       statusSub: bad ? 'Edit saved 21:51:30, rejected. Loaded config from ' + this.state.loadedAt + '.' : 'Loaded ' + this.state.loadedAt + ' · inotify on ~/.config/beads-board/',
       reviewChip: bad ? 'badge b-danger mono' : 'badge mono',
-      reviewName: bad ? 'reviewing ?' : 'in_review',
+      reviewName: bad ? 'speccing ?' : 'in_review',
       toggleBad: () => this.setState({ bad: !this.state.bad }),
       reload: () => this.setState({ loadedAt: bad ? this.state.loadedAt : '21:52:10' })
     };
