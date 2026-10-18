@@ -27,7 +27,9 @@ defmodule Board.FsmDocsTest do
   for {name, module} <- [
         {"stage", Board.Stage},
         {"epic", Board.Fixtures.Epic},
-        {"reload_machine", Board.Config.ReloadMachine}
+        {"reload_machine", Board.Config.ReloadMachine},
+        {"read_machine", Board.Beads.ReadMachine},
+        {"schedule_machine", Board.Beads.ScheduleMachine}
       ] do
     test "#{name} documentation matches the committed golden" do
       module = unquote(module)

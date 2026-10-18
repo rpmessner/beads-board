@@ -29,6 +29,7 @@ defmodule Board.Beads.Projection do
           :unchanged
         else
           replace_rows(repo_key, export)
+          :ok = Board.Events.broadcast(:projection_changed, repo_key)
           :changed
         end
       end)
