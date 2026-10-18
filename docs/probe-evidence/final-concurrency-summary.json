@@ -1,0 +1,322 @@
+[
+  {
+    "name": "form-engine-3s",
+    "seconds": 600.0,
+    "elapsed": 604.5965893210087,
+    "initial_issues": 30,
+    "locks": {
+      ".beads/backup/LOCK": {
+        "samples": 28065,
+        "held": 0
+      },
+      ".beads/embeddeddolt/.lock": {
+        "samples": 28065,
+        "held": 0
+      },
+      ".beads/embeddeddolt/fe/.dolt/noms/LOCK": {
+        "samples": 28065,
+        "held": 18911,
+        "example": "10: FLOCK  ADVISORY  WRITE 1790180 08:30:808354 0 EOF"
+      }
+    },
+    "final_export_rc": 0,
+    "counts": {
+      "write": {
+        "attempts": 645,
+        "failed": 0,
+        "max_seconds": 3.418416894011898,
+        "operations": {
+          "close": {
+            "attempts": 129,
+            "failed": 0
+          },
+          "create": {
+            "attempts": 129,
+            "failed": 0
+          },
+          "dep": {
+            "attempts": 129,
+            "failed": 0
+          },
+          "note": {
+            "attempts": 129,
+            "failed": 0
+          },
+          "update": {
+            "attempts": 129,
+            "failed": 0
+          }
+        }
+      },
+      "read": {
+        "attempts": 177,
+        "failed": 0,
+        "max_seconds": 14.552663954993477,
+        "operations": {
+          "export": {
+            "attempts": 177,
+            "failed": 0
+          }
+        }
+      }
+    },
+    "errors": [],
+    "commands_sha256": "b1bd82f53a534f22c18afbf69d08b1fe214513005eaecb6d714840d98222c799"
+  },
+  {
+    "name": "form-engine-0.1s",
+    "seconds": 600.0,
+    "elapsed": 606.3491085709829,
+    "initial_issues": 30,
+    "locks": {
+      ".beads/backup/LOCK": {
+        "samples": 28137,
+        "held": 0
+      },
+      ".beads/embeddeddolt/.lock": {
+        "samples": 28137,
+        "held": 0
+      },
+      ".beads/embeddeddolt/fe/.dolt/noms/LOCK": {
+        "samples": 28137,
+        "held": 20149,
+        "example": "10: FLOCK  ADVISORY  WRITE 1779815 08:30:808351 0 EOF"
+      }
+    },
+    "final_export_rc": 0,
+    "counts": {
+      "write": {
+        "attempts": 520,
+        "failed": 0,
+        "max_seconds": 10.850130903010722,
+        "operations": {
+          "close": {
+            "attempts": 104,
+            "failed": 0
+          },
+          "create": {
+            "attempts": 104,
+            "failed": 0
+          },
+          "dep": {
+            "attempts": 104,
+            "failed": 0
+          },
+          "note": {
+            "attempts": 104,
+            "failed": 0
+          },
+          "update": {
+            "attempts": 104,
+            "failed": 0
+          }
+        }
+      },
+      "read": {
+        "attempts": 429,
+        "failed": 0,
+        "max_seconds": 46.92720650898991,
+        "operations": {
+          "export": {
+            "attempts": 429,
+            "failed": 0
+          }
+        }
+      }
+    },
+    "errors": [],
+    "commands_sha256": "63c8fad9dfe0bb921543750e431176aab702a6f6d593792bb14f6224d4a678ed"
+  },
+  {
+    "name": "ui-o-matic-3s",
+    "seconds": 600.0,
+    "elapsed": 603.7796414019831,
+    "initial_issues": 417,
+    "locks": {
+      ".beads/backup/LOCK": {
+        "samples": 19830,
+        "held": 0
+      },
+      ".beads/embeddeddolt/wow/.dolt/noms/LOCK": {
+        "samples": 19830,
+        "held": 13863,
+        "example": "14: FLOCK  ADVISORY  WRITE 1788846 08:30:811075 0 EOF"
+      },
+      ".beads/embeddeddolt/wow/.dolt/git-remote-cache/77646df30fe67e960c255fe85727c9dfb290debe6d7e6b2f930fc38e2f23c6ae/init.lock": {
+        "samples": 19830,
+        "held": 0
+      },
+      ".beads/dolt.stub-bak-20260808/.dolt/noms/LOCK": {
+        "samples": 19830,
+        "held": 0
+      },
+      ".beads/dolt.stub-bak-20260808/.dolt/stats/.dolt/noms/LOCK": {
+        "samples": 19830,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/.dolt/noms/LOCK": {
+        "samples": 19830,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/.dolt/stats/.dolt/noms/LOCK": {
+        "samples": 19830,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/wow/.dolt/noms/LOCK": {
+        "samples": 19830,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/wow/.dolt/git-remote-cache/77646df30fe67e960c255fe85727c9dfb290debe6d7e6b2f930fc38e2f23c6ae/init.lock": {
+        "samples": 19830,
+        "held": 0
+      },
+      ".beads/dolt.backup-20260808-124543/.dolt/noms/LOCK": {
+        "samples": 19830,
+        "held": 0
+      },
+      ".beads/dolt.backup-20260808-124543/.dolt/stats/.dolt/noms/LOCK": {
+        "samples": 19830,
+        "held": 0
+      }
+    },
+    "final_export_rc": 0,
+    "counts": {
+      "write": {
+        "attempts": 560,
+        "failed": 0,
+        "max_seconds": 6.599022801005049,
+        "operations": {
+          "close": {
+            "attempts": 112,
+            "failed": 0
+          },
+          "create": {
+            "attempts": 112,
+            "failed": 0
+          },
+          "dep": {
+            "attempts": 112,
+            "failed": 0
+          },
+          "note": {
+            "attempts": 112,
+            "failed": 0
+          },
+          "update": {
+            "attempts": 112,
+            "failed": 0
+          }
+        }
+      },
+      "read": {
+        "attempts": 169,
+        "failed": 0,
+        "max_seconds": 13.527628148003714,
+        "operations": {
+          "export": {
+            "attempts": 169,
+            "failed": 0
+          }
+        }
+      }
+    },
+    "errors": [],
+    "commands_sha256": "8a921e4022711ac5045b972da704147a2e59009ba06b9a382d2391af10008e2c"
+  },
+  {
+    "name": "ui-o-matic-0.1s",
+    "seconds": 600.0,
+    "elapsed": 603.7580075240112,
+    "initial_issues": 417,
+    "locks": {
+      ".beads/backup/LOCK": {
+        "samples": 19806,
+        "held": 0
+      },
+      ".beads/embeddeddolt/wow/.dolt/noms/LOCK": {
+        "samples": 19806,
+        "held": 14330,
+        "example": "4: FLOCK  ADVISORY  WRITE 1789215 08:30:811081 0 EOF"
+      },
+      ".beads/embeddeddolt/wow/.dolt/git-remote-cache/77646df30fe67e960c255fe85727c9dfb290debe6d7e6b2f930fc38e2f23c6ae/init.lock": {
+        "samples": 19806,
+        "held": 0
+      },
+      ".beads/dolt.stub-bak-20260808/.dolt/noms/LOCK": {
+        "samples": 19806,
+        "held": 0
+      },
+      ".beads/dolt.stub-bak-20260808/.dolt/stats/.dolt/noms/LOCK": {
+        "samples": 19806,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/.dolt/noms/LOCK": {
+        "samples": 19806,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/.dolt/stats/.dolt/noms/LOCK": {
+        "samples": 19806,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/wow/.dolt/noms/LOCK": {
+        "samples": 19806,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/wow/.dolt/git-remote-cache/77646df30fe67e960c255fe85727c9dfb290debe6d7e6b2f930fc38e2f23c6ae/init.lock": {
+        "samples": 19806,
+        "held": 0
+      },
+      ".beads/dolt.backup-20260808-124543/.dolt/noms/LOCK": {
+        "samples": 19806,
+        "held": 0
+      },
+      ".beads/dolt.backup-20260808-124543/.dolt/stats/.dolt/noms/LOCK": {
+        "samples": 19806,
+        "held": 0
+      }
+    },
+    "final_export_rc": 0,
+    "counts": {
+      "write": {
+        "attempts": 360,
+        "failed": 0,
+        "max_seconds": 22.39254550699843,
+        "operations": {
+          "close": {
+            "attempts": 72,
+            "failed": 0
+          },
+          "create": {
+            "attempts": 72,
+            "failed": 0
+          },
+          "dep": {
+            "attempts": 72,
+            "failed": 0
+          },
+          "note": {
+            "attempts": 72,
+            "failed": 0
+          },
+          "update": {
+            "attempts": 72,
+            "failed": 0
+          }
+        }
+      },
+      "read": {
+        "attempts": 449,
+        "failed": 0,
+        "max_seconds": 27.719619278999744,
+        "operations": {
+          "export": {
+            "attempts": 449,
+            "failed": 0
+          }
+        }
+      }
+    },
+    "errors": [],
+    "commands_sha256": "a88c6c84ba91345a3398c885319541c09ff321bf7d76e43d99a83ecf957b39cb"
+  }
+]

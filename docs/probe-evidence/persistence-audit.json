@@ -1,0 +1,30 @@
+[
+  {
+    "scenario": "form-engine-3s",
+    "successful_writes_checked": 610,
+    "created": 122,
+    "final_issues": 153,
+    "verified": true
+  },
+  {
+    "scenario": "form-engine-0.1s",
+    "successful_writes_checked": 525,
+    "created": 105,
+    "final_issues": 136,
+    "verified": true
+  },
+  {
+    "scenario": "ui-o-matic-3s",
+    "successful_writes_checked": 535,
+    "created": 107,
+    "final_issues": 525,
+    "verified": true
+  },
+  {
+    "scenario": "ui-o-matic-0.1s",
+    "successful_writes_checked": 400,
+    "created": 80,
+    "final_issues": 498,
+    "verified": true
+  }
+]
