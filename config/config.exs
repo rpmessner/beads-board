@@ -15,7 +15,7 @@ config :board, Oban,
   repo: Board.Repo,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [external_reads: 4],
+  queues: [external_reads: 4, external_writes: 1],
   plugins: [Oban.Plugins.Pruner]
 
 # Configure the endpoint

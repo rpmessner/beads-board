@@ -59,9 +59,57 @@ defmodule Board.ForgeContractTest do
                  &Map.take(&1, Map.keys(hd(snapshot["change_requests"])))
                ) == snapshot["change_requests"]
 
-        assert @adapter.capabilities() == %{head_guard: true, retarget: true, write: false}
-        assert @adapter.merge("repo", 5, "sha", []) == {:error, :read_only}
-        assert @adapter.retarget("repo", 6, "main", []) == {:error, :read_only}
+        assert @adapter.capabilities() == %{head_guard: true, retarget: true, write: true}
+      end
+
+      test "merge is head guarded and retarget changes only the base" do
+        fake =
+          start_supervised!(
+            {Board.Forge.Fake,
+             %{
+               "default_branch" => "main",
+               "change_requests" => [
+                 %{"number" => 5, "head_sha" => "confirmed", "state" => "open"},
+                 %{"number" => 6, "target_branch" => "stack"}
+               ]
+             }}
+          )
+
+        opts = [server: fake, token: "test", plug: {Req.Test, __MODULE__}]
+
+        Req.Test.stub(__MODULE__, fn conn ->
+          {:ok, body, conn} = Plug.Conn.read_body(conn)
+          payload = Jason.decode!(body)
+
+          case {conn.method, conn.request_path} do
+            {"PUT", "/repos/owner/repo/pulls/5/merge"} ->
+              assert payload["merge_method"] == "merge"
+
+              if payload["sha"] == "confirmed",
+                do: Req.Test.json(conn, %{"merged" => true, "sha" => "merge-sha"}),
+                else:
+                  conn
+                  |> Plug.Conn.put_status(409)
+                  |> Req.Test.json(%{"message" => "Head changed"})
+
+            {"PATCH", "/repos/owner/repo/pulls/6"} ->
+              assert payload == %{"base" => "main"}
+              Req.Test.json(conn, %{"number" => 6, "base" => %{"ref" => "main"}})
+          end
+        end)
+
+        assert {:error, :head_moved} = @adapter.merge("owner/repo", 5, "old", opts)
+        assert {:ok, %{"sha" => sha}} = @adapter.merge("owner/repo", 5, "confirmed", opts)
+        assert is_binary(sha)
+        assert :ok = @adapter.retarget("owner/repo", 6, "main", opts)
+
+        if @adapter == Board.Forge.Fake do
+          {:ok, snapshot} = @adapter.list("owner/repo", opts)
+          assert Enum.find(snapshot["change_requests"], &(&1["number"] == 5))["state"] == "merged"
+
+          assert Enum.find(snapshot["change_requests"], &(&1["number"] == 6))["target_branch"] ==
+                   "main"
+        end
       end
     end
   end

@@ -1,0 +1,19 @@
+{
+  "forge": "fake only",
+  "outOfOrderRefused": true,
+  "confirmedFacts": true,
+  "movedHeadRefused": true,
+  "mergeFailure": true,
+  "partialFailure": true,
+  "phases": [
+    "confirming",
+    "merging",
+    "retargeting",
+    "merged"
+  ],
+  "childBase": "main",
+  "observedTicketStage": "merged",
+  "suggestion": "bd close bb-demo.1",
+  "consoleErrors": [],
+  "mobileOverflow": false
+}

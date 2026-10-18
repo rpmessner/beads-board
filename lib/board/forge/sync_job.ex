@@ -5,14 +5,19 @@ defmodule Board.Forge.SyncJob do
     max_attempts: 1,
     unique: [period: :infinity, fields: [:worker, :args], keys: [:key], states: :incomplete]
 
-  alias Board.Forge.{Store, GitHub, Credentials}
+  alias Board.Forge.Store
   alias Board.Forge.ReadLifecycle, as: ReadMachine
   alias Board.Repo
 
   def enqueue(key, manual \\ false), do: new(%{key: key, manual: manual}) |> Oban.insert()
   @impl true
   def perform(%Oban.Job{args: %{"key" => key} = args}) do
-    sync(key, GitHub, token: Credentials.token(), manual: args["manual"] == true)
+    sync(
+      key,
+      Board.Forge.adapter(),
+      Keyword.put(Board.Forge.options(), :manual, args["manual"] == true)
+    )
+
     :ok
   end
 

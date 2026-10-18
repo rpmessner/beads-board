@@ -1,0 +1,18 @@
+Compiling 1 file (.ex)
+Generated board app
+Running ExUnit with seed: 429021, max_cases: 16
+
+
+
+  1) test capabilities gate writes, weaker guard and manual retarget (Board.MergeActionTest)
+     test/board/merge_action_test.exs:21
+     match (=) failed
+     code:  assert {:idle, status: :refused} = Action.step(:idle, :request, d)
+     left:  {:idle, status: :refused}
+     right: {:confirming, []}
+     stacktrace:
+       test/board/merge_action_test.exs:23: (test)
+
+.
+Finished in 0.02 seconds (0.02s async, 0.00s sync)
+2 tests, 1 failure

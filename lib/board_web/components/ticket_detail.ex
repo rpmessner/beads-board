@@ -89,7 +89,15 @@ defmodule BoardWeb.TicketDetail do
             <Badge.badge>{@ticket.raw["issue_type"] || "ticket"}</Badge.badge>
             <Badge.badge :if={@ticket.raw["priority"] != nil}>P{@ticket.raw["priority"]}</Badge.badge>
           </div>
-          <div id="ticket-actions" class="flex flex-wrap gap-2"></div>
+          <div id="ticket-actions" class="flex flex-wrap gap-2">
+            <code
+              :if={@ticket.close_suggested}
+              id="ticket-close-suggestion"
+              class="rounded border border-base px-3 py-2 text-xs"
+            >
+              bd close {@ticket.id}
+            </code>
+          </div>
         </header>
         <nav
           aria-label="Ticket sections"

@@ -114,7 +114,15 @@ defmodule Board.Drilldown do
               order_by: c.number,
               select: c.number
           ),
-        change_requests: Board.Forge.Store.linked(key)
+        change_requests: Board.Forge.Store.linked(key),
+        close_suggested:
+          overlay && overlay.stage == :merged &&
+            Enum.any?(Overlay.history(key), fn event ->
+              Enum.any?(
+                event.effects || [],
+                &(&1 == %{"kind" => "suggest", "name" => "close_bead"})
+              )
+            end)
       }
     end
   end

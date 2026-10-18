@@ -61,11 +61,11 @@ defmodule BoardWeb.PullRequestsLiveTest do
     :ok
   end
 
-  test "read-only stack links open the sheet; local repositories have no panel", %{conn: conn} do
+  test "stack links open the sheet; local repositories have no panel", %{conn: conn} do
     {:ok, view, _} = live(conn, "/pull-requests?project=sample")
     assert has_element?(view, "#pull-requests [data-number='5'] + [data-number='6']")
     assert has_element?(view, "#cr-sample-6 [data-parent='5']", "Waiting on #5")
-    refute has_element?(view, "button", "Merge")
+    assert has_element?(view, "#merge-request-5")
     view |> element("#cr-sample-6 a[data-bead='fe-813.2']") |> render_click()
     assert_patch(view, "/pull-requests?project=sample&ticket=sample%3Afe-813.2")
     assert has_element?(view, "#ticket-sheet[data-open=true]")
@@ -77,6 +77,84 @@ defmodule BoardWeb.PullRequestsLiveTest do
 
     render_patch(view, "/pull-requests?project=local")
     refute has_element?(view, "#forge-panel")
+  end
+
+  test "merge confirmation, job phases and observed close suggestion", %{conn: conn} do
+    stored = Board.Forge.Store.get("sample")
+
+    snapshot =
+      put_in(stored.snapshot, ["change_requests", Access.at(0), "mergeable"], "mergeable")
+
+    Board.Forge.Store.replace("sample", stored.remote, snapshot)
+    fake = start_supervised!({Board.Forge.Fake, snapshot})
+    {:ok, view, _} = live(conn, "/pull-requests?project=sample")
+    view |> element("#merge-request-6") |> render_click()
+    assert has_element?(view, "#merge-status", "Bottom of stack only")
+    refute has_element?(view, "#merge-confirm[data-open=true]")
+    view |> element("#merge-request-5") |> render_click()
+    assert has_element?(view, "#merge-confirm[data-open=true]")
+
+    assert has_element?(
+             view,
+             "#merge-confirm",
+             snapshot["change_requests"] |> hd() |> Map.fetch!("head_sha")
+           )
+
+    assert has_element?(view, "#merge-confirm", "fe-813.3")
+    assert has_element?(view, "#merge-confirm", "Retarget #6")
+    view |> element("#merge-confirm-submit") |> render_click()
+    assert has_element?(view, "#merge-status[data-state=merging]")
+    row = Board.Merge.latest("sample")
+    Board.Merge.MergeJob.run(row.id, Board.Forge.Fake, server: fake)
+    send(view.pid, :reconcile)
+    assert has_element?(view, "#merge-status[data-state=retargeting]")
+    Board.Merge.RetargetJob.run(row.id, Board.Forge.Fake, server: fake)
+    send(view.pid, :reconcile)
+    assert has_element?(view, "#merge-status[data-state=merged]")
+    assert Board.Overlay.get({"sample", "fe-813.3"}).stage == :pr_open
+    {:ok, observed} = Board.Forge.Fake.list(stored.remote, server: fake)
+    Board.Forge.Store.replace("sample", stored.remote, observed)
+    render_patch(view, "/pull-requests?project=sample&ticket=sample%3Afe-813.3")
+    assert has_element?(view, "#ticket-stage", "merged")
+    assert has_element?(view, "#ticket-close-suggestion", "bd close fe-813.3")
+  end
+
+  test "a head observed after opening confirmation requires a fresh confirmation", %{conn: conn} do
+    stored = Board.Forge.Store.get("sample")
+
+    snapshot =
+      put_in(stored.snapshot, ["change_requests", Access.at(0), "mergeable"], "mergeable")
+
+    Board.Forge.Store.replace("sample", stored.remote, snapshot)
+    {:ok, view, _} = live(conn, "/pull-requests?project=sample")
+    view |> element("#merge-request-5") |> render_click()
+    moved = put_in(snapshot, ["change_requests", Access.at(0), "head_sha"], "new-head")
+    Board.Forge.Store.replace("sample", stored.remote, moved)
+    view |> element("#merge-confirm-submit") |> render_click()
+    assert has_element?(view, "#merge-confirm[data-open=true]", "Head moved")
+    assert Board.Merge.latest("sample") == nil
+  end
+
+  test "repeated request exposes the durable failure, not a confirmation that cannot run", %{
+    conn: conn
+  } do
+    stored = Board.Forge.Store.get("sample")
+
+    snapshot =
+      put_in(stored.snapshot, ["change_requests", Access.at(0), "mergeable"], "mergeable")
+
+    Board.Forge.Store.replace("sample", stored.remote, snapshot)
+    fake = start_supervised!({Board.Forge.Fake, Map.put(snapshot, "merge_error", true)})
+    {:ok, view, _} = live(conn, "/pull-requests?project=sample")
+    view |> element("#merge-request-5") |> render_click()
+    view |> element("#merge-confirm-submit") |> render_click()
+    row = Board.Merge.latest("sample")
+    Board.Merge.MergeJob.run(row.id, Board.Forge.Fake, server: fake)
+    send(view.pid, :reconcile)
+    assert has_element?(view, "#merge-status[data-state=failed]")
+    view |> element("#merge-request-5") |> render_click()
+    refute has_element?(view, "#merge-confirm[data-open=true]")
+    assert has_element?(view, "#merge-status[data-state=failed]")
   end
 
   test "initiatives count distinct open CRs across an epic's tickets", %{conn: conn} do
