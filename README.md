@@ -28,7 +28,37 @@ Elixir 1.19 scans both `.ex` and `.exs` under `test/`; manually loaded fixture f
 To run the Phoenix scaffold with Postgres, configure `config/dev.exs`, then run `mix setup` and `mix phx.server`.
 Development uses `beads_board_dev` and listens on `127.0.0.1:4747` (`PORT` overrides
 the port, not the loopback bind). Migrate before starting Oban. Production still
-requires `DATABASE_URL` and `SECRET_KEY_BASE`; no systemd unit is installed.
+requires `DATABASE_URL`, plus `SECRET_KEY_BASE` for web/all; no systemd unit is installed.
+
+## Deployment roles and notifications
+
+One release supports two systemd user services, `beads-board-web` and
+`beads-board-worker`, without Erlang clustering. Set `BOARD_ROLE=web` in the web
+unit and `BOARD_ROLE=worker` in the worker unit. Both use the same database and
+Oban schema prefix. Set `RELEASE_DISTRIBUTION=none` in both release units.
+`BOARD_ROLE=all` is the default for development and tests; unknown values fail boot.
+Role changes require a restart.
+
+- Web starts Phoenix and a queue-less Oban instance for Postgres notifications.
+  It disables Oban plugins and leadership. It must not start readers or watchers.
+- Worker starts Oban queues and plugins, but no Phoenix endpoint. Scheduler and
+  watcher adapters still need implementation in `Board.Role.worker_children/0`.
+- Both start Repo. Phoenix.PubSub remains for endpoint internals, not cross-role
+  product events. DNS clustering is not started.
+
+`Board.Events` publishes versioned `config_changed`, `sync_status_changed`, and
+`projection_changed` invalidations through `Oban.Notifiers.Postgres`. Subscribers
+receive `{:notification, :board_events, payload}`. Changed projection transactions
+publish at commit; unchanged export hashes publish nothing. A rolled-back
+transaction cannot notify. Tests exercise independent notifiers and a raw
+Postgres LISTEN connection, not an in-memory notifier replacement.
+
+Notifications are transient. Views must fetch state from Postgres on mount and
+reconnect, then reconcile periodically. The future config runtime must persist
+its last-good snapshot and validation result in Postgres before notifying web;
+node-local `:persistent_term` alone cannot serve the split deployment. Config and
+sync-status publishers, LiveView consumers, release packaging and installed
+systemd units remain pending.
 
 ## Export projection boundary
 
@@ -57,7 +87,18 @@ must be implemented before wiring it to configured repos. The probe's
 Oban 2.23.0 emits an unused MySQL-pattern compiler warning on Elixir 1.19 when
 MyXQL is absent. The required pin is retained without suppressing the warning or
 adding an unused database driver. App compilation and precommit can be checked
-independently; a fresh dependency build still has this upstream warning.
+independently; a fresh dependency build still has this upstream warning. The
+coordinator accepted this pinned-dependency warning; application code must still
+compile with zero warnings.
+
+`Board.Beads.Read` and `Schedule` now define the pure read/admission protocols,
+with declared machines and generated goldens. Read timeout retains admission
+until the owned subprocess is reaped and discards late stdout. Schedule accepts
+three-second ticks even without changed signals, coalesces busy requests, and
+never launches catch-up reads on completion. Tokens include an owner epoch and
+generation so stale completions cannot release a newer flight. These modules
+perform no IO. Physical-store identity, cross-process admission, actual bd
+subprocess ownership, timer/Oban adapters and their acceptance tests remain open.
 
 ## Config contract
 

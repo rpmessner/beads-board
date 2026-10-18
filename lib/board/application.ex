@@ -7,15 +7,14 @@ defmodule Board.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      BoardWeb.Telemetry,
-      {DNSCluster, query: Application.get_env(:board, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Board.PubSub},
-      Board.Repo,
-      {Oban, Application.fetch_env!(:board, Oban)},
-      # Start to serve requests, typically the last entry
-      BoardWeb.Endpoint
-    ]
+    role = Application.fetch_env!(:board, :role)
+
+    children =
+      [
+        BoardWeb.Telemetry,
+        {Phoenix.PubSub, name: Board.PubSub},
+        Board.Repo
+      ] ++ Board.Role.children(role, Application.fetch_env!(:board, Oban))
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -27,7 +26,10 @@ defmodule Board.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    BoardWeb.Endpoint.config_change(changed, removed)
+    if Board.Role.endpoint?(Application.fetch_env!(:board, :role)) do
+      BoardWeb.Endpoint.config_change(changed, removed)
+    end
+
     :ok
   end
 end

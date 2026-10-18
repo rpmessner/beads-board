@@ -1,5 +1,13 @@
 import Config
 
+role = System.get_env("BOARD_ROLE", "all")
+
+unless role in ["web", "worker", "all"] do
+  raise "BOARD_ROLE must be web, worker or all"
+end
+
+config :board, :role, role
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -48,15 +56,15 @@ if config_env() == :prod do
   # to check this value into version control, so we use an environment
   # variable instead.
   secret_key_base =
-    System.get_env("SECRET_KEY_BASE") ||
-      raise """
-      environment variable SECRET_KEY_BASE is missing.
-      You can generate one by calling: mix phx.gen.secret
-      """
+    if role in ["web", "all"] do
+      System.get_env("SECRET_KEY_BASE") ||
+        raise """
+        environment variable SECRET_KEY_BASE is missing.
+        You can generate one by calling: mix phx.gen.secret
+        """
+    end
 
   host = "127.0.0.1"
-
-  config :board, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :board, BoardWeb.Endpoint,
     url: [host: host, port: port, scheme: "http"],

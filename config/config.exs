@@ -14,6 +14,7 @@ config :board,
 config :board, Oban,
   repo: Board.Repo,
   engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
   queues: [external_reads: 4],
   plugins: [Oban.Plugins.Pruner]
 
