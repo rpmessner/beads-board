@@ -11,6 +11,8 @@ defmodule Board.Initiatives do
         row -> row.config
       end
 
+    views = Board.Config.views(config)
+    filters = Board.Initiatives.Filters.effective(filters, views)
     repos = RuntimeState.repos()
     keys = Enum.map(repos, & &1["key"])
 
@@ -113,6 +115,7 @@ defmodule Board.Initiatives do
       orphans: Enum.filter(tree.orphans, &matches?(&1, filters)),
       repos: repos,
       columns: config["columns"],
+      views: views,
       filters: filters,
       types: beads |> Enum.map(& &1.type) |> Enum.uniq() |> Enum.sort(),
       labels: beads |> Enum.flat_map(& &1.labels) |> Enum.uniq() |> Enum.sort()
@@ -132,6 +135,12 @@ defmodule Board.Initiatives do
 
       {"status", value} ->
         value in ["", "all"] or (value == "open" and b.status != "closed") or b.status == value
+
+      {"statuses", values} ->
+        values == [] or b.status in values
+
+      {"stages", values} ->
+        values == [] or (b.type != "epic" and to_string(b.stage) in values)
 
       {"stale", value} ->
         value != "true" or b.stale

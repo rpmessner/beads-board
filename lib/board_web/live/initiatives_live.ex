@@ -1,6 +1,6 @@
 defmodule BoardWeb.InitiativesLive do
   use BoardWeb, :live_view
-  alias Fluxon.Components.Badge
+  alias Fluxon.Components.{Badge, Button}
   alias Board.Initiatives.{Disclosure, Filters, FilterRestore}
 
   @impl true
@@ -10,14 +10,22 @@ defmodule BoardWeb.InitiativesLive do
       Process.send_after(self(), :reconcile, 3_000)
     end
 
-    remembered = (get_connect_params(socket) || %{})["initiative_filters"]
-    options = Map.take(Board.Initiatives.snapshot(), [:repos, :types, :labels])
+    connect = get_connect_params(socket) || %{}
+    remembered = connect["initiative_filters"]
+
+    {disclosure, []} =
+      if connect["initiative_filters_open"] in [true, "true"],
+        do: Disclosure.step(Disclosure.__fsm__(:initial), :toggle, %{}),
+        else: {Disclosure.__fsm__(:initial), []}
+
+    options = Map.take(Board.Initiatives.snapshot(), [:repos, :types, :labels, :views])
 
     {:ok,
      socket
      |> assign(
        page_title: "Initiatives",
        filters: %{},
+       filter_disclosure: disclosure,
        remembered_filters: remembered,
        filter_restore: FilterRestore.__fsm__(:initial),
        expanded: %{}
@@ -46,6 +54,17 @@ defmodule BoardWeb.InitiativesLive do
     {:noreply, push_patch(socket, to: Filters.path(filters))}
   end
 
+  def handle_event("toggle-filters", _, socket) do
+    {state, []} = Disclosure.step(socket.assigns.filter_disclosure, :toggle, %{})
+    {:noreply, assign(socket, :filter_disclosure, state)}
+  end
+
+  def handle_event("view", %{"key" => key}, socket) do
+    filters = socket.assigns.filters |> Map.merge(%{"view" => key, "status" => "", "stale" => ""})
+    filters = Filters.normalize(filters, socket.assigns)
+    {:noreply, push_patch(socket, to: Filters.path(filters))}
+  end
+
   def handle_event("toggle", %{"id" => id}, socket) do
     {state, []} = Disclosure.step(Map.get(socket.assigns.expanded, id, :collapsed), :toggle, %{})
 
@@ -63,6 +82,8 @@ defmodule BoardWeb.InitiativesLive do
 
   defp refresh(socket) do
     data = Board.Initiatives.snapshot(socket.assigns.filters)
+    filters = Filters.normalize(socket.assigns.filters, data)
+    socket = assign(socket, :filters, filters)
 
     {finished, active} = Enum.split_with(data.epics, &finished?/1)
     {finished_drafts, drafts} = Enum.split_with(data.drafts, &finished?/1)
@@ -87,14 +108,14 @@ defmodule BoardWeb.InitiativesLive do
         do:
           Enum.flat_map(
             finished,
-            &epic_rows(&1, socket.assigns.expanded, socket.assigns.filters, 0, "")
+            &epic_rows(&1, socket.assigns.expanded, data.filters, 0, "")
           ),
         else: []
 
     rows =
       Enum.flat_map(
         active,
-        &epic_rows(&1, socket.assigns.expanded, socket.assigns.filters, 0, "")
+        &epic_rows(&1, socket.assigns.expanded, data.filters, 0, "")
       )
 
     groups = Enum.group_by(data.orphans, & &1.repo) |> Enum.sort()
@@ -118,12 +139,14 @@ defmodule BoardWeb.InitiativesLive do
     |> assign(
       repos: data.repos,
       columns: data.columns,
+      views: data.views,
       types: data.types,
       labels: data.labels,
       draft_count: length(drafts),
       epic_count: length(active),
       done_count: length(finished),
       orphan_count: length(data.orphans),
+      advanced_count: Filters.advanced_count(filters, data.views),
       form: to_form(socket.assigns.filters, as: :filters)
     )
     |> stream(:drafts, Enum.map(drafts, &Map.put(&1, :id, dom_key(&1.key))), reset: true)
@@ -216,6 +239,7 @@ defmodule BoardWeb.InitiativesLive do
         id="initiative-filter-memory"
         phx-hook="InitiativeFilters"
         data-filters={Jason.encode!(@filters)}
+        data-filters-open={to_string(@filter_disclosure == :expanded)}
         hidden
       >
       </div>
@@ -229,52 +253,98 @@ defmodule BoardWeb.InitiativesLive do
         for={@form}
         id="initiative-filters"
         phx-change="filter"
-        class="bb-filters flex flex-wrap items-end gap-3"
+        phx-submit="filter"
+        class="bb-filters space-y-3"
       >
-        <.input
-          field={@form[:project]}
-          type="select"
-          class="bb-filter-control"
-          label="Project"
-          options={[{"All", ""} | Enum.map(@repos, &{&1["key"], &1["key"]})]}
-        />
-        <.input
-          field={@form[:status]}
-          type="select"
-          class="bb-filter-control"
-          label="Beads status"
-          options={[
-            {"All", ""},
-            {"Open", "open"},
-            {"Closed", "closed"},
-            {"In progress", "in_progress"},
-            {"Blocked", "blocked"},
-            {"Deferred", "deferred"}
-          ]}
-        />
-        <.input
-          field={@form[:type]}
-          type="select"
-          class="bb-filter-control"
-          label="Type"
-          options={[{"Any", ""} | Enum.map(@types, &{&1, &1})]}
-        />
-        <.input
-          field={@form[:label]}
-          type="select"
-          class="bb-filter-control"
-          label="Label"
-          options={[{"Any", ""} | Enum.map(@labels, &{&1, &1})]}
-        />
-        <.input
-          field={@form[:q]}
-          type="search"
-          class="bb-filter-control"
-          label="Search"
-          placeholder="ID, title, label"
-          phx-debounce="200"
-        />
-        <.input field={@form[:stale]} type="checkbox" class="bb-switch" label="Stale only" />
+        <div class="flex flex-wrap items-end gap-3">
+          <Button.button_group id="initiative-views" aria-label="Views">
+            <Button.button
+              :for={view <- @views}
+              id={"view-" <> view["key"]}
+              type="button"
+              phx-click="view"
+              phx-value-key={view["key"]}
+              aria-pressed={to_string(@filters["view"] == view["key"])}
+              variant={if @filters["view"] == view["key"], do: "solid", else: "outline"}
+            >
+              {view["title"]}
+            </Button.button>
+          </Button.button_group>
+          <.input
+            field={@form[:q]}
+            type="search"
+            class="bb-filter-control"
+            aria-label="Search"
+            placeholder="Search"
+            phx-debounce="200"
+          />
+        </div>
+        <button
+          type="button"
+          id="toggle-filters"
+          phx-click="toggle-filters"
+          aria-expanded={to_string(@filter_disclosure == :expanded)}
+          aria-controls="advanced-filters"
+          class="flex items-center gap-2 text-sm text-foreground-softer hover:text-foreground"
+        >
+          <.icon
+            name={
+              if @filter_disclosure == :expanded, do: "hero-chevron-down", else: "hero-chevron-right"
+            }
+            class="size-3"
+          /> Filters
+          <span
+            :if={@filter_disclosure == :collapsed and @advanced_count > 0}
+            id="advanced-filter-count"
+            class="rounded bg-sunken px-1.5 text-xs"
+          >
+            {@advanced_count}
+          </span>
+        </button>
+        <div
+          id="advanced-filters"
+          hidden={@filter_disclosure == :collapsed}
+          class={
+            if @filter_disclosure == :collapsed, do: "hidden", else: "flex flex-wrap items-end gap-3"
+          }
+        >
+          <.input
+            field={@form[:status]}
+            type="select"
+            class="bb-filter-control"
+            label="Beads status"
+            options={[
+              {"View default", ""},
+              {"All", "all"},
+              {"Open", "open"},
+              {"Closed", "closed"},
+              {"In progress", "in_progress"},
+              {"Blocked", "blocked"},
+              {"Deferred", "deferred"}
+            ]}
+          />
+          <.input
+            field={@form[:type]}
+            type="select"
+            class="bb-filter-control"
+            label="Type"
+            options={[{"Any", ""} | Enum.map(@types, &{&1, &1})]}
+          />
+          <.input
+            field={@form[:label]}
+            type="select"
+            class="bb-filter-control"
+            label="Label"
+            options={[{"Any", ""} | Enum.map(@labels, &{&1, &1})]}
+          />
+          <.input
+            field={@form[:stale]}
+            type="select"
+            class="bb-filter-control"
+            label="Stale"
+            options={[{"View default", ""}, {"Only stale", "true"}, {"Any", "false"}]}
+          />
+        </div>
       </.form>
       <div
         :for={repo <- @repos}

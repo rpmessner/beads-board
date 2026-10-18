@@ -99,9 +99,7 @@ defmodule BoardWeb.InitiativesLiveTest do
     refute has_element?(view, "#drafts-panel")
     assert has_element?(view, "[data-bead=e]")
 
-    view
-    |> form("#initiative-filters", filters: %{stale: "false", project: "sample"})
-    |> render_change()
+    view |> element("#sidebar-project-sample") |> render_click()
 
     assert has_element?(view, "[data-bead=e]")
   end
@@ -142,7 +140,7 @@ defmodule BoardWeb.InitiativesLiveTest do
 
     Board.Beads.Projection.replace("sample", Enum.map_join(rows, "\n", &Jason.encode!/1))
     Board.Overlay.apply_event({"sample", "shipping.1"}, {:cr_opened, %{number: 1}})
-    {:ok, view, _} = live(conn, "/")
+    {:ok, view, _} = live(conn, "/?view=all")
     assert has_element?(view, "#toggle-done[aria-expanded=false]")
     assert has_element?(view, "#done-count", "3")
     assert has_element?(view, "#epics-panel + #done-panel + #unplanned-panel")
@@ -165,7 +163,7 @@ defmodule BoardWeb.InitiativesLiveTest do
   test "observed closure and reopening move an expanded epic between active and Done", %{
     conn: conn
   } do
-    {:ok, view, _} = live(conn, "/")
+    {:ok, view, _} = live(conn, "/?view=all")
     view |> element("[data-bead=e] button") |> render_click()
     Board.Overlay.apply_event({"sample", "e"}, :bead_epic_closed)
     send(view.pid, :reconcile)
@@ -224,7 +222,7 @@ defmodule BoardWeb.InitiativesLiveTest do
       live(conn, "/?project=sample&type=bug&label=follow-up&status=open&q=Title&stale=false")
 
     assert has_element?(view, "#filters_type option[value=bug][selected]")
-    assert has_element?(view, "#filters_project option[value=sample][selected]")
+    assert has_element?(view, "#sidebar-project-sample.bb-nav-active")
     assert has_element?(view, "#filters_q[value=Title]")
     view |> form("#initiative-filters", filters: %{q: "a & b"}) |> render_change()
     path = assert_patch(view)
@@ -250,13 +248,13 @@ defmodule BoardWeb.InitiativesLiveTest do
     {:ok, view, _} = live(put_connect_params(conn, %{"initiative_filters" => remembered}), "/")
     assert has_element?(view, "#filters_type option[value=bug][selected]")
 
-    for {key, value} <- Map.drop(remembered, ["q", "stale"]) do
+    for {key, value} <- Map.drop(remembered, ["q", "stale", "project"]) do
       assert has_element?(view, "#filters_#{key} option[value='#{value}'][selected]")
     end
 
     assert has_element?(view, "#initiative-filter-memory[data-filters]")
     render_patch(view, "/")
-    assert has_element?(view, "#filters_project option[value=''][selected]")
+    refute has_element?(view, "#sidebar-project-sample.bb-nav-active")
     assert has_element?(view, "#filters_type option[value=''][selected]")
   end
 
@@ -267,7 +265,7 @@ defmodule BoardWeb.InitiativesLiveTest do
       })
 
     {:ok, view, _} = live(conn, "/?project=")
-    assert has_element?(view, "#filters_project option[value=''][selected]")
+    refute has_element?(view, "#sidebar-project-sample.bb-nav-active")
     assert has_element?(view, "#filters_type option[value=''][selected]")
   end
 
@@ -275,7 +273,7 @@ defmodule BoardWeb.InitiativesLiveTest do
     {:ok, view, _} =
       live(conn, "/?project[]=sample&type=invalid&label[bad]=x&status=no&stale=yes&q[]=bad")
 
-    for key <- ~w(project type label status) do
+    for key <- ~w(type label status) do
       assert has_element?(view, "#filters_#{key} option[value=''][selected]")
     end
 
@@ -319,6 +317,123 @@ defmodule BoardWeb.InitiativesLiveTest do
     {:ok, filtered, _} = live(conn, "/?q=Title+excluded")
     assert has_element?(filtered, "#epics [data-bead=excluded]")
     refute has_element?(filtered, "#epics [data-bead=e]")
+  end
+
+  test "curated views default to Open and selection patches while retaining search and project",
+       %{conn: conn} do
+    {:ok, view, _} = live(conn, "/")
+    assert has_element?(view, "#view-open[aria-pressed=true][type=button]")
+    assert has_element?(view, "#initiative-filters[phx-submit=filter]")
+    assert has_element?(view, "#view-in-flight")
+    assert has_element?(view, "#view-stale")
+    assert has_element?(view, "#view-all")
+    render_patch(view, "/?view=open&project=sample&q=Title")
+    assert_patch(view)
+    view |> element("#view-in-flight") |> render_click()
+    params = URI.decode_query(URI.parse(assert_patch(view)).query)
+    assert params["view"] == "in-flight"
+    assert params["project"] == "sample"
+    assert params["q"] == "Title"
+    refute has_element?(view, "[data-bead=e]")
+    Board.Overlay.apply_event({"sample", "f"}, {:dispatch, %{window: "worker"}})
+    send(view.pid, :reconcile)
+    assert has_element?(view, "[data-bead=e]")
+    view |> element("[data-bead=e] button") |> render_click()
+    assert has_element?(view, "[data-bead=f]")
+    refute has_element?(view, "[data-bead=a]")
+    view |> element("#view-all") |> render_click()
+    assert has_element?(view, "[data-bead=a]")
+  end
+
+  test "Filters starts closed, counts only advanced overrides and remembers disclosure independently",
+       %{conn: conn} do
+    {:ok, view, _} = live(conn, "/?view=open&type=bug&label=follow-up&q=Title&project=sample")
+    assert has_element?(view, "#toggle-filters[aria-expanded=false]")
+    assert has_element?(view, "#advanced-filters[hidden]")
+    assert has_element?(view, "#advanced-filter-count", "2")
+    refute has_element?(view, "#filters_project")
+    view |> element("#toggle-filters") |> render_click()
+    assert has_element?(view, "#toggle-filters[aria-expanded=true]")
+    refute has_element?(view, "#advanced-filters[hidden]")
+    refute has_element?(view, "#advanced-filter-count")
+    assert has_element?(view, "#initiative-filter-memory[data-filters-open=true]")
+    view |> element("#view-stale") |> render_click()
+    assert has_element?(view, "#toggle-filters[aria-expanded=true]")
+
+    {:ok, returned, _} =
+      live(put_connect_params(conn, %{"initiative_filters_open" => "true"}), "/?view=all")
+
+    assert has_element?(returned, "#toggle-filters[aria-expanded=true]")
+    {:ok, corrupt, _} = live(put_connect_params(conn, %{"initiative_filters_open" => "bad"}), "/")
+    assert has_element?(corrupt, "#toggle-filters[aria-expanded=false]")
+    refute has_element?(corrupt, "#advanced-filter-count")
+  end
+
+  test "legacy URLs remain unscoped and explicit overrides beat a view", %{conn: conn} do
+    rows = Board.Beads.Projection.list_raw("sample") ++ [b("closed", "epic", [], "closed")]
+    Board.Beads.Projection.replace("sample", Enum.map_join(rows, "\n", &Jason.encode!/1))
+    {:ok, legacy, _} = live(conn, "/?status=closed")
+    refute has_element?(legacy, "#initiative-views [aria-pressed=true]")
+    assert has_element?(legacy, "#done-count", "1")
+    {:ok, explicit, _} = live(conn, "/?view=open&status=closed")
+    assert has_element?(explicit, "#done-count", "1")
+    assert has_element?(explicit, "#advanced-filter-count", "1")
+    {:ok, all, _} = live(conn, "/?view=open&status=all")
+    assert has_element?(all, "#done-count", "1")
+    {:ok, unknown, _} = live(conn, "/?view=missing")
+    assert has_element?(unknown, "#view-open[aria-pressed=true]")
+    assert has_element?(unknown, "#done-count", "0")
+  end
+
+  test "reload updates curated buttons and resolves a removed selection to the new default", %{
+    conn: conn
+  } do
+    {:ok, view, _} = live(conn, "/?view=in-flight")
+    config = Board.RuntimeState.config().config
+    config = Map.put(config, "views", [%{"key" => "everything", "title" => "Everything"}])
+    Board.Repo.query!("UPDATE board_config SET config = $1 WHERE id = 1", [config])
+    send(view.pid, :reconcile)
+    assert has_element?(view, "#view-everything[aria-pressed=true]", "Everything")
+    refute has_element?(view, "#view-in-flight")
+    assert has_element?(view, "[data-bead=e]")
+  end
+
+  test "persisted pre-views configuration uses shipped presets until its next reload", %{
+    conn: conn
+  } do
+    config = Map.delete(Board.RuntimeState.config().config, "views")
+    Board.Repo.query!("UPDATE board_config SET config = $1 WHERE id = 1", [config])
+    {:ok, view, _} = live(conn, "/")
+    assert has_element?(view, "#view-open[aria-pressed=true]")
+  end
+
+  test "advanced count includes a false-valued label and disabling the stale preset", %{
+    conn: conn
+  } do
+    rows =
+      Board.Beads.Projection.list_raw("sample") ++
+        [Map.put(b("flag", "task"), :labels, ["false"])]
+
+    Board.Beads.Projection.replace("sample", Enum.map_join(rows, "\n", &Jason.encode!/1))
+    {:ok, view, _} = live(conn, "/?view=stale&label=false&stale=false")
+    assert has_element?(view, "#advanced-filter-count", "2")
+    render_patch(view, "/?view=all&status=all&stale=false")
+    refute has_element?(view, "#advanced-filter-count")
+  end
+
+  test "Stale selects stale tickets without changing rollups or counting the preset as advanced",
+       %{conn: conn} do
+    {:ok, view, _} = live(conn, "/?view=stale")
+    refute has_element?(view, "[data-bead=e]")
+    refute has_element?(view, "#advanced-filter-count")
+    Board.Overlay.apply_event({"sample", "f"}, {:dispatch, %{window: "worker"}})
+    Board.Repo.query!("UPDATE sessions SET last_seen_at = NOW() - INTERVAL '3 hours'")
+    send(view.pid, :reconcile)
+    assert has_element?(view, "[data-bead=e] [aria-valuemax='2']")
+    view |> element("[data-bead=e] button") |> render_click()
+    assert has_element?(view, "[data-bead=f]")
+    refute has_element?(view, "[data-bead=a]")
+    refute has_element?(view, "#advanced-filter-count")
   end
 
   defp ids(view, selector),

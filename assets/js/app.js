@@ -24,7 +24,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/board"
 import topbar from "../vendor/topbar"
-import {InitiativeFilters, rememberedFilters} from "./initiative_filters"
+import {InitiativeFilters, rememberedFilters, rememberedFiltersOpen} from "./initiative_filters"
 import {Hooks as fluxonHooks, DOM} from "../../deps/fluxon/priv/static/fluxon.esm.js"
 
 const setTheme = theme => {
@@ -38,7 +38,7 @@ window.addEventListener("storage", event => { if (event.key === "phx:theme") set
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: () => ({_csrf_token: csrfToken, initiative_filters: rememberedFilters()}),
+  params: () => ({_csrf_token: csrfToken, initiative_filters: rememberedFilters(), initiative_filters_open: rememberedFiltersOpen()}),
   hooks: {...colocatedHooks, ...fluxonHooks, InitiativeFilters},
   dom: {onBeforeElUpdated: (from, to) => DOM.onBeforeElUpdated(from, to)},
 })

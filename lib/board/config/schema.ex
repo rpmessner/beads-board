@@ -9,6 +9,16 @@ defmodule Board.Config.Schema do
            "swimlanes" => {:one_of, ~w(project epic none)},
            "stale_session_after" => :duration
          }},
+      "views" =>
+        {:nonempty_list,
+         {:table,
+          %{
+            "key" => :key,
+            "title" => :text,
+            "statuses" => {:list, {:one_of, ~w(open in_progress blocked deferred closed)}},
+            "stages" => {:list, :stage},
+            "stale" => :boolean
+          }}},
       "columns" =>
         {:list,
          {:table,
@@ -35,6 +45,11 @@ defmodule Board.Config.Schema do
 
     with :ok <- check(config, {:table, schema}, "config"),
          :ok <- unique(Map.get(config, "repos", []), "key", "repos"),
+         :ok <- unique(Map.get(config, "views", []), "key", "views"),
+         :ok <-
+           each(Map.get(config, "views", []), fn view, index ->
+             required(view, ~w(key title), "views[#{index}]")
+           end),
          :ok <- required_repos(Map.get(config, "repos", []), complete?),
          :ok <- required_config(config, complete?) do
       :ok
@@ -52,7 +67,7 @@ defmodule Board.Config.Schema do
   defp required_config(_, false), do: :ok
 
   defp required_config(config, true) do
-    with :ok <- required(config, ~w(board columns repos backfill epics), "config"),
+    with :ok <- required(config, ~w(board columns views repos backfill epics), "config"),
          :ok <- required(config["board"], ~w(swimlanes stale_session_after), "board"),
          :ok <- required(config["backfill"], ~w(closed default), "backfill") do
       each(config["columns"], fn column, index ->

@@ -38,7 +38,7 @@ a.bb-nav-active { background: light-dark(#e4e4e7, #3f3f46); color: var(--foregro
 .bb-histogram { display: flex; align-items: flex-end; gap: 3px; height: 28px; border-bottom: 1px solid var(--border-base); }
 .bb-histogram span { width: 11px; border-radius: 2px 2px 0 0; }
 .bb-hist-0 { background: #a1a1aa; } .bb-hist-1 { background: #3b82f6; } .bb-hist-2 { background: #eab308; } .bb-hist-3 { background: #22c55e; } .bb-hist-4 { background: #71717a; }
-.bb-filters > div { margin: 0; max-width: 210px; }
+.bb-filters .fieldset { margin: 0; max-width: 210px; }
 .bb-filters .label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--foreground-softer); }
 .bb-filter-control { display: block; width: 100%; height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border-base); background: var(--background-base); color: var(--foreground); font-size: 13px; box-shadow: 0 1px 2px #0000000d; }
 .bb-ticket { display: grid; grid-template-columns: minmax(0, 1fr) auto; }

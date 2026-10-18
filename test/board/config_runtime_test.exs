@@ -48,6 +48,33 @@ defmodule Board.ConfigRuntimeTest do
     assert Board.RuntimeState.config().discovered == [parent, nested]
   end
 
+  test "a bad views edit retains the installed curated views", %{root: root} do
+    path = Path.join(root, "board.toml")
+
+    File.write!(
+      path,
+      "[[views]]\nkey = \"review\"\ntitle = \"Review\"\nstages = [\"in_review\"]\n"
+    )
+
+    assert :ok = ReloadJob.perform(%Oban.Job{})
+    accepted = Board.RuntimeState.config()
+
+    assert accepted.config["views"] == [
+             %{"key" => "review", "title" => "Review", "stages" => ["in_review"]}
+           ]
+
+    File.write!(
+      path,
+      "[[views]]\nkey = \"review\"\ntitle = \"Review\"\nstatuses = [\"invented\"]\n"
+    )
+
+    assert :ok = ReloadJob.perform(%Oban.Job{})
+    rejected = Board.RuntimeState.config()
+    assert rejected.config == accepted.config
+    assert rejected.loaded_at == accepted.loaded_at
+    assert rejected.error =~ "board.toml: config.views[0].statuses[0]"
+  end
+
   test "persists accepted config for web and retains it after a rejected edit", %{root: root} do
     File.write!(Path.join(root, "board.toml"), "[board]\nswimlanes = \"none\"\n")
     assert :ok = ReloadJob.perform(%Oban.Job{})
