@@ -9,8 +9,8 @@ defmodule Board.Config do
 
   @defaults_path Path.expand("../../priv/board.defaults.toml", __DIR__)
   @external_resource @defaults_path
-  @default_views @defaults_path
-                 |> File.read!()
+  @defaults_text File.read!(@defaults_path)
+  @default_views @defaults_text
                  |> TomlElixir.decode(spec: :"1.0.0")
                  |> elem(1)
                  |> Map.fetch!("views")
@@ -20,15 +20,14 @@ defmodule Board.Config do
 
   @doc "Read defaults and the two optional files. Call from an Oban job in the runtime."
   def load(directory, opts \\ []) do
-    defaults = Application.app_dir(:board, "priv/board.defaults.toml")
-
     files = [
-      {defaults, false},
       {Path.join(directory, "board.toml"), true},
       {Path.join(directory, "board.local.toml"), true}
     ]
 
-    Enum.reduce_while(files, {:ok, []}, fn {path, optional?}, {:ok, layers} ->
+    Enum.reduce_while(files, {:ok, [{"board.defaults.toml", @defaults_text}]}, fn {path,
+                                                                                   optional?},
+                                                                                  {:ok, layers} ->
       case File.read(path) do
         {:ok, text} ->
           {:cont, {:ok, layers ++ [{Path.basename(path), text}]}}

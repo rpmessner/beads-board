@@ -1,5 +1,5 @@
 defmodule Board.CLI do
-  @moduledoc "Agent-facing escript. Only out-of-order claims return a nonzero exit (3)."
+  @moduledoc "Agent escript: offline ticket files plus best-effort server-backed overlay commands."
   @ticket %{
     "dispatch" => "dispatch",
     "progress" => "progress",
@@ -59,6 +59,18 @@ defmodule Board.CLI do
   end
 
   def run(args, opts \\ []) do
+    if Board.TicketCLI.command?(args, opts) do
+      Board.TicketCLI.run(args, opts)
+    else
+      run_overlay(List.delete(args, "--overlay"), opts)
+    end
+  rescue
+    _ -> warn(args, "board unavailable; agent may continue")
+  catch
+    :exit, _ -> warn(args, "board unavailable; agent may continue")
+  end
+
+  defp run_overlay(args, opts) do
     case parse(args) do
       {:ok, %{request: request, json: json?}} ->
         request = Map.put(request, "request_id", Ecto.UUID.generate())

@@ -33,6 +33,7 @@ defmodule Board.Config.Schema do
           %{
             "key" => :key,
             "path" => :path,
+            "prefix" => :key,
             "github" => :github,
             "forge" => {:one_of, ~w(github none)},
             "color" => :text,
