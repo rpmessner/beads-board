@@ -1,0 +1,31 @@
+{
+  "samples": 302,
+  "by_scenario": {
+    "ui-o-matic-0.1s": 90,
+    "form-engine-3s": 77,
+    "ui-o-matic-3s": 66,
+    "form-engine-0.1s": 69
+  },
+  "examples": {
+    "ui-o-matic-0.1s": {
+      "scenario": "ui-o-matic-0.1s",
+      "lock": "ui-o-matic-0.1s/.beads/embeddeddolt/wow/.dolt/noms/LOCK",
+      "proc_lock": "1: FLOCK  ADVISORY  WRITE 969785 08:30:799757 0 EOF"
+    },
+    "form-engine-3s": {
+      "scenario": "form-engine-3s",
+      "lock": "form-engine-3s/.beads/embeddeddolt/fe/.dolt/noms/LOCK",
+      "proc_lock": "9: FLOCK  ADVISORY  WRITE 969481 08:30:796856 0 EOF"
+    },
+    "ui-o-matic-3s": {
+      "scenario": "ui-o-matic-3s",
+      "lock": "ui-o-matic-3s/.beads/embeddeddolt/wow/.dolt/noms/LOCK",
+      "proc_lock": "13: FLOCK  ADVISORY  WRITE 970050 08:30:799759 0 EOF"
+    },
+    "form-engine-0.1s": {
+      "scenario": "form-engine-0.1s",
+      "lock": "form-engine-0.1s/.beads/embeddeddolt/fe/.dolt/noms/LOCK",
+      "proc_lock": "10: FLOCK  ADVISORY  WRITE 969778 08:30:796859 0 EOF"
+    }
+  }
+}

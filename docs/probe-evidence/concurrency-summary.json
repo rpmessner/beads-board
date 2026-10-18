@@ -1,0 +1,230 @@
+[
+  {
+    "name": "form-engine-3s",
+    "seconds": 600.0,
+    "elapsed": 605.4325328849955,
+    "initial_issues": 30,
+    "locks": {
+      ".beads/embeddeddolt/.lock": {
+        "samples": 28288,
+        "held": 0
+      }
+    },
+    "final_export_rc": 0,
+    "counts": {
+      "write": {
+        "attempts": 610,
+        "failed": 0,
+        "max_seconds": 4.228807170002256,
+        "operations": {
+          "close": {
+            "attempts": 122,
+            "failed": 0
+          },
+          "create": {
+            "attempts": 122,
+            "failed": 0
+          },
+          "dep": {
+            "attempts": 122,
+            "failed": 0
+          },
+          "note": {
+            "attempts": 122,
+            "failed": 0
+          },
+          "update": {
+            "attempts": 122,
+            "failed": 0
+          }
+        }
+      },
+      "read": {
+        "attempts": 158,
+        "failed": 0,
+        "max_seconds": 32.155605996988015,
+        "operations": {
+          "export": {
+            "attempts": 158,
+            "failed": 0
+          }
+        }
+      }
+    },
+    "errors": [],
+    "commands_sha256": "7fa090799979bd8c596c78f0c9114f84a0f4b8d7b6483bcc8bd17b8250611b4a"
+  },
+  {
+    "name": "form-engine-0.1s",
+    "seconds": 600.0,
+    "elapsed": 606.173947704985,
+    "initial_issues": 30,
+    "locks": {
+      ".beads/embeddeddolt/.lock": {
+        "samples": 28318,
+        "held": 0
+      }
+    },
+    "final_export_rc": 0,
+    "counts": {
+      "write": {
+        "attempts": 525,
+        "failed": 0,
+        "max_seconds": 13.808999542001402,
+        "operations": {
+          "close": {
+            "attempts": 105,
+            "failed": 0
+          },
+          "create": {
+            "attempts": 105,
+            "failed": 0
+          },
+          "dep": {
+            "attempts": 105,
+            "failed": 0
+          },
+          "note": {
+            "attempts": 105,
+            "failed": 0
+          },
+          "update": {
+            "attempts": 105,
+            "failed": 0
+          }
+        }
+      },
+      "read": {
+        "attempts": 324,
+        "failed": 0,
+        "max_seconds": 42.72124220000114,
+        "operations": {
+          "export": {
+            "attempts": 324,
+            "failed": 0
+          }
+        }
+      }
+    },
+    "errors": [],
+    "commands_sha256": "7c279af835c3090d2724c58b456e36a358e397df47fd10b9506d1e5df21b0161"
+  },
+  {
+    "name": "ui-o-matic-3s",
+    "seconds": 600.0,
+    "elapsed": 604.8105558720126,
+    "initial_issues": 417,
+    "locks": {
+      ".beads/embeddeddolt/wow/.dolt/git-remote-cache/77646df30fe67e960c255fe85727c9dfb290debe6d7e6b2f930fc38e2f23c6ae/init.lock": {
+        "samples": 22013,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/wow/.dolt/git-remote-cache/77646df30fe67e960c255fe85727c9dfb290debe6d7e6b2f930fc38e2f23c6ae/init.lock": {
+        "samples": 22013,
+        "held": 0
+      }
+    },
+    "final_export_rc": 0,
+    "counts": {
+      "write": {
+        "attempts": 535,
+        "failed": 0,
+        "max_seconds": 4.311070978990756,
+        "operations": {
+          "close": {
+            "attempts": 107,
+            "failed": 0
+          },
+          "create": {
+            "attempts": 107,
+            "failed": 0
+          },
+          "dep": {
+            "attempts": 107,
+            "failed": 0
+          },
+          "note": {
+            "attempts": 107,
+            "failed": 0
+          },
+          "update": {
+            "attempts": 107,
+            "failed": 0
+          }
+        }
+      },
+      "read": {
+        "attempts": 158,
+        "failed": 0,
+        "max_seconds": 42.28717251101625,
+        "operations": {
+          "export": {
+            "attempts": 158,
+            "failed": 0
+          }
+        }
+      }
+    },
+    "errors": [],
+    "commands_sha256": "557068e743f8bcec2e2ef721c8ed077cd41f5cd3f25a75362ae183bc8afbb629"
+  },
+  {
+    "name": "ui-o-matic-0.1s",
+    "seconds": 600.0,
+    "elapsed": 607.5968795919907,
+    "initial_issues": 417,
+    "locks": {
+      ".beads/embeddeddolt/wow/.dolt/git-remote-cache/77646df30fe67e960c255fe85727c9dfb290debe6d7e6b2f930fc38e2f23c6ae/init.lock": {
+        "samples": 22106,
+        "held": 0
+      },
+      ".beads/dolt.pre-embedded-backup-20260808/wow/.dolt/git-remote-cache/77646df30fe67e960c255fe85727c9dfb290debe6d7e6b2f930fc38e2f23c6ae/init.lock": {
+        "samples": 22106,
+        "held": 0
+      }
+    },
+    "final_export_rc": 0,
+    "counts": {
+      "write": {
+        "attempts": 400,
+        "failed": 0,
+        "max_seconds": 21.335934721981175,
+        "operations": {
+          "close": {
+            "attempts": 80,
+            "failed": 0
+          },
+          "create": {
+            "attempts": 80,
+            "failed": 0
+          },
+          "dep": {
+            "attempts": 80,
+            "failed": 0
+          },
+          "note": {
+            "attempts": 80,
+            "failed": 0
+          },
+          "update": {
+            "attempts": 80,
+            "failed": 0
+          }
+        }
+      },
+      "read": {
+        "attempts": 364,
+        "failed": 0,
+        "max_seconds": 51.767795892985305,
+        "operations": {
+          "export": {
+            "attempts": 364,
+            "failed": 0
+          }
+        }
+      }
+    },
+    "errors": [],
+    "commands_sha256": "7fbb61a66caf0564b42bad5dcdbe6bd5fef3e9608b4f6fee25f827d7a4b32930"
+  }
+]

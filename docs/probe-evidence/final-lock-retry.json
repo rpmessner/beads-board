@@ -1,0 +1,11 @@
+{
+  "lock": ".beads/embeddeddolt/fe/.dolt/noms/LOCK",
+  "proc_locks": [
+    "12: FLOCK  ADVISORY  WRITE 1791605 08:30:808354 0 EOF"
+  ],
+  "waiting_after_two_seconds": true,
+  "elapsed": 3.403799698979128,
+  "rc": 0,
+  "stderr": "",
+  "file_exists_after": true
+}
