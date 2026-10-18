@@ -21,6 +21,7 @@ defmodule Foreman.CLI do
   @switches [
     head: :string,
     body_file: :string,
+    pr: :integer,
     worktree: :string,
     remote_branch: :string,
     question: :string,
@@ -161,6 +162,8 @@ defmodule Foreman.CLI do
       "body" => File.read!(opts[:body_file])
     }
   end
+
+  defp ask_facts("merge", opts), do: %{"number" => opts[:pr], "expected_sha" => opts[:sha]}
 
   defp ask_facts("push", opts) do
     %{

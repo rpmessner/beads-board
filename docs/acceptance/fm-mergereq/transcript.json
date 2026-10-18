@@ -1,0 +1,206 @@
+[
+  {
+    "args": [
+      "ask",
+      "merge",
+      "bb-demo.1",
+      "--project",
+      "sample",
+      "--pr",
+      "5",
+      "--sha",
+      "0123456789abcdef0123456789abcdef01234567"
+    ],
+    "output": "54997b97-77a1-49e5-a6c2-4f3e34d29f6d"
+  },
+  {
+    "args": [
+      "wait",
+      "54997b97-77a1-49e5-a6c2-4f3e34d29f6d",
+      "--timeout",
+      "0"
+    ],
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"bb-demo.1\",\"facts\":{\"expected_sha\":\"0123456789abcdef0123456789abcdef01234567\",\"number\":5,\"remote\":\"scratch/merge\"},\"id\":\"54997b97-77a1-49e5-a6c2-4f3e34d29f6d\",\"inserted_at\":\"2026-10-18T22:56:28.257482Z\",\"kind\":\"merge\",\"note\":\"\",\"outcome\":{},\"repo_key\":\"sample\",\"session\":\"fm-mergereq\",\"state\":\"pending\",\"updated_at\":\"2026-10-18T22:56:28.478874Z\"}"
+  },
+  {
+    "args": [
+      "wait",
+      "54997b97-77a1-49e5-a6c2-4f3e34d29f6d",
+      "--timeout",
+      "0"
+    ],
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"bb-demo.1\",\"facts\":{\"expected_sha\":\"0123456789abcdef0123456789abcdef01234567\",\"number\":5,\"remote\":\"scratch/merge\"},\"id\":\"54997b97-77a1-49e5-a6c2-4f3e34d29f6d\",\"inserted_at\":\"2026-10-18T22:56:28.257482Z\",\"kind\":\"merge\",\"note\":\"\",\"outcome\":{},\"repo_key\":\"sample\",\"session\":\"fm-mergereq\",\"state\":\"pending\",\"updated_at\":\"2026-10-18T22:56:28.478874Z\"}"
+  },
+  {
+    "args": [
+      "wait",
+      "54997b97-77a1-49e5-a6c2-4f3e34d29f6d",
+      "--timeout",
+      "0"
+    ],
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"bb-demo.1\",\"facts\":{\"expected_sha\":\"0123456789abcdef0123456789abcdef01234567\",\"number\":5,\"remote\":\"scratch/merge\"},\"id\":\"54997b97-77a1-49e5-a6c2-4f3e34d29f6d\",\"inserted_at\":\"2026-10-18T22:56:28.257482Z\",\"kind\":\"merge\",\"note\":\"\",\"outcome\":{},\"repo_key\":\"sample\",\"session\":\"fm-mergereq\",\"state\":\"pending\",\"updated_at\":\"2026-10-18T22:56:28.478874Z\"}"
+  },
+  {
+    "args": [
+      "wait",
+      "54997b97-77a1-49e5-a6c2-4f3e34d29f6d",
+      "--timeout",
+      "0"
+    ],
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"bb-demo.1\",\"facts\":{\"expected_sha\":\"0123456789abcdef0123456789abcdef01234567\",\"number\":5,\"remote\":\"scratch/merge\"},\"id\":\"54997b97-77a1-49e5-a6c2-4f3e34d29f6d\",\"inserted_at\":\"2026-10-18T22:56:28.257482Z\",\"kind\":\"merge\",\"note\":\"\",\"outcome\":{},\"repo_key\":\"sample\",\"session\":\"fm-mergereq\",\"state\":\"pending\",\"updated_at\":\"2026-10-18T22:56:28.478874Z\"}"
+  },
+  {
+    "wait": "54997b97-77a1-49e5-a6c2-4f3e34d29f6d",
+    "result": {
+      "actor": "pi",
+      "bead_id": "bb-demo.1",
+      "facts": {
+        "expected_sha": "0123456789abcdef0123456789abcdef01234567",
+        "number": 5,
+        "remote": "scratch/merge"
+      },
+      "id": "54997b97-77a1-49e5-a6c2-4f3e34d29f6d",
+      "inserted_at": "2026-10-18T22:56:28.257482Z",
+      "kind": "merge",
+      "note": "",
+      "outcome": {
+        "reason": null,
+        "result": {
+          "action_id": 13,
+          "merge_sha": "merge-0123456789abcdef0123456789abcdef01234567",
+          "state": "merged"
+        }
+      },
+      "repo_key": "sample",
+      "session": "fm-mergereq",
+      "state": "done",
+      "updated_at": "2026-10-18T22:56:32.979772Z"
+    }
+  },
+  {
+    "args": [
+      "ask",
+      "merge",
+      "bb-demo.1",
+      "--project",
+      "sample",
+      "--pr",
+      "5",
+      "--sha",
+      "0123456789abcdef0123456789abcdef01234567"
+    ],
+    "output": "3cee5a5b-68e6-4765-9129-a6c8f8070020"
+  },
+  {
+    "wait": "3cee5a5b-68e6-4765-9129-a6c8f8070020",
+    "result": {
+      "actor": "pi",
+      "bead_id": "bb-demo.1",
+      "facts": {
+        "expected_sha": "0123456789abcdef0123456789abcdef01234567",
+        "number": 5,
+        "remote": "scratch/merge"
+      },
+      "id": "3cee5a5b-68e6-4765-9129-a6c8f8070020",
+      "inserted_at": "2026-10-18T22:56:33.648656Z",
+      "kind": "merge",
+      "note": "",
+      "outcome": {
+        "reason": "head_moved",
+        "result": {
+          "action_id": 14,
+          "merge_sha": null,
+          "state": "failed"
+        }
+      },
+      "repo_key": "sample",
+      "session": "fm-mergereq",
+      "state": "failed",
+      "updated_at": "2026-10-18T22:56:34.103263Z"
+    }
+  },
+  {
+    "args": [
+      "ask",
+      "merge",
+      "bb-demo.1",
+      "--project",
+      "sample",
+      "--pr",
+      "5",
+      "--sha",
+      "0123456789abcdef0123456789abcdef01234567"
+    ],
+    "output": "29b76c48-5041-4d23-93a1-b613d2f72660"
+  },
+  {
+    "wait": "29b76c48-5041-4d23-93a1-b613d2f72660",
+    "result": {
+      "actor": "pi",
+      "bead_id": "bb-demo.1",
+      "facts": {
+        "expected_sha": "0123456789abcdef0123456789abcdef01234567",
+        "number": 5,
+        "remote": "scratch/merge"
+      },
+      "id": "29b76c48-5041-4d23-93a1-b613d2f72660",
+      "inserted_at": "2026-10-18T22:56:34.966842Z",
+      "kind": "merge",
+      "note": "",
+      "outcome": {
+        "reason": "unavailable",
+        "result": {
+          "action_id": 15,
+          "merge_sha": null,
+          "state": "failed"
+        }
+      },
+      "repo_key": "sample",
+      "session": "fm-mergereq",
+      "state": "failed",
+      "updated_at": "2026-10-18T22:56:35.456062Z"
+    }
+  },
+  {
+    "args": [
+      "ask",
+      "merge",
+      "bb-demo.1",
+      "--project",
+      "sample",
+      "--pr",
+      "5",
+      "--sha",
+      "0123456789abcdef0123456789abcdef01234567"
+    ],
+    "output": "c2b49aed-b537-4b02-85c4-5f41674a8246"
+  },
+  {
+    "wait": "c2b49aed-b537-4b02-85c4-5f41674a8246",
+    "result": {
+      "actor": "pi",
+      "bead_id": "bb-demo.1",
+      "facts": {
+        "expected_sha": "0123456789abcdef0123456789abcdef01234567",
+        "number": 5,
+        "remote": "scratch/merge"
+      },
+      "id": "c2b49aed-b537-4b02-85c4-5f41674a8246",
+      "inserted_at": "2026-10-18T22:56:36.315025Z",
+      "kind": "merge",
+      "note": "",
+      "outcome": {
+        "reason": "unavailable",
+        "result": {
+          "action_id": 16,
+          "merge_sha": "merge-0123456789abcdef0123456789abcdef01234567",
+          "state": "failed"
+        }
+      },
+      "repo_key": "sample",
+      "session": "fm-mergereq",
+      "state": "failed",
+      "updated_at": "2026-10-18T22:56:36.869826Z"
+    }
+  }
+]

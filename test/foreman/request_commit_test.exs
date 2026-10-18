@@ -89,6 +89,111 @@ defmodule Foreman.RequestCommitTest do
     end
   end
 
+  test "double merge confirmation and competing outcome observations commit once", %{
+    key: {repo, _} = key
+  } do
+    remote = "owner/" <> repo
+
+    snapshot = %{
+      "default_branch" => "main",
+      "change_requests" => [
+        %{
+          "number" => 5,
+          "head_sha" => String.duplicate("a", 40),
+          "source_branch" => "feature",
+          "target_branch" => "main",
+          "state" => "open",
+          "draft" => false,
+          "checks" => "none",
+          "mergeable" => "mergeable"
+        }
+      ]
+    }
+
+    {:ok, facts} = Foreman.Merge.prepare(snapshot, 5)
+
+    request =
+      unboxed(fn ->
+        Repo.insert_all("board_config", [
+          %{
+            id: 1,
+            config: %{
+              "repos" => [
+                %{"key" => repo, "forge" => "github", "github" => remote, "enabled" => true}
+              ]
+            },
+            source: "test",
+            discovered: [],
+            loaded_at: DateTime.utc_now()
+          }
+        ])
+
+        Foreman.Forge.Store.replace(repo, remote, snapshot)
+
+        {:ok, request} =
+          Requests.ask(key, "merge", %{
+            "facts" => %{"number" => 5, "expected_sha" => String.duplicate("a", 40)}
+          })
+
+        request
+      end)
+
+    on_exit(fn ->
+      unboxed(fn ->
+        Repo.query!(
+          "DELETE FROM oban_jobs WHERE args->>'action_id' IN (SELECT id::text FROM merge_actions WHERE repo_key=$1)",
+          [repo]
+        )
+
+        Repo.query!("DELETE FROM merge_actions WHERE repo_key=$1", [repo])
+        Repo.query!("DELETE FROM forge_snapshots WHERE repo_key=$1", [repo])
+        Repo.delete_all("board_config")
+      end)
+    end)
+
+    results =
+      race([
+        fn -> Requests.confirm_merge(request.id, facts) end,
+        fn -> Requests.confirm_merge(request.id, facts) end
+      ])
+
+    assert Enum.count(results, &match?({:ok, %{state: "executing"}}, &1)) == 1
+    assert Enum.count(results, &match?({:error, :invalid}, &1)) == 1
+
+    action =
+      unboxed(fn ->
+        action = Foreman.Merge.get(Requests.get(request.id).outcome["result"]["action_id"])
+
+        assert %{rows: [[1]]} =
+                 Repo.query!("SELECT count(*) FROM oban_jobs WHERE args->>'action_id'=$1", [
+                   to_string(action.id)
+                 ])
+
+        action
+      end)
+
+    # Competing observations cannot replace the first terminal outcome.
+    results =
+      race([
+        fn ->
+          Requests.resolve(request.id, :succeeded, %{"result" => %{"action_id" => action.id}})
+        end,
+        fn -> Requests.resolve(request.id, :failed, %{"reason" => "late failure"}) end
+      ])
+
+    assert length(results) == 2
+
+    unboxed(fn ->
+      assert Requests.get(request.id).state in ["done", "failed"]
+
+      assert %{rows: [[1]]} =
+               Repo.query!(
+                 "SELECT count(*) FROM request_events WHERE request_id=$1 AND event IN ('succeeded','failed')",
+                 [Ecto.UUID.dump!(request.id)]
+               )
+    end)
+  end
+
   test "ask racing ticket completion cannot leave a pending request", %{key: key} do
     race([
       fn -> Requests.ask(key, "decision", %{"facts" => %{"question" => "Which?"}}) end,

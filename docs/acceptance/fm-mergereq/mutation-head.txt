@@ -1,0 +1,84 @@
+Compiling 1 file (.ex)
+    warning: this clause in cond will never match:
+
+        false
+
+    since it has type:
+
+        false
+
+    typing violation found at:
+    │
+ 29 │         false -> {:error, :head_moved}
+    │               ~
+    │
+    └─ lib/foreman/requests/merge.ex:29:15: Foreman.Requests.Merge.unchanged/2
+
+Generated foreman app
+Running ExUnit with seed: 943647, max_cases: 16
+
+.....
+
+  1) test pending moved head supersedes through reconciliation (Foreman.MergeRequestTest)
+     test/foreman/merge_request_test.exs:132
+     match (=) failed
+     code:  assert %{state: "superseded", outcome: %{"reason" => "head_moved"}} = Requests.get(request.id)
+     left:  %{state: "superseded", outcome: %{"reason" => "head_moved"}}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "dc73dcc7-f758-4c30-9a83-ad11ffbf69ac",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "merge",
+              actor: "user",
+              session: nil,
+              facts: %{
+                "expected_sha" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "number" => 5,
+                "remote" => "owner/repo"
+              },
+              state: "pending",
+              outcome: %{},
+              note: nil,
+              inserted_at: ~U[2026-10-18 22:54:24.411213Z],
+              updated_at: ~U[2026-10-18 22:54:24.411213Z]
+            }
+     stacktrace:
+       test/foreman/merge_request_test.exs:142: (test)
+
+....
+
+  2) test creation refuses missing PR, moved head, and disabled forge (Foreman.MergeRequestTest)
+     test/foreman/merge_request_test.exs:39
+     match (=) failed
+     code:  assert {:error, :head_moved} =
+              Requests.ask({"sample", "s-1"}, "merge", %{
+                "facts" => %{facts | "expected_sha" => String.duplicate("b", 40)}
+              })
+     left:  {:error, :head_moved}
+     right: {:ok,
+             %Foreman.Requests.Request{
+               __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+               id: "afe21b1a-a6c2-46d6-8dd1-4d8933a7baa6",
+               repo_key: "sample",
+               bead_id: "s-1",
+               kind: "merge",
+               actor: "user",
+               session: nil,
+               facts: %{
+                 "expected_sha" => "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                 "number" => 5,
+                 "remote" => "owner/repo"
+               },
+               state: "pending",
+               outcome: %{},
+               note: nil,
+               inserted_at: ~U[2026-10-18 22:54:24.655230Z],
+               updated_at: ~U[2026-10-18 22:54:24.655230Z]
+             }}
+     stacktrace:
+       test/foreman/merge_request_test.exs:43: (test)
+
+.
+Finished in 0.7 seconds (0.00s async, 0.7s sync)
+12 tests, 2 failures

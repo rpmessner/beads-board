@@ -3,11 +3,12 @@ const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const {execFileSync} = require('node:child_process');
-const out = 'docs/acceptance/bb-merge';
+const out = process.env.MERGE_ACCEPTANCE_OUT || 'docs/acceptance/bb-merge';
+const database = process.env.MERGE_ACCEPTANCE_DB || 'foreman_merge_acceptance';
 const base = process.env.FOREMAN_URL || 'http://127.0.0.1:4768';
 function control(command) {
   assert(['reset','move','fail','retarget-fail','drain','read'].includes(command));
-  execFileSync('psql', ['-h','localhost','-U','postgres','-d','foreman_merge_acceptance','-c',`SELECT pg_notify('merge_acceptance', '${command}')`], {env:{...process.env,PGPASSWORD:'postgres'}});
+  execFileSync('psql', ['-h','localhost','-U','postgres','-d',database,'-c',`SELECT pg_notify('merge_acceptance', '${command}')`], {env:{...process.env,PGPASSWORD:'postgres'}});
 }
 (async () => {
   fs.mkdirSync(out,{recursive:true});

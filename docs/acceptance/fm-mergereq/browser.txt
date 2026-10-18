@@ -1,0 +1,1 @@
+PASS: real CLI ask/wait; existing confirmation; cancel remains pending; merged/refused/failed/partial; one start/outcome; light/dark 390/1440; no overflow/errors.
