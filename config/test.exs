@@ -1,7 +1,7 @@
 import Config
 
-# This scaffold's tests are database-free. Enable when storage is introduced.
-config :board, start_repo: false
+# Jobs are inserted into the SQL sandbox and explicitly executed by tests.
+config :board, Oban, testing: :manual, queues: false, plugins: false
 
 # Configure your database
 #
@@ -12,7 +12,7 @@ config :board, Board.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "board_test#{System.get_env("MIX_TEST_PARTITION")}",
+  database: "beads_board_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 

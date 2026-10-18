@@ -11,6 +11,12 @@ config :board,
   ecto_repos: [Board.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :board, Oban,
+  repo: Board.Repo,
+  engine: Oban.Engines.Basic,
+  queues: [external_reads: 4],
+  plugins: [Oban.Plugins.Pruner]
+
 # Configure the endpoint
 config :board, BoardWeb.Endpoint,
   url: [host: "localhost"],

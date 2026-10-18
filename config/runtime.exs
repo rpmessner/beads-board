@@ -20,7 +20,9 @@ if System.get_env("PHX_SERVER") do
   config :board, BoardWeb.Endpoint, server: true
 end
 
-config :board, BoardWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+default_port = if config_env() == :test, do: "4002", else: "4747"
+port = String.to_integer(System.get_env("PORT", default_port))
+config :board, BoardWeb.Endpoint, http: [ip: {127, 0, 0, 1}, port: port]
 
 if config_env() == :prod do
   database_url =
@@ -52,12 +54,12 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = "127.0.0.1"
 
   config :board, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :board, BoardWeb.Endpoint,
-    url: [host: host, port: 443, scheme: "https"],
+    url: [host: host, port: port, scheme: "http"],
     http: [
       ip: {127, 0, 0, 1}
     ],
