@@ -12,11 +12,17 @@ From an unplanned bead in any project, launch a Claude session in tmux to work i
 - One tmux session per project, named by the `board.toml` repo key (beads-board meta-work in `beads-board`, form-engine work in `form-engine`, and so on), created on first launch.
 - One window per bead inside its project's session; launching a bead that already has a window focuses it instead of starting another.
 - The board never kills a window on its own.
+- Launchable: unplanned beads (no parent epic) and epics still at idea or draft stage; tickets inside a ticketed epic keep going through the coordinator's dispatch (user, Q1).
+- The launched session is a Claude Code coordinator for that one bead (plans, specs, dispatches builds to pi, reviews, posts inbox requests), on the default model: no `--model` flag (user, Q2).
 
 ## Questions for the spec
 
-- The opening prompt (the bead's content, plus which skill to start with: `/tight-spec` for an idea, straight to work for a small bug).
-- Main checkout or a new worktree per launch, and who creates it.
-- What counts as "unplanned" (the Unplanned group only, or any open bead).
-- How the board learns the window's state (session records through `board` CLI, as today) and shows it on the ticket.
-- Interaction with the MVP non-goal "launching, steering or killing pi/tmux sessions", which this overturns.
+1. Where the coordinator runs: the main checkout (recommended; with ticket files, parallel coordinators edit separate files and only clash at commit time) or a worktree.
+2. The opening prompt: the ticket file path plus the starting skill (`/tight-spec` for an idea epic, `flow` for an unplanned bead).
+3. Waiting for the user: a launched session that hits a permission prompt or asks a question sits unseen in tmux. Whether a Claude Code hook posts an inbox request ("session waiting") so it reaches the user's notifications.
+4. Permission mode for launched sessions (default prompts vs. a stricter or looser mode).
+5. Tracking: the board records the session (a fixed `--session-id`, window, project); the ticket shows running/ended with an attach command; a launch whose window is gone offers resume (`claude --resume`).
+6. Window lifecycle: what the window does when Claude exits (stays open with a shell, or closes), and how many launched sessions may run at once.
+7. The tmux server service: unit name and socket (`tmux -L foreman` after the rename), started at login like the board's units.
+
+Paused 2026-10-18 at Q3 (where the coordinator runs) while ticket files replace beads (bb-axu); resume after the rename.
