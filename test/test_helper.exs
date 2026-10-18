@@ -1,4 +1,5 @@
 Mimic.copy(Phoenix.Token)
+Mimic.copy(File)
 
 ExUnit.start()
 
