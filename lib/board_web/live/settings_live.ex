@@ -40,9 +40,17 @@ defmodule BoardWeb.SettingsLive do
     discovered =
       if snapshot, do: Enum.reject(snapshot.discovered, &MapSet.member?(paths, &1)), else: []
 
+    repos = Board.RuntimeState.repos()
+
     socket
-    |> assign(snapshot: snapshot, config: config, discovered: discovered, toml: toml(config))
-    |> stream(:repos, Board.RuntimeState.repos(), reset: true)
+    |> assign(
+      snapshot: snapshot,
+      config: config,
+      discovered: discovered,
+      toml: toml(config),
+      sidebar_repos: repos
+    )
+    |> stream(:repos, repos, reset: true)
   end
 
   defp home(path), do: String.replace_prefix(path, System.user_home!(), "~")
@@ -74,7 +82,7 @@ defmodule BoardWeb.SettingsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} active={:settings}>
+    <Layouts.app flash={@flash} active={:settings} repos={@sidebar_repos}>
       <header class="flex flex-wrap items-center gap-3">
         <div class="mr-auto space-y-1">
           <h1 class="text-[22px] font-semibold text-foreground">Settings</h1>

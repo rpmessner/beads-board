@@ -5,6 +5,7 @@ defmodule BoardWeb.Layouts do
   attr :current_scope, :map, default: nil
   attr :active, :atom, default: :initiatives
   attr :repos, :list, default: []
+  attr :filters, :map, default: %{}
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -36,13 +37,23 @@ defmodule BoardWeb.Layouts do
         </nav>
         <section :if={@repos != []} class="space-y-2 px-2.5" aria-label="Projects">
           <h2 class="bb-label">Projects · tickets</h2>
-          <div :for={repo <- @repos} class="bb-project flex items-center gap-2 py-1 text-xs">
+          <.link
+            :for={repo <- @repos}
+            id={"sidebar-project-" <> repo["key"]}
+            patch={if @active == :initiatives, do: project_path(@filters, repo["key"])}
+            navigate={if @active != :initiatives, do: project_path(%{}, repo["key"])}
+            class={[
+              "bb-project bb-nav text-xs",
+              @active == :initiatives && @filters["project"] == repo["key"] && "bb-nav-active"
+            ]}
+            aria-current={@active == :initiatives && @filters["project"] == repo["key"] && "true"}
+          >
             <span class="bb-project-dot"></span>
             <span class="min-w-0 flex-1 truncate" title={repo["key"]}>{repo["key"]}</span>
             <span class="text-foreground-softer">
               {if repo["health"].state == "unreachable", do: "down", else: repo["count"]}
             </span>
-          </div>
+          </.link>
         </section>
         <div class="mt-auto space-y-4 px-2.5">
           <div class="flex gap-2">
@@ -73,6 +84,12 @@ defmodule BoardWeb.Layouts do
     </div>
     <.flash_group flash={@flash} />
     """
+  end
+
+  defp project_path(filters, project) do
+    filters
+    |> Board.Initiatives.Filters.toggle_project(project)
+    |> Board.Initiatives.Filters.path()
   end
 
   attr :flash, :map, required: true
