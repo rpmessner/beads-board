@@ -23,10 +23,13 @@ defmodule BoardWeb.Layouts do
           >
             <.icon name="hero-bars-3-bottom-left" class="size-4" /> Initiatives
           </.link>
-          <span class="bb-nav text-foreground-softer" aria-disabled="true">
+          <.link
+            navigate={~p"/pull-requests"}
+            class={["bb-nav", @active == :pull_requests && "bb-nav-active"]}
+            aria-current={@active == :pull_requests && "page"}
+          >
             <.icon name="hero-code-bracket" class="size-4" /> Pull requests
-            <span class="ml-auto text-xs">soon</span>
-          </span>
+          </.link>
           <.link
             navigate={~p"/settings"}
             class={["bb-nav", @active == :settings && "bb-nav-active"]}

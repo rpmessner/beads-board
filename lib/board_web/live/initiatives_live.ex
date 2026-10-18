@@ -587,9 +587,10 @@ defmodule BoardWeb.InitiativesLive do
               <span class="text-xs">{length(row.fallout)}</span>
               <span
                 class="text-xs text-foreground-softer"
-                aria-label="Open change requests unavailable"
+                data-cr-count={row.cr_count}
+                aria-label={"#{row.cr_count} open change requests"}
               >
-                —
+                {row.cr_count}
               </span>
             </div>
           <% :section -> %>

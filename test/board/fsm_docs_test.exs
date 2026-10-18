@@ -31,6 +31,8 @@ defmodule Board.FsmDocsTest do
         {"ticket_sheet", Board.TicketSheet},
         {"reload_machine", Board.Config.ReloadMachine},
         {"read_machine", Board.Beads.ReadMachine},
+        {"read_lifecycle", Board.Forge.ReadLifecycle},
+        {"refresh_status", Board.Forge.RefreshStatus},
         {"schedule_machine", Board.Beads.ScheduleMachine},
         {"sync_machine", Board.Beads.SyncMachine},
         {"watch_machine", Board.Config.WatchMachine}

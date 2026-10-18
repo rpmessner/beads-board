@@ -113,7 +113,8 @@ defmodule Board.Drilldown do
               where: c.repo_key == ^repo and c.bead_id == ^id,
               order_by: c.number,
               select: c.number
-          )
+          ),
+        change_requests: Board.Forge.Store.linked(key)
       }
     end
   end

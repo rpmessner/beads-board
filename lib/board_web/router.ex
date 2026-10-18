@@ -19,6 +19,7 @@ defmodule BoardWeb.Router do
 
     live "/", InitiativesLive, :index
     live "/settings", SettingsLive, :index
+    live "/pull-requests", PullRequestsLive, :index
     live "/epics/:repo/:id", EpicLive, :show
   end
 
