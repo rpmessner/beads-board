@@ -17,7 +17,9 @@ defmodule BoardWeb.Router do
   scope "/", BoardWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", InitiativesLive, :index
+    live "/settings", SettingsLive, :index
+    live "/epics/:repo/:id", EpicLive, :show
   end
 
   # Other scopes may use custom stacks.

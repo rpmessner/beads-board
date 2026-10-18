@@ -25,6 +25,8 @@ defmodule Board.Beads.Projection do
         hash =
           Repo.one(from r in "bead_repos", where: r.key == ^repo_key, select: r.export_sha256)
 
+        Board.Overlay.backfill(repo_key, export.beads)
+
         if hash == export.sha256 do
           :unchanged
         else
@@ -37,9 +39,8 @@ defmodule Board.Beads.Projection do
   end
 
   def list_raw(repo_key) do
-    Repo.all(
-      from b in "beads", where: b.repo_key == ^repo_key, order_by: b.bead_id, select: b.raw
-    )
+    Repo.all(from b in "beads", where: b.repo_key == ^repo_key, select: b.raw)
+    |> Enum.sort_by(&Board.Beads.Id.sort_key(&1["id"]))
   end
 
   defp replace_rows(repo_key, export) do
@@ -51,6 +52,25 @@ defmodule Board.Beads.Projection do
       on_conflict: {:replace, [:export_sha256, :synced_at]},
       conflict_target: [:key]
     )
+
+    previous = Map.new(list_raw(repo_key), &{&1["id"], &1["status"]})
+
+    Enum.each(export.beads, fn bead ->
+      old = previous[bead.bead_id]
+      closed? = bead.status == :closed
+
+      if old && old == "closed" != closed? do
+        event =
+          case {bead.issue_type == :epic, closed?} do
+            {true, true} -> :bead_epic_closed
+            {true, false} -> :bead_epic_reopened
+            {false, true} -> :bead_closed
+            {false, false} -> :bead_reopened
+          end
+
+        Board.Overlay.apply_event({repo_key, bead.bead_id}, event, %{actor: "beads"})
+      end
+    end)
 
     rows = Enum.map(export.beads, &%{repo_key: repo_key, bead_id: &1.bead_id, raw: &1.raw})
 
@@ -72,6 +92,22 @@ defmodule Board.Beads.Projection do
     Repo.update_all(
       from(t in "tickets",
         where: t.repo_key == ^repo_key and t.bead_id in ^ids and not is_nil(t.orphaned_at)
+      ),
+      set: [orphaned_at: nil]
+    )
+
+    Repo.update_all(
+      from(e in "epics",
+        where:
+          e.repo_key == ^repo_key and not is_nil(e.beads_epic_id) and e.beads_epic_id not in ^ids and
+            is_nil(e.orphaned_at)
+      ),
+      set: [orphaned_at: now]
+    )
+
+    Repo.update_all(
+      from(e in "epics",
+        where: e.repo_key == ^repo_key and e.beads_epic_id in ^ids and not is_nil(e.orphaned_at)
       ),
       set: [orphaned_at: nil]
     )

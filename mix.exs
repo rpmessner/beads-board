@@ -41,6 +41,8 @@ defmodule Board.MixProject do
   defp deps do
     [
       {:phoenix, "1.8.7"},
+      {:fluxon, "~> 3.0", repo: "fluxon"},
+      {:file_system, "~> 1.1"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "3.14.0"},
       {:oban, "2.23.0"},

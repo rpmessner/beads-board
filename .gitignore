@@ -30,6 +30,11 @@ board-*.tar
 
 # Ignore digested assets cache.
 /priv/static/cache_manifest.json
+/priv/static/**/*-????????????????????????????????.*
+/priv/static/**/*.gz
+
+# Local deployment environment files; examples remain tracked.
+/deploy/systemd/*.env
 
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log

@@ -17,7 +17,9 @@ defmodule Board.Events do
   @kinds %{
     config_changed: "config_changed",
     sync_status_changed: "sync_status_changed",
-    projection_changed: "projection_changed"
+    projection_changed: "projection_changed",
+    overlay_changed: "overlay_changed",
+    sync_requested: "sync_requested"
   }
 
   def subscribe(instance \\ Oban), do: Oban.Notifier.listen(instance, :board_events)

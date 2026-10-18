@@ -28,6 +28,9 @@ defmodule Board.Role do
 
   def endpoint?(role), do: Map.fetch!(@roles, role).endpoint
 
-  # Runtime readers are deliberately not enabled until subprocess safety is proven.
-  defp worker_children, do: []
+  defp worker_children do
+    if Application.get_env(:board, :runtime_enabled, true),
+      do: [Board.Runtime, Board.Config.Watcher],
+      else: []
+  end
 end

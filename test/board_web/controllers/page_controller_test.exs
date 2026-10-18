@@ -1,8 +1,10 @@
 defmodule BoardWeb.PageControllerTest do
   use BoardWeb.ConnCase
+  import Phoenix.LiveViewTest
 
-  test "GET /", %{conn: conn} do
-    conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Peace of mind from prototype to production"
+  test "home opens initiatives", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/")
+    assert has_element?(view, "#epics-panel")
+    assert has_element?(view, "nav[aria-label=Main]")
   end
 end

@@ -1,5 +1,7 @@
 import Config
 
+config :board, runtime_enabled: false, config_directory: "/tmp/bb-exec/test-config"
+
 # Jobs are inserted into the SQL sandbox and explicitly executed by tests.
 config :board, Oban, testing: :manual, queues: false, plugins: false
 

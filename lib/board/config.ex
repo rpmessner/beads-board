@@ -3,9 +3,20 @@ defmodule Board.Config do
   TOML configuration boundary. Takes named file contents in precedence order;
   filesystem reads belong in the runtime's Oban adapter. Keys remain strings.
 
-  Tables merge recursively. Columns replace in full. Repos merge by key (a local
+  Tables merge recursively. Columns and views replace in full. Repos merge by key (a local
   entry can override just `enabled`); `repos = []` clears the inherited list.
   """
+
+  @defaults_path Path.expand("../../priv/board.defaults.toml", __DIR__)
+  @external_resource @defaults_path
+  @default_views @defaults_path
+                 |> File.read!()
+                 |> TomlElixir.decode(spec: :"1.0.0")
+                 |> elem(1)
+                 |> Map.fetch!("views")
+
+  @doc "Resolve presets for snapshots saved before views were configurable."
+  def views(config), do: Map.get(config, "views", @default_views)
 
   @doc "Read defaults and the two optional files. Call from an Oban job in the runtime."
   def load(directory, opts \\ []) do

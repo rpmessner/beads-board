@@ -25,6 +25,25 @@ title = "Done"
 stages = ["done"]
 collapsed = true
 
+[[views]]
+key = "open"
+title = "Open"
+statuses = ["open", "in_progress", "blocked", "deferred"]
+
+[[views]]
+key = "in-flight"
+title = "In flight"
+stages = ["dispatched", "building"]
+
+[[views]]
+key = "stale"
+title = "Stale"
+stale = true
+
+[[views]]
+key = "all"
+title = "All"
+
 [backfill]
 closed = "done"
 default = "queued"

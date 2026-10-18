@@ -1,9 +1,10 @@
 # beads-board
 
 A local board for every beads repo on this machine, organised around epics.
-The Phoenix scaffold, `Board.Fsm`, config validation core, Oban/Postgres bootstrap,
-and export projection are implemented. Automatic repo reads, runtime config
-watching, Fluxon, and product views are not wired yet (bb-c2w.4 continuation).
+The worker reads configured repos through Oban and keeps a droppable Postgres
+projection. Settings shows config validation, sync health, columns and discovered
+repos using Fluxon 3. Initiatives, ticket/epic workflows and the agent CLI remain
+later slices; `/` currently opens Settings.
 
 - [Approved MVP spec](docs/spec.md) is authoritative.
 - [Design](docs/design.md) records the design pass and rationale.
@@ -30,6 +31,172 @@ Development uses `beads_board_dev` and listens on `127.0.0.1:4747` (`PORT` overr
 the port, not the loopback bind). Migrate before starting Oban. Production still
 requires `DATABASE_URL`, plus `SECRET_KEY_BASE` for web/all; no systemd unit is installed.
 
+## Install the user services
+
+These steps are for you to run on the host. Nothing in the build installs or
+starts services. The templates are in [`deploy/systemd/`](deploy/systemd/).
+They use one release at `~/.local/lib/beads-board/current`, two foreground BEAM
+processes, and no terminal or Erlang distribution.
+
+### Prepare the host and environment
+
+Use a Linux host with systemd user services, Postgres 16, `python3`, `inotifywait`,
+and the tested embedded-store `bd` available. On WSL, enable systemd in the
+host's WSL configuration first. Start the host's Postgres service and create the
+`beads_board` database with a dedicated database user. Do not run the release as
+root. Run `command -v bd python3 inotifywait` to find the executable directories.
+
+```sh
+install -d -m 700 "$HOME/.config/beads-board"
+install -m 600 deploy/systemd/runtime.env.example "$HOME/.config/beads-board/runtime.env"
+install -m 600 deploy/systemd/web.env.example "$HOME/.config/beads-board/web.env"
+mix phx.gen.secret
+```
+
+Edit both files before continuing. Set `DATABASE_URL` and an **absolute** `PATH`
+containing `bd`, `python3`, and `inotifywait` in `runtime.env`. Put the generated
+secret only in `web.env`. These are systemd environment files: no `export`,
+`$HOME`, `~`, or command substitutions. URL-encode database credentials as needed.
+Keep both files untracked, mode 0600, outside a symlink into tracked dotfiles.
+Do not put Fluxon credentials in either file; they are build-time only.
+The API token belongs to the later API ticket, not these environment files.
+
+The units do not read shell startup files. `BOARD_ROLE`, `PHX_SERVER`,
+`RELEASE_DISTRIBUTION`, and `RELEASE_TMP` belong to the units; do not override them
+in environment files. The worker explicitly removes the endpoint secret and
+both units remove Fluxon variables inherited from the user manager.
+
+### Build, migrate and enable
+
+Build on the same OS and architecture as the host, with your existing private
+Hex authentication and Fluxon build variables available in your shell:
+
+```sh
+mix deps.get
+MIX_ENV=prod mix compile
+MIX_ENV=prod mix assets.deploy
+MIX_ENV=prod mix release --overwrite
+
+release_id=$(date -u +%Y%m%dT%H%M%S)
+install -d -m 700 "$HOME/.local/lib/beads-board/releases"
+cp -a _build/prod/rel/board "$HOME/.local/lib/beads-board/releases/$release_id"
+ln -s "releases/$release_id" "$HOME/.local/lib/beads-board/current"
+```
+
+Migrate before starting either service. Supply `DATABASE_URL` in the migration
+shell without adding it to shell history. The following hidden prompt works in
+Bash. Do not `source` systemd environment files; they are not shell scripts.
+
+```bash
+read -r -s -p 'DATABASE_URL: ' DATABASE_URL; printf '\n'
+export DATABASE_URL
+(umask 077
+ BOARD_ROLE=worker RELEASE_DISTRIBUTION=none \
+   "$HOME/.local/lib/beads-board/current/bin/board" eval \
+   '{:ok, _, _} = Ecto.Migrator.with_repo(Board.Repo, &Ecto.Migrator.run(&1, :up, all: true))')
+migration_status=$?
+unset DATABASE_URL
+test "$migration_status" -eq 0
+```
+
+Continue only if the migration succeeded. Then install and enable the units:
+
+```sh
+install -d "$HOME/.config/systemd/user"
+cp deploy/systemd/beads-board-*.service "$HOME/.config/systemd/user/"
+systemd-analyze --user verify "$HOME/.config/systemd/user/"beads-board-*.service
+systemctl --user daemon-reload
+systemctl --user enable --now beads-board-worker.service beads-board-web.service
+```
+
+Open `http://127.0.0.1:4747/settings`. Configure repositories using the TOML section
+below. A fresh installation has no repositories enabled.
+
+Both units start at login through `default.target`. To keep the user manager
+running after logout and start it at host boot, you may enable lingering with
+`loginctl enable-linger "$USER"` (host policy may require an administrator).
+On WSL, the distro must itself be running; these units cannot launch a stopped
+distro. Start the distro and user session before agents.
+
+System and user managers have separate dependency graphs. A user unit cannot
+order after the system manager's `postgresql.service`; adding that name would
+refer to a different user unit. These templates therefore retry independently.
+If your host exposes a real Postgres readiness unit in the **user** manager,
+add `After=` for that unit in user drop-ins. Do not move Postgres into this release.
+`Restart=always`, a five-second delay, and disabled start-rate limiting allow
+recovery after boot failures. Database connections also reconnect after outages.
+
+### Update the release
+
+Build a new release and copy it into a new timestamped directory using the build
+commands above, but do not repeat the initial `ln -s`. Never overwrite the release
+files a running service uses. Back up Postgres before schema changes.
+
+```sh
+systemctl --user stop beads-board-worker.service beads-board-web.service
+ln -s "releases/$release_id" "$HOME/.local/lib/beads-board/current.next"
+mv -Tf "$HOME/.local/lib/beads-board/current.next" "$HOME/.local/lib/beads-board/current"
+```
+
+Run the migration command above against the new `current`. If it fails, leave
+both services stopped and investigate. Restore an older release only if its code
+is compatible with the database schema. Refresh the unit templates if changed:
+
+```sh
+cp deploy/systemd/beads-board-*.service "$HOME/.config/systemd/user/"
+systemctl --user daemon-reload
+systemctl --user start beads-board-worker.service beads-board-web.service
+```
+
+Use `systemctl --user restart beads-board-worker beads-board-web` after changing
+environment files. TOML edits hot-reload without a restart. Stop uses SIGTERM on
+the BEAM first, allowing Oban and its owned subprocesses to drain. After 90 seconds,
+systemd kills remaining processes in that service's cgroup. Explicit stops do not
+trigger `Restart=always`. Use systemctl, not release `stop` or `rpc`, because
+Erlang distribution is disabled.
+
+### Inspect logs and verify host recovery
+
+```sh
+systemctl --user status beads-board-web beads-board-worker
+journalctl --user -u beads-board-web -u beads-board-worker -f
+systemctl --user is-enabled beads-board-web beads-board-worker
+```
+
+After installation, test recovery when no reads or writes are in progress:
+record each service's `MainPID` with `systemctl --user show -p MainPID`, kill only
+its main process with `systemctl --user kill --kill-whom=main --signal=SIGKILL
+beads-board-web`, and check that it returns with a new PID. Repeat for the worker.
+Check the page and a repository sync afterward. Restart WSL at a safe time, open
+the distro again, and check both units and the page before starting agents.
+These host checks cannot be proved by a build-only smoke test.
+
+### Uninstall the services
+
+```sh
+systemctl --user disable --now beads-board-web.service beads-board-worker.service
+/usr/bin/rm "$HOME/.config/systemd/user/beads-board-web.service" \
+  "$HOME/.config/systemd/user/beads-board-worker.service"
+systemctl --user daemon-reload
+systemctl --user reset-failed
+```
+
+Keep the database, TOML, environment files, and release directories until you
+choose to remove them. Remove service drop-ins too if you added any. Do not disable
+lingering if other user services need it. Uninstall does not drop Postgres data.
+
+### Run the release smoke test without installing
+
+After building the release, run `python3 tools/release-smoke.py`. It uses the
+local test Postgres credentials to create a unique disposable test database,
+starts the actual `bin/board start` twice on non-default ports, verifies role
+children, HTTP and Postgres sync notification delivery, then sends SIGTERM and
+requires exit 0 from both. It drops its database afterward. Logs and generated
+runtime files stay in the checkout's ignored `tmp/release-smoke-*` directory.
+The exporter is a synthetic fixture executable, not the host's `bd`; the test
+never opens a real store. Real embedded-store safety remains covered by the
+[reader acceptance report](docs/sessions/bb-exec.md).
+
 ## Deployment roles and notifications
 
 One release supports two systemd user services, `beads-board-web` and
@@ -37,12 +204,13 @@ One release supports two systemd user services, `beads-board-web` and
 unit and `BOARD_ROLE=worker` in the worker unit. Both use the same database and
 Oban schema prefix. Set `RELEASE_DISTRIBUTION=none` in both release units.
 `BOARD_ROLE=all` is the default for development and tests; unknown values fail boot.
-Role changes require a restart.
+Role and code changes require a service restart; only TOML configuration is
+hot-reloaded. Do not use development code reloading as a worker deployment path.
 
 - Web starts Phoenix and a queue-less Oban instance for Postgres notifications.
   It disables Oban plugins and leadership. It must not start readers or watchers.
-- Worker starts Oban queues and plugins, but no Phoenix endpoint. Scheduler and
-  watcher adapters still need implementation in `Board.Role.worker_children/0`.
+- Worker starts Oban queues, the nominal scheduler and config directory watcher,
+  but no Phoenix endpoint. Runtime readers are disabled in the test environment.
 - Both start Repo. Phoenix.PubSub remains for endpoint internals, not cross-role
   product events. DNS clustering is not started.
 
@@ -53,12 +221,11 @@ publish at commit; unchanged export hashes publish nothing. A rolled-back
 transaction cannot notify. Tests exercise independent notifiers and a raw
 Postgres LISTEN connection, not an in-memory notifier replacement.
 
-Notifications are transient. Views must fetch state from Postgres on mount and
-reconnect, then reconcile periodically. The future config runtime must persist
-its last-good snapshot and validation result in Postgres before notifying web;
-node-local `:persistent_term` alone cannot serve the split deployment. Config and
-sync-status publishers, LiveView consumers, release packaging and installed
-systemd units remain pending.
+Notifications are transient. Settings fetches Postgres on mount and every three
+seconds to recover missed notifications. Config installation and validation are
+persisted before publication. `Board.Runtime.ping/1` sends a `sync_requested`
+notification across roles; it uses the same admission path as ticks and sweeps.
+Release packaging and installed systemd units remain later work.
 
 ## Export projection boundary
 
@@ -79,10 +246,8 @@ its bead rows; the hash belongs to that same cache. Overlay rows have no cache F
 
 `Board.Beads.JournalLock.check/2` passively matches journal device/inode against
 Linux `/proc/locks`. Missing, unreadable or ambiguous evidence defers the read.
-It never acquires a lock. This observer is **not a reader**: physical-repo single
-flight, scheduled exports, subprocess cancellation/reaping, and Oban read jobs
-must be implemented before wiring it to configured repos. The probe's
-[read rule](docs/probe-bd-concurrency.md) remains mandatory.
+It never acquires a store lock. `SyncJob` executes this check before each export.
+The probe's [read rule](docs/probe-bd-concurrency.md) remains mandatory.
 
 Oban 2.23.0 emits an unused MySQL-pattern compiler warning on Elixir 1.19 when
 MyXQL is absent. The required pin is retained without suppressing the warning or
@@ -97,15 +262,40 @@ until the owned subprocess is reaped and discards late stdout. Schedule accepts
 three-second ticks even without changed signals, coalesces busy requests, and
 never launches catch-up reads on completion. Tokens include an owner epoch and
 generation so stale completions cannot release a newer flight. These modules
-perform no IO. Physical-store identity, cross-process admission, actual bd
-subprocess ownership, timer/Oban adapters and their acceptance tests remain open.
+perform no IO. `Runtime` executes schedule effects; `SyncJob` executes read effects.
+Physical aliases share a catalog identity and one scheduled export, projected to
+all their configured keys. Postgres advisory admission plus a Linux abstract
+socket prevent concurrent exports across workers, including the BEAM-death/reap
+window. Neither lock touches the store or creates a file.
+
+The bundled Python guardian owns a fresh process group, enforces a 20-second
+limit and 32 MB stdout cap, kills only its group, and reaps before replying.
+Owner/port death cancels it; partial or timed-out output never projects. Linux,
+Python 3, `realpath`, `inotifywait`, and the tested bd binary must be on the service
+PATH. Embedded-only reads reject redirects, ambiguous locks and server mode;
+there is no repair, store copy, JSONL fallback or Dolt-server startup.
+
+Every enabled physical store gets a nominal three-second request even without a
+changed signal. This replaces the insufficient signal-only heuristic, rather
+than watching Dolt files that exports themselves modify. Five-minute sweeps and
+pings coalesce; completion never queues catch-up work. Unchanged exports make no
+projection or health writes (unless health is recovering). Oban's own job records
+still change. Settings labels snapshot age separately from health; it does not
+pretend an unchanged snapshot was freshly written.
 
 ## Config contract
 
-The intended runtime reads `~/.config/beads-board/board.toml`, then
+The worker reads `~/.config/beads-board/board.toml`, then
 `board.local.toml` beside it, over `priv/board.defaults.toml`. The app never writes
 these files. No user files are needed to run the tests; they use temporary directories.
-The runtime watcher and Settings view are still pending.
+`BOARD_CONFIG_DIR` overrides the directory for isolated runs; `BOARD_DISCOVERY_ROOT`
+overrides the default `~/dev` discovery root. Non-recursive directory notifications handle
+atomic editor saves; a 30-second reconciliation recovers missed notifications.
+If the config directory is absent, the watcher follows its nearest existing
+parent and moves to the config directory when it appears.
+Discovery skips symlinks and build/dependency trees and is bounded to eight levels.
+No home config is created. Accepted config, last error, load time and physical
+store catalog live in Postgres so web-only nodes need no filesystem access.
 
 ```toml
 [board]
@@ -153,7 +343,34 @@ states, not an independent stage list.
 Its read/broadcast effects are data, not executed callbacks. The runtime must run
 reads through Oban and supply every terminal result, including job failure, before
 another reload can start. Bad edits retain the previous config and expose an error.
-This contract is tested; it is not yet connected to the application supervisor.
+`ReloadJob` executes this contract transactionally. Worker restarts enqueue a new
+reload; a failed job cannot leave an in-memory reload stuck in loading. The
+previous persisted config survives. A shared row lock at projection commit
+rejects late results for removed, disabled or repointed config entries.
+
+## Scratch acceptance
+
+Only run these with permission to write scratch copies. They never open original
+stores with bd. Server-mode acceptance uses copied metadata, not live PID/port files.
+
+```sh
+python3 tools/prepare-board-acceptance.py
+BOARD_CONFIG_DIR=/tmp/bb-exec/config BOARD_DISCOVERY_ROOT=/tmp/bb-exec/repos mix phx.server
+# In another shell, with the board running:
+python3 tools/board-write-acceptance.py
+python3 tools/verify-board-acceptance.py
+```
+
+The writer runs for ten minutes, without retrying failed writes. Verification
+compares `bd list --json --all --limit 0`, checks persisted notes/dependencies and
+measures idle note freshness. Raw artifacts stay under `/tmp/bb-exec`; see
+[the session report](docs/sessions/bb-exec.md) for measured evidence. The harness
+uses `psql -X` to ignore personal psql settings. Python bytecode caching is disabled
+because embedded operator paths in `.pyc` files correctly fail the hygiene gate.
+
+Fluxon is fetched from the preconfigured private Hex repo. Keep its authentication
+and `FLUXON_LICENSE_KEY` / `FLUXON_KEY_FINGERPRINT` in the environment, never here.
+The CSS theme and JS hooks are bundled through app.css/app.js, with no CDN scripts.
 
 ## Repository hygiene
 
