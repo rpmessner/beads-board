@@ -2,7 +2,7 @@
 id: fm-3c3.3
 title: "Notification drawer"
 type: feature
-status: open
+status: in_progress
 priority: 2
 parent: fm-3c3
 blocked_by: ["fm-zgd.1"]
