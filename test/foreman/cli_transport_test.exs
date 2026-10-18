@@ -26,6 +26,11 @@ defmodule Foreman.CLITransportTest do
   end
 
   test "every CLI write verb reaches the API, including drafts and cross-repo links" do
+    # Run outside any checkout: this repo now has tickets/, which would route ticket verbs to files.
+    outside = Path.join(System.tmp_dir!(), "cli-outside-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(outside)
+    on_exit(fn -> File.rm_rf(outside) end)
+
     {:ok, config} =
       Foreman.Config.parse_layers([{"defaults", File.read!("priv/foreman.defaults.toml")}])
 
@@ -85,7 +90,10 @@ defmodule Foreman.CLITransportTest do
         ] do
       output =
         capture_io(fn ->
-          assert CLI.run(args ++ ["--json"], req_options: [plug: {Req.Test, __MODULE__}]) == 0
+          assert CLI.run(args ++ ["--json"],
+                   req_options: [plug: {Req.Test, __MODULE__}],
+                   cwd: outside
+                 ) == 0
         end)
 
       assert Jason.decode!(output)["stage"] == stage, inspect(args) <> ": " <> output

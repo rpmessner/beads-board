@@ -2,7 +2,7 @@
 id: fm-axu.3
 title: "foreman adopt, proven on beads-board"
 type: task
-status: in_progress
+status: closed
 priority: 2
 parent: fm-axu
 blocked_by: ["fm-axu.1","fm-axu.2"]
@@ -10,8 +10,8 @@ related: []
 discovered_from: null
 labels: []
 created: 2026-10-18
-closed: null
-close_reason: null
+closed: 2026-10-18
+close_reason: "foreman adopt built and proven; foreman cut over to ticket files (23346c4), history identical"
 ---
 
 ## What to build
