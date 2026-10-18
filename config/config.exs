@@ -16,7 +16,9 @@ config :board, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
   queues: [external_reads: 4, external_writes: 1],
-  plugins: [Oban.Plugins.Pruner]
+  # Lifeline frees jobs orphaned by a killed worker: unique-while-incomplete sync jobs
+  # would otherwise block their repo forever. rescue_after stays above every job timeout.
+  plugins: [Oban.Plugins.Pruner, {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)}]
 
 # Configure the endpoint
 config :board, BoardWeb.Endpoint,

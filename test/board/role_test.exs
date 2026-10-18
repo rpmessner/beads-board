@@ -33,4 +33,12 @@ defmodule Board.RoleTest do
   test "unknown roles fail closed instead of enabling all services" do
     assert_raise KeyError, fn -> Board.Role.children("typo", []) end
   end
+
+  test "the shipped worker config rescues jobs orphaned by a killed worker" do
+    plugins = Config.Reader.read!("config/config.exs", env: :prod)[:board][Oban][:plugins]
+    {Oban.Plugins.Lifeline, opts} = List.keyfind(plugins, Oban.Plugins.Lifeline, 0)
+
+    # Above every job timeout, so a running job is never rescued mid-flight.
+    assert opts[:rescue_after] > Board.Merge.MergeJob.timeout(%Oban.Job{})
+  end
 end
