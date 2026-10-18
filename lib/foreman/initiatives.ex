@@ -35,6 +35,9 @@ defmodule Foreman.Initiatives do
 
     epic_map = Map.new(epics, &{{&1.repo_key, &1.beads_epic_id || &1.bead_id}, &1})
 
+    planning_sessions =
+      Repo.all(Foreman.PlanningSession) |> Map.new(&{{&1.project, &1.ticket}, &1})
+
     sessions =
       Repo.all(
         from s in "sessions",
@@ -75,6 +78,7 @@ defmodule Foreman.Initiatives do
           labels: raw["labels"] || [],
           stage: stage,
           spec_link: epic && epic.spec_link,
+          planning_session: planning_sessions[key],
           stale: stale?(raw, stage, sessions[key], threshold),
           edges:
             Enum.map(
@@ -110,7 +114,8 @@ defmodule Foreman.Initiatives do
           stage: stage_atom(e.stage),
           labels: [],
           stale: false,
-          spec_link: e.spec_link
+          spec_link: e.spec_link,
+          planning_session: planning_sessions[{e.repo_key, e.bead_id}]
         }
       end)
       |> Enum.filter(&matches?(&1, filters))

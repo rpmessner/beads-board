@@ -1,0 +1,143 @@
+defmodule Foreman.SessionTmuxTest do
+  use ExUnit.Case, async: true
+  alias Foreman.SessionTmux, as: Tmux
+
+  setup do
+    socket = "fm-test-#{System.unique_integer([:positive])}"
+    dir = Path.join(System.tmp_dir!(), socket)
+    File.mkdir_p!(dir)
+
+    {_, 0} =
+      System.cmd("tmux", [
+        "-L",
+        socket,
+        "-f",
+        "/dev/null",
+        "start-server",
+        ";",
+        "set-option",
+        "-g",
+        "exit-empty",
+        "off"
+      ])
+
+    executable = Path.join(dir, "claude-probe")
+    File.write!(executable, "#!/bin/sh\nprintf '%s\\n' \"$PWD\" \"$@\" > args\nread line\n")
+    File.chmod!(executable, 0o700)
+
+    on_exit(fn ->
+      System.cmd("tmux", ["-L", socket, "kill-server"], stderr_to_stdout: true)
+      File.rm_rf!(dir)
+    end)
+
+    %{
+      socket: socket,
+      dir: dir,
+      opts: [socket: socket, executable: executable],
+      session: %{
+        project: "sample",
+        ticket: "x-1.2",
+        session_id: Ecto.UUID.generate(),
+        workdir: dir
+      }
+    }
+  end
+
+  test "creates project and ticket window, preserves argv, and focuses instead of duplicating",
+       c do
+    prompt = "flow: user's `touch BAD` $(touch BAD)\nquoted \"value\"; end"
+    assert {:ok, window} = Tmux.launch(c.session, prompt, c.opts)
+    assert String.starts_with?(window, "@")
+    assert {:ok, ^window} = Tmux.launch(c.session, "ignored", c.opts)
+
+    assert {"sample:x-1.2\n", 0} =
+             System.cmd("tmux", [
+               "-L",
+               c.socket,
+               "list-windows",
+               "-a",
+               "-F",
+               ~S(#{session_name}:#{window_name})
+             ])
+
+    System.cmd("tmux", ["-L", c.socket, "send-keys", "-t", window, "Enter"])
+    assert eventually(fn -> File.exists?(Path.join(c.dir, "args")) end)
+
+    assert File.read!(Path.join(c.dir, "args")) ==
+             "#{c.dir}\n--session-id\n#{c.session.session_id}\n#{prompt}\n"
+
+    refute File.exists?(Path.join(c.dir, "BAD"))
+
+    assert eventually(fn ->
+             Tmux.observe(c.session, c.opts) == {:ok, %{window: window, state: :ended}}
+           end)
+
+    assert {_, 0} = System.cmd("tmux", ["-L", c.socket, "has-session", "-t", "=sample"])
+  end
+
+  test "new tickets get separate windows without replacing existing ones", c do
+    assert {:ok, first} = Tmux.launch(c.session, "flow", c.opts)
+
+    assert {:ok, second} =
+             Tmux.launch(
+               %{c.session | ticket: "x-2", session_id: Ecto.UUID.generate()},
+               "flow",
+               c.opts
+             )
+
+    refute first == second
+    assert {:ok, ^first} = Tmux.launch(c.session, "flow", c.opts)
+
+    assert {selected, 0} =
+             System.cmd("tmux", [
+               "-L",
+               c.socket,
+               "list-windows",
+               "-t",
+               "=sample",
+               "-F",
+               ~S(#{?window_active,#{window_id},})
+             ])
+
+    assert String.trim(selected) == first
+    assert {:ok, %{window: ^first, state: :running}} = Tmux.observe(c.session, c.opts)
+  end
+
+  test "a missing Claude executable refuses without opening a window", c do
+    assert {:error, :claude_unavailable} =
+             Tmux.launch(
+               c.session,
+               "flow",
+               Keyword.put(c.opts, :executable, "/nonexistent/claude")
+             )
+
+    assert {"", 0} = System.cmd("tmux", ["-L", c.socket, "list-sessions"])
+  end
+
+  test "does not start a server inside the calling app's process group", c do
+    System.cmd("tmux", ["-L", c.socket, "kill-server"])
+    assert {:error, _} = Tmux.launch(c.session, "flow", c.opts)
+
+    assert {_, 1} =
+             System.cmd("tmux", ["-N", "-L", c.socket, "list-sessions"], stderr_to_stdout: true)
+  end
+
+  test "manually renamed windows cannot crash liveness polling", c do
+    assert {:ok, window} = Tmux.launch(c.session, "flow", c.opts)
+    System.cmd("tmux", ["-L", c.socket, "rename-window", "-t", window, "odd\tname"])
+    assert {:ok, :window_gone} = Tmux.observe(c.session, c.opts)
+  end
+
+  defp eventually(fun, attempts \\ 100)
+  defp eventually(_, 0), do: false
+
+  defp eventually(fun, attempts) do
+    if fun.(),
+      do: true,
+      else:
+        (receive do
+         after
+           20 -> eventually(fun, attempts - 1)
+         end)
+  end
+end

@@ -1,0 +1,62 @@
+{
+  "sessions": [
+    {
+      "session_id": "78d5deff-29e0-4961-8695-fcefc7a079c8",
+      "project": "scratch",
+      "ticket": "draft:greeting",
+      "window": "@1",
+      "workdir": "/tmp/fm-launch-scratch",
+      "state": "running"
+    },
+    {
+      "session_id": "54454b9e-7a6e-4bbb-9bf1-36e3375796d1",
+      "project": "scratch",
+      "ticket": "scratch-1",
+      "window": "@0",
+      "workdir": "/tmp/fm-launch-scratch",
+      "state": "running"
+    },
+    {
+      "session_id": "3078db9c-f491-4470-87fc-1f869af145be",
+      "project": "scratch",
+      "ticket": "scratch-bug",
+      "window": "@2",
+      "workdir": "/tmp/fm-launch-scratch",
+      "state": "running"
+    }
+  ],
+  "processes": [
+    {
+      "pid": 2974822,
+      "executable": "claude",
+      "args": [
+        "--session-id",
+        "54454b9e-7a6e-4bbb-9bf1-36e3375796d1",
+        "You are the coordinator for scratch-1 in project scratch.\nRead AGENTS.md and tickets/scratch-1.md. Start flow for this ticket.\nKeep planning scoped to this ticket. Follow the foreman skill for board updates and the house workflow for specs, build dispatch, and review. Ask the user when a decision is theirs.\n"
+      ],
+      "cwd": "/tmp/fm-launch-scratch"
+    },
+    {
+      "pid": 2974863,
+      "executable": "claude",
+      "args": [
+        "--session-id",
+        "78d5deff-29e0-4961-8695-fcefc7a079c8",
+        "You are the coordinator for draft:greeting in project scratch.\nRead AGENTS.md and the board draft draft:greeting and docs/greeting.md. Start /tight-spec for this ticket.\nKeep planning scoped to this ticket. Follow the foreman skill for board updates and the house workflow for specs, build dispatch, and review. Ask the user when a decision is theirs.\n"
+      ],
+      "cwd": "/tmp/fm-launch-scratch"
+    },
+    {
+      "pid": 2974906,
+      "executable": "claude",
+      "args": [
+        "--session-id",
+        "3078db9c-f491-4470-87fc-1f869af145be",
+        "You are the coordinator for scratch-bug in project scratch.\nRead AGENTS.md and tickets/scratch-bug.md. Start diagnosing-bugs for this ticket.\nKeep planning scoped to this ticket. Follow the foreman skill for board updates and the house workflow for specs, build dispatch, and review. Ask the user when a decision is theirs.\n"
+      ],
+      "cwd": "/tmp/fm-launch-scratch"
+    }
+  ],
+  "global_settings_unchanged": true,
+  "settings_sha256": "e436114c1ace17b8d318b84b28b3ae05c91aa349154d2bf0643fe601b91fac0f"
+}

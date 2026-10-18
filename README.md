@@ -79,7 +79,9 @@ requires `DATABASE_URL`, plus `SECRET_KEY_BASE` for web/all; no systemd unit is 
 These steps are for you to run on the host. Nothing in the build installs or
 starts services. The templates are in [`deploy/systemd/`](deploy/systemd/).
 They use one release at `~/.local/lib/foreman/current`, two foreground BEAM
-processes, and no terminal or Erlang distribution.
+processes, and no terminal or Erlang distribution. Board-launched planning sessions
+use a separate, optional [foreman-tmux service](deploy/systemd/README.md); install
+that service before using Launch, and never restart it during app deployment.
 
 ### Prepare the host and environment
 
@@ -146,7 +148,7 @@ Continue only if the migration succeeded. Then install and enable the units:
 
 ```sh
 install -d "$HOME/.config/systemd/user"
-cp deploy/systemd/foreman-*.service "$HOME/.config/systemd/user/"
+cp deploy/systemd/foreman-web.service deploy/systemd/foreman-worker.service "$HOME/.config/systemd/user/"
 systemd-analyze --user verify "$HOME/.config/systemd/user/"foreman-*.service
 systemctl --user daemon-reload
 systemctl --user enable --now foreman-worker.service foreman-web.service
@@ -186,7 +188,7 @@ both services stopped and investigate. Restore an older release only if its code
 is compatible with the database schema. Refresh the unit templates if changed:
 
 ```sh
-cp deploy/systemd/foreman-*.service "$HOME/.config/systemd/user/"
+cp deploy/systemd/foreman-web.service deploy/systemd/foreman-worker.service "$HOME/.config/systemd/user/"
 systemctl --user daemon-reload
 systemctl --user start foreman-worker.service foreman-web.service
 ```

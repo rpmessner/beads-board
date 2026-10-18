@@ -34,7 +34,8 @@ defmodule Foreman.Role do
         Foreman.Forge.Credentials,
         Foreman.Runtime,
         Foreman.Config.Watcher,
-        Foreman.SpoolWorker
+        Foreman.SpoolWorker,
+        Foreman.SessionMonitor
       ],
       else: []
   end

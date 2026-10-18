@@ -1,0 +1,11 @@
+[Unit]
+Description=Foreman planning session tmux server
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/tmux -D -L foreman -f /dev/null
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
