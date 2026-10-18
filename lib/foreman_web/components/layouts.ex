@@ -53,6 +53,22 @@ defmodule ForemanWeb.Layouts do
           >
             <.icon name="hero-cog-6-tooth" class="size-4" /> Settings
           </.link>
+          <div
+            id="browser-notifications"
+            hidden
+            phx-hook="BrowserNotifications"
+            phx-update="ignore"
+            data-machine={Jason.encode!(Foreman.NotificationPermission.browser_table())}
+          >
+            <button
+              id="enable-notifications"
+              type="button"
+              hidden
+              class="bb-nav w-full cursor-pointer text-left"
+            >
+              <.icon name="hero-bell" class="size-4" /> Turn on notifications
+            </button>
+          </div>
         </nav>
         <section :if={@repos != []} class="space-y-2 px-2.5" aria-label="Projects">
           <h2 class="bb-label">Projects · tickets</h2>

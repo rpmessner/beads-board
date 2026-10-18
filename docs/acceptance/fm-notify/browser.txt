@@ -1,0 +1,8 @@
+PASS default permission: explicit control, no prompt before click
+PASS granted permission: two tabs, one native notification and consistent counts
+PASS navigation/reload deduplication and notification click opens Needs you
+PASS request arriving while disconnected is delivered once after reconnect
+PASS storage failure fails closed; reconciliation recovers once storage returns
+PASS surviving tab delivers after peer closes; granted permission never prompts
+PASS denied permission: hidden control, no prompt, live count unchanged
+PASS sidebar styling, hover/focus and unsupported permission visibility

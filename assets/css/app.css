@@ -16,7 +16,8 @@ body { margin: 0; background: var(--background-base); }
 .bb-panel { border: 1px solid var(--border-base); border-radius: 10px; background: var(--surface); padding: 16px; box-shadow: var(--shadow-base); }
 .bb-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--foreground-softer); }
 .bb-nav { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 8px; font-weight: 500; transition: background .15s; }
-a.bb-nav:hover, .bb-theme:hover { background: var(--background-accent); }
+.bb-nav:hover, .bb-theme:hover { background: var(--background-accent); }
+.bb-nav:focus-visible { outline: 2px solid var(--foreground); outline-offset: 2px; }
 a.bb-nav-active { background: light-dark(#e4e4e7, #3f3f46); color: var(--foreground); }
 .bb-theme { display: flex; align-items: center; justify-content: center; height: 32px; width: 36px; border: 1px solid var(--border-base); border-radius: 8px; cursor: pointer; }
 .bb-table { border-collapse: collapse; width: 100%; font-size: 13px; }
