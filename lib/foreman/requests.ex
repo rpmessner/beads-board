@@ -49,6 +49,41 @@ defmodule Foreman.Requests do
     end
   end
 
+  def reconcile_open_prs do
+    Repo.all(
+      from r in Request, where: r.kind == "open_pr" and r.state in ["pending", "executing"]
+    )
+    |> Enum.each(fn request ->
+      if request.state == "pending" do
+        case Foreman.Requests.OpenPr.unchanged(
+               request.facts,
+               Foreman.Forge.adapter(),
+               Foreman.Forge.options()
+             ) do
+          {:error, reason} when reason in [:head_moved, :head_missing] ->
+            resolve(request.id, :facts_changed, %{"reason" => to_string(reason)})
+
+          _ ->
+            :ok
+        end
+      else
+        active =
+          Repo.exists?(
+            from j in Oban.Job,
+              where:
+                j.worker == "Foreman.Requests.OpenPrJob" and
+                  fragment("?->>'request_id'", j.args) == ^request.id and
+                  j.state in ["available", "scheduled", "executing", "retryable"]
+          )
+
+        if not active or DateTime.diff(DateTime.utc_now(), request.updated_at) > 90,
+          do: resolve(request.id, :orphaned, %{})
+      end
+    end)
+
+    :ok
+  end
+
   def reconcile_pushes do
     requests =
       Repo.all(from r in Request, where: r.kind == "push" and r.state in ["pending", "executing"])
@@ -120,15 +155,29 @@ defmodule Foreman.Requests do
           lock(request.repo_key)
           request = Repo.get!(Request, id)
 
-          if event == :approve and request.kind == "push" and request.state == "pending" and
-               Foreman.Requests.Push.unchanged(request.facts) != :ok do
-            transition(request, :facts_changed, %{"reason" => "local_sha_changed"})
+          changed = approval_change(request, event)
+
+          if changed do
+            transition(request, :facts_changed, %{"reason" => changed})
           else
             transition(request, event, payload)
           end
       end
     end)
   end
+
+  defp approval_change(%{kind: "push", state: "pending"} = request, :approve) do
+    if Foreman.Requests.Push.unchanged(request.facts) != :ok, do: "local_sha_changed"
+  end
+
+  defp approval_change(%{kind: "open_pr", state: "pending"} = request, :approve) do
+    case Foreman.Requests.OpenPr.observed_head(request.repo_key, request.facts) do
+      {:error, reason} when reason in [:head_moved, :head_missing] -> to_string(reason)
+      _ -> nil
+    end
+  end
+
+  defp approval_change(_, _), do: nil
 
   def supersede(key) do
     for request <- for_ticket(key), request.state == "pending" do

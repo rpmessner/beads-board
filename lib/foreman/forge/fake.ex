@@ -4,7 +4,46 @@ defmodule Foreman.Forge.Fake do
   use Agent
   def start_link(snapshot), do: Agent.start_link(fn -> snapshot end)
   def list(_, opts), do: Agent.get(Keyword.fetch!(opts, :server), &{:ok, &1})
-  def capabilities, do: %{head_guard: true, retarget: true, write: true}
+
+  def create_change_request(remote, facts, opts) do
+    Agent.get_and_update(Keyword.fetch!(opts, :server), fn snapshot ->
+      prs = snapshot["change_requests"]
+
+      if Enum.any?(prs, &(&1["state"] == "open" and &1["source_branch"] == facts["head_branch"])) do
+        {{:error, :create_refused}, snapshot}
+      else
+        number = Enum.reduce(prs, 0, &max(&1["number"], &2)) + 1
+        result = %{"number" => number, "url" => "https://github.com/#{remote}/pull/#{number}"}
+
+        pr =
+          Map.merge(result, %{
+            "title" => facts["title"],
+            "body" => facts["body"],
+            "source_branch" => facts["head_branch"],
+            "target_branch" => facts["base_branch"],
+            "head_sha" => get_in(snapshot, ["branches", facts["head_branch"]]),
+            "state" => "open",
+            "draft" => false,
+            "checks" => "none",
+            "mergeable" => "unknown"
+          })
+
+        {{:ok, result}, Map.put(snapshot, "change_requests", prs ++ [pr])}
+      end
+    end)
+  end
+
+  def branch_sha(_, branch, opts) do
+    Agent.get(Keyword.fetch!(opts, :server), fn snapshot ->
+      case get_in(snapshot, ["branches", branch]) do
+        nil -> {:error, :not_found}
+        sha -> {:ok, sha}
+      end
+    end)
+  end
+
+  def capabilities,
+    do: %{head_guard: true, retarget: true, write: true, create_change_request: true}
 
   def merge(_, number, sha, opts) do
     Agent.get_and_update(Keyword.fetch!(opts, :server), fn snapshot ->

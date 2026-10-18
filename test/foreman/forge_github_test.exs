@@ -72,6 +72,59 @@ defmodule Foreman.ForgeGitHubTest do
              GitHub.list("owner/repo", token: "test", plug: {Req.Test, __MODULE__})
   end
 
+  test "branch pagination does not break existing PR reads or omit later branches" do
+    sha = String.duplicate("a", 40)
+
+    Req.Test.stub(__MODULE__, fn conn ->
+      {:ok, body, conn} = Plug.Conn.read_body(conn)
+      query = Jason.decode!(body)
+
+      refs =
+        if query["variables"]["cursor"] == "page-2" do
+          %{
+            "pageInfo" => %{"hasNextPage" => false, "endCursor" => "end"},
+            "nodes" => [%{"name" => "later", "target" => %{"oid" => sha}}]
+          }
+        else
+          %{
+            "pageInfo" => %{"hasNextPage" => true, "endCursor" => "page-2"},
+            "nodes" => [%{"name" => "main", "target" => %{"oid" => sha}}]
+          }
+        end
+
+      Req.Test.json(
+        conn,
+        put_in(fixture("form-engine.json"), ["data", "repository", "refs"], refs)
+      )
+    end)
+
+    assert {:ok, snapshot} =
+             GitHub.list("owner/repo", token: "test", plug: {Req.Test, __MODULE__})
+
+    assert snapshot["branches"] == %{"main" => sha, "later" => sha}
+    assert length(snapshot["change_requests"]) == 2
+  end
+
+  test "a rate-limited branch continuation retains the snapshot and cooldown classification" do
+    Req.Test.stub(__MODULE__, fn conn ->
+      {:ok, body, conn} = Plug.Conn.read_body(conn)
+
+      if Jason.decode!(body)["variables"]["cursor"] do
+        Req.Test.json(conn, %{"errors" => [%{"type" => "RATE_LIMITED"}]})
+      else
+        refs = %{"pageInfo" => %{"hasNextPage" => true, "endCursor" => "next"}, "nodes" => []}
+
+        Req.Test.json(
+          conn,
+          put_in(fixture("form-engine.json"), ["data", "repository", "refs"], refs)
+        )
+      end
+    end)
+
+    assert {:error, :rate_limited} =
+             GitHub.list("owner/repo", token: "test", plug: {Req.Test, __MODULE__})
+  end
+
   test "missing credentials fail without making a request" do
     assert {:error, :credentials_or_remote} = GitHub.list("owner/repo", [])
   end
@@ -114,6 +167,58 @@ defmodule Foreman.ForgeGitHubTest do
     assert {:error, :outcome_unknown} = GitHub.retarget("owner/repo", 6, "main", opts)
     assert_received :mutation
     refute_received :mutation
+  end
+
+  test "create errors never leak transport details, redirect or retry" do
+    facts = %{
+      "head_branch" => "feature",
+      "base_branch" => "main",
+      "title" => "Title",
+      "body" => "Body"
+    }
+
+    opts = [token: "secret-test", plug: {Req.Test, __MODULE__}]
+
+    for {status, reason} <- [
+          {301, :outcome_unknown},
+          {401, :unauthorized},
+          {403, :forbidden_or_rate_limited},
+          {404, :not_found},
+          {422, :create_refused},
+          {503, :outcome_unknown}
+        ] do
+      Req.Test.stub(__MODULE__, fn conn ->
+        send(self(), :create)
+
+        conn
+        |> Plug.Conn.put_resp_header("location", "https://example.invalid")
+        |> Plug.Conn.send_resp(status, "secret-test private error")
+      end)
+
+      assert {:error, ^reason} = GitHub.create_change_request("owner/repo", facts, opts)
+      assert_received :create
+      refute_received :create
+    end
+
+    Req.Test.stub(__MODULE__, fn conn ->
+      send(self(), :create)
+      Req.Test.transport_error(conn, :timeout)
+    end)
+
+    assert {:error, :outcome_unknown} = GitHub.create_change_request("owner/repo", facts, opts)
+    assert_received :create
+    refute_received :create
+
+    Req.Test.stub(__MODULE__, fn conn ->
+      conn
+      |> Plug.Conn.put_status(201)
+      |> Req.Test.json(%{"number" => 1, "html_url" => "https://other.invalid"})
+    end)
+
+    assert {:error, :invalid_response} = GitHub.create_change_request("owner/repo", facts, opts)
+
+    assert {:error, :credentials_or_remote} =
+             GitHub.create_change_request("owner/repo", facts, [])
   end
 
   test "successful HTTP status alone is not a successful mutation" do

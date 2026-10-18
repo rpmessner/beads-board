@@ -59,7 +59,96 @@ defmodule Foreman.ForgeContractTest do
                  &Map.take(&1, Map.keys(hd(snapshot["change_requests"])))
                ) == snapshot["change_requests"]
 
-        assert @adapter.capabilities() == %{head_guard: true, retarget: true, write: true}
+        assert @adapter.capabilities() == %{
+                 head_guard: true,
+                 retarget: true,
+                 write: true,
+                 create_change_request: true
+               }
+      end
+
+      test "reads exact remote branch SHA, including slash names and absence" do
+        sha = String.duplicate("a", 40)
+        fake = start_supervised!({Foreman.Forge.Fake, %{"branches" => %{"pr/feature" => sha}}})
+
+        Req.Test.stub(__MODULE__, fn conn ->
+          assert conn.method == "GET"
+
+          case conn.request_path do
+            "/repos/owner/repo/git/ref/heads/pr%2Ffeature" ->
+              Req.Test.json(conn, %{
+                "ref" => "refs/heads/pr/feature",
+                "object" => %{"type" => "commit", "sha" => sha}
+              })
+
+            _ ->
+              conn |> Plug.Conn.put_status(404) |> Req.Test.json(%{})
+          end
+        end)
+
+        opts = [server: fake, token: "test", plug: {Req.Test, __MODULE__}]
+        assert {:ok, ^sha} = @adapter.branch_sha("owner/repo", "pr/feature", opts)
+        assert {:error, :not_found} = @adapter.branch_sha("owner/repo", "absent", opts)
+      end
+
+      test "creates a change request with exactly the named text and branches" do
+        facts = %{
+          "head_branch" => "feature",
+          "base_branch" => "main",
+          "title" => "Exact title",
+          "body" => "Body\n\nWith spacing.\n"
+        }
+
+        fake =
+          start_supervised!(
+            {Foreman.Forge.Fake,
+             %{
+               "default_branch" => "main",
+               "branches" => %{
+                 "feature" => String.duplicate("a", 40),
+                 "main" => String.duplicate("b", 40)
+               },
+               "change_requests" => []
+             }}
+          )
+
+        Req.Test.stub(__MODULE__, fn conn ->
+          assert conn.method == "POST"
+          assert conn.request_path == "/repos/owner/repo/pulls"
+          {:ok, body, conn} = Plug.Conn.read_body(conn)
+
+          assert Jason.decode!(body) == %{
+                   "head" => "feature",
+                   "base" => "main",
+                   "title" => "Exact title",
+                   "body" => "Body\n\nWith spacing.\n"
+                 }
+
+          conn
+          |> Plug.Conn.put_status(201)
+          |> Req.Test.json(%{"number" => 1, "html_url" => "https://github.com/owner/repo/pull/1"})
+        end)
+
+        assert {:ok, %{"number" => 1, "url" => "https://github.com/owner/repo/pull/1"}} =
+                 @adapter.create_change_request("owner/repo", facts,
+                   server: fake,
+                   token: "test",
+                   plug: {Req.Test, __MODULE__}
+                 )
+
+        assert @adapter.capabilities().create_change_request
+
+        if @adapter == Foreman.Forge.Fake do
+          {:ok, snapshot} = @adapter.list("owner/repo", server: fake)
+          assert [pr] = snapshot["change_requests"]
+
+          assert Map.take(pr, ["title", "body", "source_branch", "target_branch"]) == %{
+                   "title" => "Exact title",
+                   "body" => "Body\n\nWith spacing.\n",
+                   "source_branch" => "feature",
+                   "target_branch" => "main"
+                 }
+        end
       end
 
       test "merge is head guarded and retarget replays the recorded live responses" do
@@ -115,6 +204,44 @@ defmodule Foreman.ForgeContractTest do
           assert Enum.find(snapshot["change_requests"], &(&1["number"] == 2))["target_branch"] ==
                    "main"
         end
+      end
+
+      test "replays the real scratch open-PR response" do
+        recording = File.read!("test/fixtures/forge/live-openpr/create.json") |> Jason.decode!()
+        payload = recording["request"]
+        response = recording["response"]
+        number = response["number"]
+
+        facts = %{
+          "head_branch" => payload["head"],
+          "base_branch" => payload["base"],
+          "title" => payload["title"],
+          "body" => payload["body"]
+        }
+
+        fake =
+          start_supervised!(
+            {Foreman.Forge.Fake,
+             %{
+               "branches" => %{payload["head"] => response["head"]["sha"]},
+               "change_requests" => [%{"number" => number - 1, "state" => "closed"}]
+             }}
+          )
+
+        Req.Test.stub(__MODULE__, fn conn ->
+          {:ok, body, conn} = Plug.Conn.read_body(conn)
+          assert Jason.decode!(body) == payload
+          conn |> Plug.Conn.put_status(recording["status"]) |> Req.Test.json(response)
+        end)
+
+        assert {:ok, result} =
+                 @adapter.create_change_request("rpmessner/beads-board-scratch", facts,
+                   server: fake,
+                   token: "test",
+                   plug: {Req.Test, __MODULE__}
+                 )
+
+        assert result == %{"number" => number, "url" => response["html_url"]}
       end
 
       test "the recorded next read observes the merge and retarget" do

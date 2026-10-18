@@ -53,35 +53,40 @@ defmodule Foreman.RequestCommitTest do
     end)
   end
 
-  test "independent worker connections obtain exactly one durable push start", %{key: {repo, id}} do
-    request =
+  for kind <- ["push", "open_pr"] do
+    @kind kind
+    test "independent worker connections obtain exactly one durable #{kind} start", %{
+      key: {repo, id}
+    } do
+      request =
+        unboxed(fn ->
+          Repo.insert!(%Foreman.Requests.Request{
+            repo_key: repo,
+            bead_id: id,
+            kind: @kind,
+            actor: "pi",
+            state: "approved",
+            facts: %{}
+          })
+        end)
+
+      results =
+        race([
+          fn -> Requests.resolve(request.id, :start, %{}) end,
+          fn -> Requests.resolve(request.id, :start, %{}) end
+        ])
+
+      assert Enum.count(results, &match?({:ok, %{state: "executing"}}, &1)) == 1
+      assert Enum.count(results, &match?({:error, :invalid}, &1)) == 1
+
       unboxed(fn ->
-        Repo.insert!(%Foreman.Requests.Request{
-          repo_key: repo,
-          bead_id: id,
-          kind: "push",
-          actor: "pi",
-          state: "approved",
-          facts: %{}
-        })
+        assert %{rows: [[1]]} =
+                 Repo.query!(
+                   "SELECT count(*) FROM request_events WHERE request_id=$1 AND event='start'",
+                   [Ecto.UUID.dump!(request.id)]
+                 )
       end)
-
-    results =
-      race([
-        fn -> Requests.resolve(request.id, :start, %{}) end,
-        fn -> Requests.resolve(request.id, :start, %{}) end
-      ])
-
-    assert Enum.count(results, &match?({:ok, %{state: "executing"}}, &1)) == 1
-    assert Enum.count(results, &match?({:error, :invalid}, &1)) == 1
-
-    unboxed(fn ->
-      assert %{rows: [[1]]} =
-               Repo.query!(
-                 "SELECT count(*) FROM request_events WHERE request_id=$1 AND event='start'",
-                 [Ecto.UUID.dump!(request.id)]
-               )
-    end)
+    end
   end
 
   test "ask racing ticket completion cannot leave a pending request", %{key: key} do

@@ -1,0 +1,33 @@
+Running ExUnit with seed: 356467, max_cases: 16
+
+....
+
+  1) test CLI preserves body-file bytes and names every PR fact (Foreman.OpenPrTest)
+     test/foreman/open_pr_test.exs:128
+     match (=) failed
+     code:  assert {:ok, %{request: request}} =
+              Foreman.CLI.parse([
+                "ask",
+                "open_pr",
+                "s-1",
+                "--project",
+                "sample",
+                "--head",
+                "feature",
+                "--sha",
+                @sha,
+                "--base",
+                "main",
+                "--title",
+                "Exact title",
+                "--body-file",
+                path
+              ])
+     left:  {:ok, %{request: request}}
+     right: {:error, :usage}
+     stacktrace:
+       test/foreman/open_pr_test.exs:132: (test)
+
+.......
+Finished in 0.6 seconds (0.00s async, 0.6s sync)
+12 tests, 1 failure

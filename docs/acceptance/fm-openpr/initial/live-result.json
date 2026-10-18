@@ -1,0 +1,12 @@
+{
+  "id": "93d238fe-7c16-4412-9b4f-5c30ce122857",
+  "push": "d33188fa-f83e-4e43-9f0a-e09cd9e2d549",
+  "number": 3,
+  "branch": "acceptance/fm-openpr-1792362740214",
+  "sha": "2e8aa23947317903351a25bbffe97b9c9e319557",
+  "base": "main",
+  "title": "openpr-1: Exact approval title",
+  "body": "Open PR acceptance.\n\nExact body, including trailing newline.\n",
+  "url": "https://github.com/rpmessner/beads-board-scratch/pull/3",
+  "errors": []
+}

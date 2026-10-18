@@ -1,0 +1,113 @@
+Compiling 1 file (.ex)
+Generated foreman app
+Running ExUnit with seed: 753525, max_cases: 16
+
+......
+
+  1) test job rechecks missing_head after approval (Foreman.OpenPrTest)
+     test/foreman/open_pr_test.exs:149
+     match (=) failed
+     code:  assert %{state: "failed", outcome: %{"reason" => @reason}} = Requests.get(request.id)
+     left:  %{state: "failed", outcome: %{"reason" => "head_missing"}}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "6cec5c0f-e26d-4181-9392-fd703919f9e2",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "open_pr",
+              actor: "user",
+              session: nil,
+              facts: %{
+                "base_branch" => "main",
+                "body" => "Exact body\n",
+                "expected_sha" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "head_branch" => "feature",
+                "remote" => "owner/repo",
+                "title" => "s-1 Exact title"
+              },
+              state: "done",
+              outcome: %{
+                "result" => %{
+                  "number" => 1,
+                  "url" => "https://github.com/owner/repo/pull/1"
+                }
+              },
+              note: nil,
+              inserted_at: ~U[2026-10-18 22:41:19.736094Z],
+              updated_at: ~U[2026-10-18 22:41:19.786470Z]
+            }
+     stacktrace:
+       test/foreman/open_pr_test.exs:173: (test)
+
+.....
+
+  2) test configuration removal during the last head read prevents creation (Foreman.OpenPrTest)
+     test/foreman/open_pr_test.exs:345
+     match (=) failed
+     code:  assert %{state: "failed", outcome: %{"reason" => "forge_disabled"}} = Requests.get(request.id)
+     left:  %{state: "failed", outcome: %{"reason" => "forge_disabled"}}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "a44aee56-67a4-4c8a-bd87-1c620beaf7b6",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "open_pr",
+              actor: "user",
+              session: nil,
+              facts: %{
+                "base_branch" => "main",
+                "body" => "Exact body\n",
+                "expected_sha" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "head_branch" => "feature",
+                "remote" => "owner/repo",
+                "title" => "s-1 Exact title"
+              },
+              state: "failed",
+              outcome: %{"reason" => "invalid_response"},
+              note: nil,
+              inserted_at: ~U[2026-10-18 22:41:20.206707Z],
+              updated_at: ~U[2026-10-18 22:41:20.289534Z]
+            }
+     stacktrace:
+       test/foreman/open_pr_test.exs:381: (test)
+
+.......
+
+  3) test job rechecks head after approval (Foreman.OpenPrTest)
+     test/foreman/open_pr_test.exs:149
+     match (=) failed
+     code:  assert %{state: "failed", outcome: %{"reason" => @reason}} = Requests.get(request.id)
+     left:  %{state: "failed", outcome: %{"reason" => "head_moved"}}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "a2a31cff-4993-47cf-967a-18b147f3064b",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "open_pr",
+              actor: "user",
+              session: nil,
+              facts: %{
+                "base_branch" => "main",
+                "body" => "Exact body\n",
+                "expected_sha" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "head_branch" => "feature",
+                "remote" => "owner/repo",
+                "title" => "s-1 Exact title"
+              },
+              state: "done",
+              outcome: %{
+                "result" => %{
+                  "number" => 1,
+                  "url" => "https://github.com/owner/repo/pull/1"
+                }
+              },
+              note: nil,
+              inserted_at: ~U[2026-10-18 22:41:20.587079Z],
+              updated_at: ~U[2026-10-18 22:41:20.609502Z]
+            }
+     stacktrace:
+       test/foreman/open_pr_test.exs:173: (test)
+
+
+Finished in 1.8 seconds (0.00s async, 1.8s sync)
+21 tests, 3 failures

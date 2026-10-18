@@ -117,19 +117,21 @@ defmodule ForemanWeb.NeedsYouLive do
   attr :id, :string, required: true
   attr :request, :any, required: true
 
-  def request_card(%{request: %{kind: "push"}} = assigns), do: push_card(assigns)
+  def request_card(%{request: %{kind: kind}} = assigns) when kind in ["push", "open_pr"],
+    do: action_card(assigns)
+
   def request_card(assigns), do: decision_card(assigns)
 
   attr :id, :string, required: true
   attr :request, :any, required: true
 
-  def push_card(assigns) do
+  def action_card(assigns) do
     assigns = assign(assigns, :form, to_form(%{"note" => ""}, as: :decision))
 
     ~H"""
     <article id={@id} class="rounded-xl border border-base bg-base p-5 shadow-sm sm:p-6">
       <div class="mb-4 flex flex-wrap items-center gap-2 text-xs text-foreground-softer">
-        <Badge.badge>Push</Badge.badge>
+        <Badge.badge>{if @request.kind == "push", do: "Push", else: "Open PR"}</Badge.badge>
         <.link
           patch={"/needs-you?" <> URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})}
           class="font-mono hover:underline"
@@ -139,17 +141,18 @@ defmodule ForemanWeb.NeedsYouLive do
         <span>{@request.actor}<span :if={@request.session}> · {@request.session}</span></span>
         <span class="ml-auto"><ForemanWeb.TicketDetail.timestamp at={@request.inserted_at} /></span>
       </div>
-      <ForemanWeb.RequestCard.push_facts request={@request} />
+      <ForemanWeb.RequestCard.push_facts :if={@request.kind == "push"} request={@request} />
+      <ForemanWeb.RequestCard.open_pr_facts :if={@request.kind == "open_pr"} request={@request} />
       <.form
         for={@form}
-        id={"push-" <> @request.id}
+        id={@request.kind <> "-" <> @request.id}
         phx-submit="resolve"
         phx-value-id={@request.id}
         class="mt-5 space-y-4"
       >
         <.input
           field={@form[:note]}
-          id={"push-note-" <> @request.id}
+          id={@request.kind <> "-note-" <> @request.id}
           type="textarea"
           label="Note"
           rows="2"

@@ -1,0 +1,14 @@
+{
+  "status": 200,
+  "request": null,
+  "response": {
+    "node_id": "REF_kwDOVOhs8NoALXJlZnMvaGVhZHMvYWNjZXB0YW5jZS9mbS1vcGVucHItMTc5MjM2MzI0MDY5OA",
+    "object": {
+      "sha": "2e8aa23947317903351a25bbffe97b9c9e319557",
+      "type": "commit",
+      "url": "https://api.github.com/repos/rpmessner/beads-board-scratch/git/commits/2e8aa23947317903351a25bbffe97b9c9e319557"
+    },
+    "ref": "refs/heads/acceptance/fm-openpr-1792363240698",
+    "url": "https://api.github.com/repos/rpmessner/beads-board-scratch/git/refs/heads/acceptance/fm-openpr-1792363240698"
+  }
+}

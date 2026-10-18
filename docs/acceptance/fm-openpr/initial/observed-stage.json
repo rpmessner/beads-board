@@ -1,0 +1,52 @@
+{
+  "after": "pr_open",
+  "snapshot": {
+    "branches": {
+      "acceptance/fm-openpr-1792362740214": "2e8aa23947317903351a25bbffe97b9c9e319557",
+      "acceptance/fm-push-1792353043551": "7a3061c6bdd5159978d7bc74039cfc0a4529df2f",
+      "acceptance/fm-push-1792353529431": "7a3061c6bdd5159978d7bc74039cfc0a4529df2f",
+      "main": "797e13046f22f41dc6b471a2ea80b0a674a7a698",
+      "pr/acceptance-bottom": "82e2f6f913d62d96b1d99bc6c50967d5d4a1500b",
+      "pr/acceptance-child": "2e8aa23947317903351a25bbffe97b9c9e319557"
+    },
+    "change_requests": [
+      {
+        "body": "Disposable stacked child fixture.",
+        "checks": "none",
+        "draft": false,
+        "head_sha": "2e8aa23947317903351a25bbffe97b9c9e319557",
+        "links": [],
+        "merge_state": "CLEAN",
+        "mergeable": "mergeable",
+        "number": 2,
+        "source_branch": "pr/acceptance-child",
+        "state": "open",
+        "target_branch": "main",
+        "title": "Retarget acceptance child",
+        "url": "https://github.com/rpmessner/beads-board-scratch/pull/2"
+      },
+      {
+        "body": "Open PR acceptance.\n\nExact body, including trailing newline.\n",
+        "checks": "none",
+        "draft": false,
+        "head_sha": "2e8aa23947317903351a25bbffe97b9c9e319557",
+        "links": [
+          {
+            "bead_id": "openpr-1",
+            "source": "title"
+          }
+        ],
+        "merge_state": "UNKNOWN",
+        "mergeable": "unknown",
+        "number": 3,
+        "source_branch": "acceptance/fm-openpr-1792362740214",
+        "state": "open",
+        "target_branch": "main",
+        "title": "openpr-1: Exact approval title",
+        "url": "https://github.com/rpmessner/beads-board-scratch/pull/3"
+      }
+    ],
+    "default_branch": "main"
+  },
+  "before": "committed"
+}

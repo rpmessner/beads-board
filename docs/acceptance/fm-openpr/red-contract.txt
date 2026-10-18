@@ -1,0 +1,213 @@
+==> file_system
+Compiling 7 files (.ex)
+Generated file_system app
+==> stream_data
+Compiling 3 files (.ex)
+Generated stream_data app
+==> mime
+Compiling 1 file (.ex)
+Generated mime app
+==> nimble_options
+Compiling 3 files (.ex)
+Generated nimble_options app
+==> fine
+Compiling 1 file (.ex)
+Generated fine app
+==> ham
+Compiling 6 files (.ex)
+Generated ham app
+==> plug_crypto
+Compiling 5 files (.ex)
+Generated plug_crypto app
+==> hpax
+Compiling 4 files (.ex)
+Generated hpax app
+==> mint
+Compiling 1 file (.erl)
+Compiling 21 files (.ex)
+Generated mint app
+==> foreman
+===> Analyzing applications...
+===> Compiling yamerl
+==> elixir_make
+Compiling 8 files (.ex)
+Generated elixir_make app
+==> decimal
+Compiling 4 files (.ex)
+Generated decimal app
+==> jason
+Compiling 10 files (.ex)
+Generated jason app
+==> esbuild
+Compiling 4 files (.ex)
+Generated esbuild app
+==> toml_elixir
+Compiling 11 files (.ex)
+Generated toml_elixir app
+==> yaml_elixir
+Compiling 6 files (.ex)
+Generated yaml_elixir app
+==> foreman
+===> Analyzing applications...
+===> Compiling idna
+==> nimble_parsec
+Compiling 4 files (.ex)
+Generated nimble_parsec app
+==> foreman
+===> Analyzing applications...
+===> Compiling telemetry
+==> telemetry_metrics
+Compiling 7 files (.ex)
+Generated telemetry_metrics app
+==> foreman
+===> Analyzing applications...
+===> Compiling telemetry_poller
+==> thousand_island
+Compiling 18 files (.ex)
+Generated thousand_island app
+==> db_connection
+Compiling 18 files (.ex)
+Generated db_connection app
+==> ecto
+Compiling 56 files (.ex)
+Generated ecto app
+==> phoenix_html
+Compiling 6 files (.ex)
+Generated phoenix_html app
+==> phoenix_template
+Compiling 4 files (.ex)
+Generated phoenix_template app
+==> expo
+Compiling 2 files (.erl)
+Compiling 22 files (.ex)
+Generated expo app
+==> gettext
+Compiling 18 files (.ex)
+Generated gettext app
+==> phoenix_pubsub
+Compiling 13 files (.ex)
+Generated phoenix_pubsub app
+==> rustler_precompiled
+Compiling 4 files (.ex)
+Generated rustler_precompiled app
+==> lumis
+Compiling 15 files (.ex)
+
+18:21:41.792 [debug] Copying NIF from cache and extracting to <checkout>/_build/test/lib/lumis/priv/native/liblumis_nif-v0.10.3-nif-2.15-x86_64-unknown-linux-gnu.so
+Generated lumis app
+==> dns_cluster
+Compiling 1 file (.ex)
+Generated dns_cluster app
+==> plug
+Compiling 1 file (.erl)
+Compiling 42 files (.ex)
+Generated plug app
+==> postgrex
+Compiling 70 files (.ex)
+Generated postgrex app
+==> phoenix_ecto
+Compiling 7 files (.ex)
+Generated phoenix_ecto app
+==> ecto_sql
+Compiling 25 files (.ex)
+Generated ecto_sql app
+==> oban
+Compiling 66 files (.ex)
+     warning: this clause of defp expected_error?/1 is never used
+     │
+ 253 │   defp expected_error?(%_{mysql: %{code: code}}) when code in [1205, 1213], do: true
+     │        ~
+     │
+     └─ lib/oban/repo.ex:253:8: Oban.Repo.expected_error?/1
+
+Generated oban app
+==> nimble_pool
+Compiling 2 files (.ex)
+Generated nimble_pool app
+==> finch
+Compiling 22 files (.ex)
+Generated finch app
+==> req
+Compiling 21 files (.ex)
+Generated req app
+==> cc_precompiler
+Compiling 3 files (.ex)
+Generated cc_precompiler app
+==> lazy_html
+Compiling 3 files (.ex)
+Generated lazy_html app
+==> tailwind
+Compiling 3 files (.ex)
+Generated tailwind app
+==> websock
+Compiling 1 file (.ex)
+Generated websock app
+==> bandit
+Compiling 54 files (.ex)
+Generated bandit app
+==> swoosh
+Compiling 64 files (.ex)
+Generated swoosh app
+==> websock_adapter
+Compiling 4 files (.ex)
+Generated websock_adapter app
+==> phoenix
+Compiling 74 files (.ex)
+Generated phoenix app
+==> phoenix_live_view
+Compiling 49 files (.ex)
+Generated phoenix_live_view app
+==> fluxon
+Compiling 40 files (.ex)
+Generated fluxon app
+==> mdex
+Compiling 11 files (.ex)
+
+18:21:57.503 [debug] Copying NIF from cache and extracting to <checkout>/_build/test/lib/mdex/priv/native/libcomrak_nif-v0.11.5-nif-2.15-x86_64-unknown-linux-gnu.so
+Generated mdex app
+==> phoenix_live_dashboard
+Compiling 36 files (.ex)
+Generated phoenix_live_dashboard app
+==> mimic
+Compiling 11 files (.ex)
+Generated mimic app
+==> foreman
+Compiling 123 files (.ex)
+Generated foreman app
+Running ExUnit with seed: 513861, max_cases: 16
+
+
+
+  1) test Foreman.Forge.Fake creates a change request with exactly the named text and branches (Foreman.ForgeContractTest)
+     test/foreman/forge_contract_test.exs:65
+     match (=) failed
+     code:  assert {:ok, %{"number" => 1, "url" => "https://github.com/owner/repo/pull/1"}} =
+              @adapter.create_change_request("owner/repo", facts,
+                server: fake,
+                token: "test",
+                plug: {Req.Test, __MODULE__}
+              )
+     left:  {:ok, %{"number" => 1, "url" => "https://github.com/owner/repo/pull/1"}}
+     right: {:error, :todo}
+     stacktrace:
+       test/foreman/forge_contract_test.exs:75: (test)
+
+....
+
+  2) test Foreman.Forge.GitHub creates a change request with exactly the named text and branches (Foreman.ForgeContractTest)
+     test/foreman/forge_contract_test.exs:65
+     match (=) failed
+     code:  assert {:ok, %{"number" => 1, "url" => "https://github.com/owner/repo/pull/1"}} =
+              @adapter.create_change_request("owner/repo", facts,
+                server: fake,
+                token: "test",
+                plug: {Req.Test, __MODULE__}
+              )
+     left:  {:ok, %{"number" => 1, "url" => "https://github.com/owner/repo/pull/1"}}
+     right: {:error, :todo}
+     stacktrace:
+       test/foreman/forge_contract_test.exs:75: (test)
+
+..
+Finished in 0.1 seconds (0.1s async, 0.00s sync)
+8 tests, 2 failures

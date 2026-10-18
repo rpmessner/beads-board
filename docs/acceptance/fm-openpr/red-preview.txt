@@ -1,0 +1,38 @@
+Running ExUnit with seed: 418180, max_cases: 16
+
+....
+
+  1) test preview refuses before any forge call (Foreman.OpenPrTest)
+     test/foreman/open_pr_test.exs:137
+     match (=) failed
+     code:  assert %{state: "failed", outcome: %{"reason" => "refused in preview"}} = Requests.get(request.id)
+     left:  %{state: "failed", outcome: %{"reason" => "refused in preview"}}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "61008de5-90e8-4880-bba6-b71a9fd59ee4",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "open_pr",
+              actor: "user",
+              session: nil,
+              facts: %{
+                "base_branch" => "main",
+                "body" => "Exact body\n",
+                "expected_sha" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "head_branch" => "feature",
+                "remote" => "owner/repo",
+                "title" => "s-1 Exact title"
+              },
+              state: "failed",
+              outcome: %{"reason" => "read_only"},
+              note: nil,
+              inserted_at: ~U[2026-10-18 22:35:17.906756Z],
+              updated_at: ~U[2026-10-18 22:35:17.928305Z]
+            }
+     stacktrace:
+       test/foreman/open_pr_test.exs:146: (test)
+
+..warning: foreman unavailable; agent may continue
+......
+Finished in 0.7 seconds (0.00s async, 0.7s sync)
+13 tests, 1 failure

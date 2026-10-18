@@ -1,0 +1,23 @@
+{
+  "status": 201,
+  "request": {
+    "base": "main",
+    "body": "Open PR acceptance.\n\nExact body, including trailing newline.\n",
+    "head": "acceptance/fm-openpr-1792363240698",
+    "title": "openpr-2: Exact approval title"
+  },
+  "response": {
+    "base": {
+      "ref": "main",
+      "sha": "797e13046f22f41dc6b471a2ea80b0a674a7a698"
+    },
+    "body": "Open PR acceptance.\n\nExact body, including trailing newline.\n",
+    "head": {
+      "ref": "acceptance/fm-openpr-1792363240698",
+      "sha": "2e8aa23947317903351a25bbffe97b9c9e319557"
+    },
+    "html_url": "https://github.com/rpmessner/beads-board-scratch/pull/4",
+    "number": 4,
+    "title": "openpr-2: Exact approval title"
+  }
+}
