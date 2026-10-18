@@ -2,7 +2,7 @@
 id: fm-zgd.5
 title: "Merge requests through the existing confirm flow"
 type: feature
-status: open
+status: in_progress
 priority: 2
 parent: fm-zgd
 blocked_by: ["fm-zgd.1"]
