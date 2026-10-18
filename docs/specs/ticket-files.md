@@ -21,18 +21,18 @@ The user uses beads only for two things: a flat-file record of planned work in t
 ## Decisions
 
 1. **Truth lives in the repo** (user). Ticket files are the source of truth; git is history and cross-machine sync. The board's Postgres only caches them, beside its own state.
-2. **Layout** (user). One flat `tickets/` folder at the repo root; one file per ticket or epic, named by id only (`tickets/bb-zgd.3.md`). Hierarchy, status and dependencies live in frontmatter. Closed tickets stay in place with `status: closed`.
+2. **Layout** (user). One flat `tickets/` folder at the repo root; one file per ticket or epic, named by id only (`tickets/fm-zgd.3.md`). Hierarchy, status and dependencies live in frontmatter. Closed tickets stay in place with `status: closed`.
 3. **Format** (user). Markdown with YAML frontmatter:
 
    ```markdown
    ---
-   id: bb-zgd.3
+   id: fm-zgd.3
    title: Push requests executed by the worker
    type: feature            # epic | feature | task | bug | decision
    status: open             # open | in_progress | closed | deferred
    priority: 2              # 0 (highest) .. 4
-   parent: bb-zgd
-   blocked_by: [bb-zgd.1]
+   parent: fm-zgd
+   blocked_by: [fm-zgd.1]
    related: []
    discovered_from: null
    labels: []

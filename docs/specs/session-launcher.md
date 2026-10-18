@@ -1,6 +1,6 @@
 # Session launcher
 
-Status: approved 2026-10-18. Foreman draft epic `draft:session-launcher`. Builds after the rename (bb-c2w.17) and the approvals inbox backbone (bb-zgd.1); names below use foreman.
+Status: approved 2026-10-18. Foreman draft epic `draft:session-launcher`. Builds after the rename (fm-c2w.17) and the approvals inbox backbone (fm-zgd.1); names below use foreman.
 
 ## Goal
 

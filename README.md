@@ -11,7 +11,7 @@ later slices; `/` currently opens Settings.
 - [Approved MVP spec](docs/spec.md) is authoritative.
 - [Design](docs/design.md) records the design pass and rationale.
 - `docs/mockup/` contains the approved epic-first design canvas.
-- [FSM build report](docs/sessions/bb-fsm.md) documents the DSL and compile checks.
+- [FSM build report](docs/sessions/fm-fsm.md) documents the DSL and compile checks.
 
 ## Check the scaffold and DSL
 
@@ -23,10 +23,10 @@ MIX_ENV=test mix foreman.fsm.docs
 
 `mix test` and `mix precommit` create and migrate a checkout-local database on
 local Postgres: `foreman_test_<checkout directory name>`. For example, the
-`bb-cli` and `bb-merge` worktrees use `foreman_test_bb-cli` and
+`fm-cli` and `fm-merge` worktrees use `foreman_test_bb-cli` and
 `foreman_test_bb-merge`. The name comes from the config file's directory, not
 the shell's working directory. `MIX_TEST_PARTITION` is appended unchanged:
-`MIX_TEST_PARTITION=_cli` in `bb-cli` uses `foreman_test_bb-cli_cli`.
+`MIX_TEST_PARTITION=_cli` in `fm-cli` uses `foreman_test_bb-cli_cli`.
 Use distinct checkout directory names for concurrent worktrees.
 
 Database tests use the SQL sandbox. Repo and manual-mode Oban start, but the
@@ -50,7 +50,7 @@ MIX_ENV=acceptance FOREMAN_ROLE=web PORT=4759 PHX_SERVER=true \
   mix run --no-halt tools/cli-acceptance-server.exs
 ```
 
-The [CLI report](docs/sessions/bb-cli.md) records the original contract using the
+The [CLI report](docs/sessions/fm-cli.md) records the original contract using the
 old names. Current CLI setup:
 
 ```sh
@@ -264,7 +264,7 @@ requires exit 0 from both. It drops its database afterward. Logs and generated
 runtime files stay in the checkout's ignored `tmp/release-smoke-*` directory.
 The exporter is a synthetic fixture executable, not the host's `bd`; the test
 never opens a real store. Real embedded-store safety remains covered by the
-[reader acceptance report](docs/sessions/bb-exec.md).
+[reader acceptance report](docs/sessions/fm-exec.md).
 
 ## Deployment roles and notifications
 
@@ -433,7 +433,7 @@ stores with bd. Server-mode acceptance uses copied metadata, not live PID/port f
 
 ```sh
 python3 tools/prepare-foreman-acceptance.py
-FOREMAN_CONFIG_DIR=/tmp/bb-exec/config FOREMAN_DISCOVERY_ROOT=/tmp/bb-exec/repos mix phx.server
+FOREMAN_CONFIG_DIR=/tmp/fm-exec/config FOREMAN_DISCOVERY_ROOT=/tmp/fm-exec/repos mix phx.server
 # In another shell, with the board running:
 python3 tools/foreman-write-acceptance.py
 python3 tools/verify-foreman-acceptance.py
@@ -441,8 +441,8 @@ python3 tools/verify-foreman-acceptance.py
 
 The writer runs for ten minutes, without retrying failed writes. Verification
 compares `bd list --json --all --limit 0`, checks persisted notes/dependencies and
-measures idle note freshness. Raw artifacts stay under `/tmp/bb-exec`; see
-[the session report](docs/sessions/bb-exec.md) for measured evidence. The harness
+measures idle note freshness. Raw artifacts stay under `/tmp/fm-exec`; see
+[the session report](docs/sessions/fm-exec.md) for measured evidence. The harness
 uses `psql -X` to ignore personal psql settings. Python bytecode caching is disabled
 because embedded operator paths in `.pyc` files correctly fail the hygiene gate.
 

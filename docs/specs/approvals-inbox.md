@@ -8,7 +8,7 @@ After `/to-tickets`, every input the workflow needs from the user (push a branch
 
 ## Why
 
-The user wants the board to own the ticket lifecycle from `/to-tickets` on, and to stop being interrupted in the terminal for routine assents. Requests sitting in tmux windows go unseen (bb-flaky waited at a decision; sk-board waited four hours at a prompt). Success: the user approves pushes, PRs, merges and build questions from one page, gets an OS notification when something arrives, and the waiting session or coordinator continues on its own.
+The user wants the board to own the ticket lifecycle from `/to-tickets` on, and to stop being interrupted in the terminal for routine assents. Requests sitting in tmux windows go unseen (fm-flaky waited at a decision; sk-board waited four hours at a prompt). Success: the user approves pushes, PRs, merges and build questions from one page, gets an OS notification when something arrives, and the waiting session or coordinator continues on its own.
 
 ## Non-goals
 
@@ -79,7 +79,7 @@ The user wants the board to own the ticket lifecycle from `/to-tickets` on, and 
 
 - Machine tests for the request machine (every row, invalid and ignored events); guard tests per kind against the fake forge and a temporary git repo with a bare remote (fast-forward, diverged, moved local sha, foreign worktree).
 - Job tests with the one-shot claim: retry and rescue never repeat a write.
-- Live scratch-repo run for checks 1–3 and 7, recorded as fixtures with tokens scrubbed (same approach as bb-merge).
+- Live scratch-repo run for checks 1–3 and 7, recorded as fixtures with tokens scrubbed (same approach as fm-merge).
 - Browser runs (Playwright) for the page, the Requests tab and notification behaviour with permission granted and denied; light and dark, 390 and 1440 px; screenshots looked at.
 - Check 5 and 9 with real pi sessions dispatched through the updated `dispatch` skill.
 

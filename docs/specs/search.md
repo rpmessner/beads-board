@@ -16,7 +16,7 @@ foreman indexes the house's written history across every configured repo (specs,
 
 ## Starting shape (coordinator proposal, 2026-10-18)
 
-1. Index in foreman's Postgres, fed by the same file watcher as ticket files (bb-axu.2), extended to `docs/` and AGENTS.md; chunks split on Markdown headings, tagged with repo, path, kind and date.
+1. Index in foreman's Postgres, fed by the same file watcher as ticket files (fm-axu.2), extended to `docs/` and AGENTS.md; chunks split on Markdown headings, tagged with repo, path, kind and date.
 2. Start lexical: Postgres full-text search with ranking and kind/repo filters, no model.
 3. Measure misses on real questions from briefs and specs; add embeddings (`pgvector`, local model via Ollama or an API) only where lexical search falls short.
 4. One way in: `foreman search "<question>" [--repo] [--kind spec|report|ticket] --json`, and the same query behind the UI search box.
