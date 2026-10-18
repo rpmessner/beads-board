@@ -1,0 +1,6 @@
+Repository hygiene: no license material or operator paths detected
+Running ExUnit with seed: 462898, max_cases: 16
+
+.................................................................................................................................................................................................................................................
+Finished in 12.5 seconds (2.2s async, 10.2s sync)
+4 properties, 237 tests, 0 failures

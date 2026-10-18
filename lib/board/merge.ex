@@ -173,11 +173,12 @@ defmodule Board.Merge do
   end
 
   def validate(snapshot, row) do
-    with {:ok, current} <- prepare(snapshot, row.number) do
-      cond do
-        current["pr"]["head_sha"] != row.head_sha ->
-          {:error, :head_moved}
+    pr = Enum.find(snapshot["change_requests"] || [], &(&1["number"] == row.number))
+    head_matches = is_nil(pr) || pr["head_sha"] == row.head_sha
 
+    with true <- head_matches || {:error, :head_moved},
+         {:ok, current} <- prepare(snapshot, row.number) do
+      cond do
         current["default_branch"] != row.facts["default_branch"] ->
           {:error, :target_changed}
 

@@ -1,0 +1,32 @@
+Repository hygiene: no license material or operator paths detected
+Running ExUnit with seed: 18193, max_cases: 16
+
+...........................................................................................................................................................................................................................11:39:04.902 [error] GenServer #PID<0.1530.0> terminating
+** (MatchError) no match of right hand side value:
+
+    {:error, :invalid}
+
+    (phoenix_live_view 1.1.31) lib/phoenix_live_view/test/client_proxy.ex:755: Phoenix.LiveViewTest.ClientProxy.put_view/3
+    (phoenix_live_view 1.1.31) lib/phoenix_live_view/test/client_proxy.ex:179: Phoenix.LiveViewTest.ClientProxy.init/1
+    (stdlib 7.3) gen_server.erl:2276: :gen_server.init_it/2
+    (stdlib 7.3) gen_server.erl:2236: :gen_server.init_it/6
+    (stdlib 7.3) proc_lib.erl:333: :proc_lib.init_p_do_apply/3
+Last message: {:EXIT, #PID<0.1527.0>, {{:badmatch, {:error, :invalid}}, [{Phoenix.LiveViewTest.ClientProxy, :put_view, 3, [file: ~c"lib/phoenix_live_view/test/client_proxy.ex", line: 755]}, {Phoenix.LiveViewTest.ClientProxy, :init, 1, [file: ~c"lib/phoenix_live_view/test/client_proxy.ex", line: 179]}, {:gen_server, :init_it, 2, [file: ~c"gen_server.erl", line: 2276]}, {:gen_server, :init_it, 6, [file: ~c"gen_server.erl", line: 2236]}, {:proc_lib, :init_p_do_apply, 3, [file: ~c"proc_lib.erl", line: 333]}]}}
+
+
+  1) test legacy URLs remain unscoped and explicit overrides beat a view (BoardWeb.InitiativesLiveTest)
+     test/board_web/live/initiatives_live_test.exs:525
+     ** (EXIT from #PID<0.1527.0>) an exception was raised:
+         ** (MatchError) no match of right hand side value:
+
+         {:error, :invalid}
+
+             (phoenix_live_view 1.1.31) lib/phoenix_live_view/test/client_proxy.ex:755: Phoenix.LiveViewTest.ClientProxy.put_view/3
+             (phoenix_live_view 1.1.31) lib/phoenix_live_view/test/client_proxy.ex:179: Phoenix.LiveViewTest.ClientProxy.init/1
+             (stdlib 7.3) gen_server.erl:2276: :gen_server.init_it/2
+             (stdlib 7.3) gen_server.erl:2236: :gen_server.init_it/6
+             (stdlib 7.3) proc_lib.erl:333: :proc_lib.init_p_do_apply/3
+
+.....................
+Finished in 12.4 seconds (2.1s async, 10.3s sync)
+4 properties, 237 tests, 1 failure

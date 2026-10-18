@@ -62,15 +62,19 @@ defmodule Board.ForgeContractTest do
         assert @adapter.capabilities() == %{head_guard: true, retarget: true, write: true}
       end
 
-      test "merge is head guarded and retarget changes only the base" do
+      test "merge is head guarded and retarget replays the recorded live responses" do
+        merge = fixture("merge-merge.json")
+        retarget = fixture("retarget-retarget.json")
+        head = merge["request"]["sha"]
+
         fake =
           start_supervised!(
             {Board.Forge.Fake,
              %{
                "default_branch" => "main",
                "change_requests" => [
-                 %{"number" => 5, "head_sha" => "confirmed", "state" => "open"},
-                 %{"number" => 6, "target_branch" => "stack"}
+                 %{"number" => 1, "head_sha" => head, "state" => "open"},
+                 %{"number" => 2, "target_branch" => "pr/acceptance-bottom"}
                ]
              }}
           )
@@ -82,35 +86,65 @@ defmodule Board.ForgeContractTest do
           payload = Jason.decode!(body)
 
           case {conn.method, conn.request_path} do
-            {"PUT", "/repos/owner/repo/pulls/5/merge"} ->
+            {"PUT", "/repos/owner/repo/pulls/1/merge"} ->
               assert payload["merge_method"] == "merge"
 
-              if payload["sha"] == "confirmed",
-                do: Req.Test.json(conn, %{"merged" => true, "sha" => "merge-sha"}),
+              if payload["sha"] == head,
+                do: Req.Test.json(conn, merge["response"]),
                 else:
                   conn
                   |> Plug.Conn.put_status(409)
                   |> Req.Test.json(%{"message" => "Head changed"})
 
-            {"PATCH", "/repos/owner/repo/pulls/6"} ->
-              assert payload == %{"base" => "main"}
-              Req.Test.json(conn, %{"number" => 6, "base" => %{"ref" => "main"}})
+            {"PATCH", "/repos/owner/repo/pulls/2"} ->
+              assert payload == retarget["request"]
+              Req.Test.json(conn, retarget["response"])
           end
         end)
 
-        assert {:error, :head_moved} = @adapter.merge("owner/repo", 5, "old", opts)
-        assert {:ok, %{"sha" => sha}} = @adapter.merge("owner/repo", 5, "confirmed", opts)
+        assert {:error, :head_moved} = @adapter.merge("owner/repo", 1, "old", opts)
+        assert {:ok, %{"sha" => sha}} = @adapter.merge("owner/repo", 1, head, opts)
         assert is_binary(sha)
-        assert :ok = @adapter.retarget("owner/repo", 6, "main", opts)
+        if @adapter == Board.Forge.GitHub, do: assert(sha == merge["response"]["sha"])
+        assert :ok = @adapter.retarget("owner/repo", 2, "main", opts)
 
         if @adapter == Board.Forge.Fake do
           {:ok, snapshot} = @adapter.list("owner/repo", opts)
-          assert Enum.find(snapshot["change_requests"], &(&1["number"] == 5))["state"] == "merged"
+          assert Enum.find(snapshot["change_requests"], &(&1["number"] == 1))["state"] == "merged"
 
-          assert Enum.find(snapshot["change_requests"], &(&1["number"] == 6))["target_branch"] ==
+          assert Enum.find(snapshot["change_requests"], &(&1["number"] == 2))["target_branch"] ==
                    "main"
         end
       end
+
+      test "the recorded next read observes the merge and retarget" do
+        expected = %{
+          "default_branch" => "main",
+          "change_requests" => [
+            %{"number" => 1, "state" => "merged", "target_branch" => "main"},
+            %{"number" => 2, "state" => "open", "target_branch" => "main"}
+          ]
+        }
+
+        fake = start_supervised!({Board.Forge.Fake, expected})
+        Req.Test.stub(__MODULE__, &Req.Test.json(&1, fixture("observed-list.json")["response"]))
+
+        assert {:ok, snapshot} =
+                 @adapter.list("fixture-owner/merge-scratch",
+                   server: fake,
+                   token: "test",
+                   tracked: [1, 2],
+                   plug: {Req.Test, __MODULE__}
+                 )
+
+        assert snapshot["default_branch"] == "main"
+
+        assert snapshot["change_requests"]
+               |> Enum.map(&Map.take(&1, ["number", "state", "target_branch"]))
+               |> Enum.sort_by(& &1["number"]) == expected["change_requests"]
+      end
     end
   end
+
+  defp fixture(name), do: File.read!("test/fixtures/forge/live-merge/" <> name) |> Jason.decode!()
 end

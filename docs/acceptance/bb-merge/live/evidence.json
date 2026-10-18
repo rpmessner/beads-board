@@ -1,0 +1,24 @@
+{
+  "bottom": 1,
+  "child": 2,
+  "initialHead": "190c42089df049f2ed5769bda9d0e1269dff7102",
+  "confirmedHead": "82e2f6f913d62d96b1d99bc6c50967d5d4a1500b",
+  "mergeCommit": {
+    "parents": [
+      "e14fdcbe455557491f26e0305866e1f1c98bc3b8",
+      "82e2f6f913d62d96b1d99bc6c50967d5d4a1500b"
+    ],
+    "sha": "7a3061c6bdd5159978d7bc74039cfc0a4529df2f"
+  },
+  "branches": {
+    "pr/acceptance-bottom": "82e2f6f913d62d96b1d99bc6c50967d5d4a1500b",
+    "pr/acceptance-child": "2e8aa23947317903351a25bbffe97b9c9e319557"
+  },
+  "topRefused": true,
+  "movedHeadRefused": true,
+  "childBase": "main",
+  "stageBeforeObservation": "pr_open",
+  "stageAfterObservation": "merged",
+  "suggestion": "bd close bb-live.1",
+  "consoleErrors": []
+}

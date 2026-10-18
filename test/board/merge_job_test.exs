@@ -100,6 +100,45 @@ defmodule Board.MergeJobTest do
     refute Repo.exists?(from j in Oban.Job, where: j.worker == "Board.Merge.RetargetJob")
   end
 
+  test "a moved head is identified even while GitHub recomputes mergeability", %{
+    snapshot: snapshot,
+    fake: fake
+  } do
+    row = enqueue(snapshot)
+
+    Agent.update(fake, fn s ->
+      update_in(
+        s,
+        ["change_requests", Access.at(0)],
+        &Map.merge(&1, %{"head_sha" => "moved", "mergeable" => "unknown"})
+      )
+    end)
+
+    MergeJob.run(row.id, Board.Forge.Fake, server: fake)
+    assert %{state: "failed", error: "head_moved", merge_sha: nil} = Merge.get(row.id)
+  end
+
+  test "the live GitHub unknown-mergeability response still identifies the moved head" do
+    opts = [token: "test", plug: {Req.Test, __MODULE__}]
+
+    initial =
+      File.read!("test/fixtures/forge/live-merge/first-initial-list.json") |> Jason.decode!()
+
+    moved = File.read!("test/fixtures/forge/live-merge/first-moved-list.json") |> Jason.decode!()
+    Req.Test.stub(__MODULE__, &Req.Test.json(&1, initial["response"]))
+    {:ok, snapshot} = Board.Forge.GitHub.list("owner/repo", opts)
+    row = enqueue(snapshot, 1)
+
+    Req.Test.stub(__MODULE__, fn conn ->
+      assert conn.method == "POST"
+      assert conn.request_path == "/graphql"
+      Req.Test.json(conn, moved["response"])
+    end)
+
+    MergeJob.run(row.id, Board.Forge.GitHub, opts)
+    assert %{state: "failed", error: "head_moved", merge_sha: nil} = Merge.get(row.id)
+  end
+
   test "job re-reads and refuses a moved head", %{snapshot: snapshot, fake: fake} do
     row = enqueue(snapshot)
 
