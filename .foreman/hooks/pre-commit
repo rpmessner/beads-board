@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# BEGIN FOREMAN CHECK
+foreman check || exit $?
+# END FOREMAN CHECK

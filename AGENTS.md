@@ -7,7 +7,7 @@ Spec: `docs/spec.md` (authoritative); design pass: `docs/design.md`; approved mo
 - **On-screen text is labels, status and controls only.** No subtitles that explain behaviour, no footers about how the app works, no chatty toasts; behaviour notes go in docs. Status badges ("Waiting on #5") are fine.
 - **Times use the shared human format** (just now, 2 min ago, full time on hover), never raw seconds or ISO strings.
 - **Stateful features sit on declared `Foreman.Fsm` machines** (workflows, sync and job lifecycles, external conversations, stateful UI); the house code-review baseline treats ad hoc status fields as Important findings.
-- Beads is read-only; the repos gain no board files; storage is Postgres only.
+- Tickets live in each repo's `tickets/` folder (one Markdown file per ticket), written by the `foreman` CLI or by hand and validated by `foreman check`; the app reads them and never writes them. Board state (stages, sessions, requests) is Postgres only.
 - LiveView self-redirects on WSL clock rollback: see `docs/known-issues.md` for the test-only signing allowance and production reload behavior.
 
 This is a web application written using the Phoenix web framework.
@@ -459,3 +459,9 @@ And **never** do this:
 <!-- phoenix:liveview-end -->
 
 <!-- usage-rules-end -->
+
+<!-- BEGIN FOREMAN -->
+## Tickets
+
+Use the globally linked `foreman` skill (`~/.agents/skills/foreman/SKILL.md`).
+<!-- END FOREMAN -->
