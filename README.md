@@ -19,9 +19,38 @@ mix precommit
 MIX_ENV=test mix board.fsm.docs
 ```
 
-`mix test` and `mix precommit` create and migrate `beads_board_test` on local
-Postgres and start Repo and Oban. Database tests use the SQL sandbox; test jobs
-run only when explicitly requested. `MIX_TEST_PARTITION` adds a database suffix.
+`mix test` and `mix precommit` create and migrate a checkout-local database on
+local Postgres: `beads_board_test_<checkout directory name>`. For example, the
+`bb-cli` and `bb-merge` worktrees use `beads_board_test_bb-cli` and
+`beads_board_test_bb-merge`. The name comes from the config file's directory, not
+the shell's working directory. `MIX_TEST_PARTITION` is appended unchanged:
+`MIX_TEST_PARTITION=_cli` in `bb-cli` uses `beads_board_test_bb-cli_cli`.
+Use distinct checkout directory names for concurrent worktrees.
+
+Database tests use the SQL sandbox. Repo and manual-mode Oban start, but the
+runtime scheduler, config watcher, and spool worker do not. Tests that start a
+worker explicitly share their sandbox with it. Direct-Postgres CLI tests
+register cleanup before writing. The suite checks for leaked committed rows
+before and after the run and fails rather than silently clearing them.
+
+Live CLI acceptance uses `MIX_ENV=acceptance` and the separate
+`beads_board_acceptance_<checkout directory name>` database with a normal pool.
+The acceptance script refuses to run under `MIX_ENV=test`; it never changes the
+test sandbox to automatic mode. Prepare and start it with:
+
+```sh
+mkdir -p tmp
+(umask 077; set -C; openssl rand -hex 32 > tmp/cli-token)
+MIX_ENV=acceptance mix ecto.create
+MIX_ENV=acceptance mix ecto.migrate
+MIX_ENV=acceptance BOARD_ROLE=web PORT=4759 PHX_SERVER=true \
+  BOARD_TOKEN_FILE="$PWD/tmp/cli-token" \
+  mix run --no-halt tools/cli-acceptance-server.exs
+```
+
+Token and CLI details are in the [CLI report](docs/sessions/bb-cli.md).
+The browser and offline acceptance scripts select this same acceptance database.
+They do not use `MIX_TEST_PARTITION`, seed a unit-test database, or start a beads reader.
 `Board.Stage` is the production pure machine; its persistence effects are not wired yet.
 Epic remains a test fixture. Generated docs live in `docs/machines/` and tests compare them byte-for-byte.
 Elixir 1.19 scans both `.ex` and `.exs` under `test/`; manually loaded fixture files outside `test/support/` use the `_helper.exs` suffix to avoid discovery warnings.

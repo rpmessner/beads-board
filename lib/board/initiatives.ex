@@ -81,11 +81,15 @@ defmodule Board.Initiatives do
         }
       end)
 
+    epic_aliases =
+      Map.new(epics, &{{&1.repo_key, &1.bead_id}, {&1.repo_key, &1.beads_epic_id || &1.bead_id}})
+
     links =
       Repo.all(
         from l in "epic_links",
           select: %{ticket: {l.repo_key, l.bead_id}, epic: {l.epic_repo_key, l.epic_bead_id}}
       )
+      |> Enum.map(fn link -> %{link | epic: Map.get(epic_aliases, link.epic, link.epic)} end)
 
     tree = Tree.build(beads, links)
 

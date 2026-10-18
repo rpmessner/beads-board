@@ -1,0 +1,19 @@
+{
+  "app_down": {
+    "exit": 0,
+    "body": {
+      "request_id": "4263c161-8506-45a4-a074-a74b19959e33",
+      "warning": "board unavailable; event spooled for replay"
+    }
+  },
+  "pending_before_start": true,
+  "database_down": {
+    "exit": 0,
+    "body": {
+      "request_id": "2be4c05f-a25a-45c1-92d0-c42cff5c3c9d",
+      "warning": "board and spool unavailable; event not saved; agent may continue"
+    }
+  },
+  "after_start": "applied",
+  "history_matches_after_second_boot": 1
+}

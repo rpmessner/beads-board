@@ -30,7 +30,7 @@ defmodule Board.Role do
 
   defp worker_children do
     if Application.get_env(:board, :runtime_enabled, true),
-      do: [Board.Runtime, Board.Config.Watcher],
+      do: [Board.Runtime, Board.Config.Watcher, Board.SpoolWorker],
       else: []
   end
 end
