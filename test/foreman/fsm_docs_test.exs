@@ -28,6 +28,7 @@ defmodule Foreman.FsmDocsTest do
         {"stage", Foreman.Stage},
         {"request", Foreman.Request},
         {"request_wait", Foreman.RequestWait},
+        {"notification_permission", Foreman.NotificationPermission},
         {"delivery_machine", Foreman.DeliveryMachine},
         {"spool_machine", Foreman.SpoolMachine},
         {"epic", Foreman.Epic},

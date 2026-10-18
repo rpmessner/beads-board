@@ -15,16 +15,32 @@ defmodule ForemanWeb.RequestCount do
      |> attach_hook(:request_count_params, :handle_params, fn _, _, socket ->
        {:cont, refresh(socket)}
      end)
-     |> attach_hook(:request_count, :handle_info, &handle_info/2)}
+     |> attach_hook(:request_count, :handle_info, &handle_info/2)
+     |> attach_hook(:notification_sync, :handle_event, fn
+       "notification_sync", _, socket ->
+         {:halt, %{requests: notification_requests(Foreman.Requests.pending())}, socket}
+
+       _, _, socket ->
+         {:cont, socket}
+     end)}
   end
 
   def refresh(socket) do
-    count = Foreman.Requests.pending_count()
+    pending = Foreman.Requests.pending()
+    count = length(pending)
 
-    assign(socket,
+    socket
+    |> assign(
       pending_count: count,
       page_title: if(count > 0, do: "(#{count}) foreman", else: "foreman")
     )
+    |> push_event("notification_snapshot", %{requests: notification_requests(pending)})
+  end
+
+  defp notification_requests(pending) do
+    Enum.map(pending, fn request ->
+      %{id: request.id, kind: request.kind, ticket: request.bead_id}
+    end)
   end
 
   defp handle_info(:request_count_tick, socket) do

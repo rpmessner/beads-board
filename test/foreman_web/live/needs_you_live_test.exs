@@ -23,6 +23,29 @@ defmodule ForemanWeb.NeedsYouLiveTest do
     %{request: request}
   end
 
+  test "shared shell reconciles notification candidates without request facts", %{
+    conn: conn,
+    request: request
+  } do
+    {:ok, view, _} = live(conn, "/")
+    assert has_element?(view, "#browser-notifications[phx-update=ignore]")
+    assert has_element?(view, "#enable-notifications[hidden]")
+    send(view.pid, :request_count_tick)
+    render(view)
+
+    id = request.id
+
+    assert_push_event(view, "notification_snapshot", %{
+      requests: [%{id: ^id, kind: "decision", ticket: "s-1"}]
+    })
+
+    Requests.resolve(request.id, :decline, %{})
+    send(view.pid, :request_count_tick)
+    render(view)
+    assert_push_event(view, "notification_snapshot", %{requests: []})
+    refute has_element?(view, "#needs-you-count")
+  end
+
   test "answer records free text and updates live count in two tabs", %{
     conn: conn,
     request: request
