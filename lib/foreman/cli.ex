@@ -61,10 +61,10 @@ defmodule Foreman.CLI do
   end
 
   def run(args, opts \\ []) do
-    if Foreman.TicketCLI.command?(args, opts) do
-      Foreman.TicketCLI.run(args, opts)
-    else
-      run_overlay(List.delete(args, "--overlay"), opts)
+    cond do
+      List.first(args) == "adopt" -> Foreman.AdoptCLI.run(tl(args), opts)
+      Foreman.TicketCLI.command?(args, opts) -> Foreman.TicketCLI.run(args, opts)
+      true -> run_overlay(List.delete(args, "--overlay"), opts)
     end
   rescue
     _ -> warn(args, "foreman unavailable; agent may continue")

@@ -1,0 +1,26 @@
+defmodule Foreman.AdoptMachine do
+  @moduledoc "Adoption cannot remove beads until backup, publication and comparison succeed."
+  use Foreman.Fsm
+  initial(:prepared)
+  state(:prepared)
+  state(:backed_up)
+  state(:published)
+  state(:verified)
+  state(:retired)
+  state(:finished)
+  event(:backup)
+  event(:publish)
+  event(:verify)
+  event(:retire)
+  event(:finish)
+  transition(:backup, from: :prepared, to: :backed_up)
+  transition(:publish, from: :backed_up, to: :published)
+  transition(:verify, from: :published, to: :verified)
+  transition(:retire, from: :verified, to: :retired)
+  transition(:finish, from: :retired, to: :finished)
+  invalid(:backup, from: [:backed_up, :published, :verified, :retired, :finished])
+  invalid(:publish, from: [:prepared, :published, :verified, :retired, :finished])
+  invalid(:verify, from: [:prepared, :backed_up, :verified, :retired, :finished])
+  invalid(:retire, from: [:prepared, :backed_up, :published, :retired, :finished])
+  invalid(:finish, from: [:prepared, :backed_up, :published, :verified, :finished])
+end
