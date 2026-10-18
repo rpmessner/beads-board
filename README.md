@@ -1,8 +1,9 @@
 # beads-board
 
 A local board for every beads repo on this machine, organised around epics.
-The Phoenix scaffold, `Board.Fsm`, and config validation core are implemented.
-Runtime config watching, product views, and storage are not wired yet (bb-c2w.4b).
+The Phoenix scaffold, `Board.Fsm`, config validation core, Oban/Postgres bootstrap,
+and export projection are implemented. Automatic repo reads, runtime config
+watching, Fluxon, and product views are not wired yet (bb-c2w.4 continuation).
 
 - [Approved MVP spec](docs/spec.md) is authoritative.
 - [Design](docs/design.md) records the design pass and rationale.
@@ -17,15 +18,46 @@ mix precommit
 MIX_ENV=test mix board.fsm.docs
 ```
 
-`mix test` and `mix precommit` do not start the Repo or create, migrate, or query a database.
-`config/test.exs` disables `:start_repo`; enable it and restore database setup when adding persistence tests.
+`mix test` and `mix precommit` create and migrate `beads_board_test` on local
+Postgres and start Repo and Oban. Database tests use the SQL sandbox; test jobs
+run only when explicitly requested. `MIX_TEST_PARTITION` adds a database suffix.
 `Board.Stage` is the production pure machine; its persistence effects are not wired yet.
 Epic remains a test fixture. Generated docs live in `docs/machines/` and tests compare them byte-for-byte.
 Elixir 1.19 scans both `.ex` and `.exs` under `test/`; manually loaded fixture files outside `test/support/` use the `_helper.exs` suffix to avoid discovery warnings.
 
 To run the Phoenix scaffold with Postgres, configure `config/dev.exs`, then run `mix setup` and `mix phx.server`.
-Unlike the test commands, `mix setup` creates and migrates a database. The development endpoint still listens on `127.0.0.1:4000`.
-The foundation continuation must change the database names and port before running the product.
+Development uses `beads_board_dev` and listens on `127.0.0.1:4747` (`PORT` overrides
+the port, not the loopback bind). Migrate before starting Oban. Production still
+requires `DATABASE_URL` and `SECRET_KEY_BASE`; no systemd unit is installed.
+
+## Export projection boundary
+
+`Board.Beads.Export.decode/1` validates a complete JSONL export, keeps raw fields,
+and normalizes known enums through explicit tables. Unknown enum strings become
+`{:unknown, value}`. Bad records reject the entire export, never a partial snapshot.
+`Board.Beads.Projection.replace/2` takes a repo key and successful export bytes;
+call it only after the reader has checked the command's exit status. It hashes
+bytes and skips all projection writes for an unchanged hash. Changed exports
+replace that repo's JSONB bead rows in a transaction. Embedded comments and edges
+remain in `raw`; separate indexed edge/comment tables are not needed yet.
+
+The `tickets` table reserves the overlay identity and stage fields. Projection
+replacement marks missing tickets orphaned and clears the marker on reappearance,
+without changing stages or deleting facts. Stage backfill remains unimplemented.
+To rebuild the cache, delete its `bead_repos` row (cascading to `beads`), not only
+its bead rows; the hash belongs to that same cache. Overlay rows have no cache FK.
+
+`Board.Beads.JournalLock.check/2` passively matches journal device/inode against
+Linux `/proc/locks`. Missing, unreadable or ambiguous evidence defers the read.
+It never acquires a lock. This observer is **not a reader**: physical-repo single
+flight, scheduled exports, subprocess cancellation/reaping, and Oban read jobs
+must be implemented before wiring it to configured repos. The probe's
+[read rule](docs/probe-bd-concurrency.md) remains mandatory.
+
+Oban 2.23.0 emits an unused MySQL-pattern compiler warning on Elixir 1.19 when
+MyXQL is absent. The required pin is retained without suppressing the warning or
+adding an unused database driver. App compilation and precommit can be checked
+independently; a fresh dependency build still has this upstream warning.
 
 ## Config contract
 

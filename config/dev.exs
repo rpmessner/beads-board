@@ -5,7 +5,7 @@ config :board, Board.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "board_dev",
+  database: "beads_board_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
