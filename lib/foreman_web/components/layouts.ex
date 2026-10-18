@@ -20,11 +20,11 @@ defmodule ForemanWeb.Layouts do
           <.icon name="hero-ellipsis-horizontal-circle" class="size-6" /> foreman
         </a>
         <nav aria-label="Main" class="space-y-1">
-          <div class="relative">
+          <div class="grid">
             <.link
               id="needs-you-link"
               navigate={~p"/needs-you"}
-              class={["bb-nav", @active == :needs_you && "bb-nav-active"]}
+              class={["bb-nav [grid-area:1/1] pr-14", @active == :needs_you && "bb-nav-active"]}
               aria-current={@active == :needs_you && "page"}
             >
               <.icon name="hero-inbox" class="size-4" /> Needs you
@@ -37,7 +37,7 @@ defmodule ForemanWeb.Layouts do
               aria-haspopup="dialog"
               aria-controls="request-drawer"
               aria-expanded={to_string(@drawer_state == :open)}
-              class="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer rounded-full border border-base bg-base px-2 py-0.5 text-xs font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-primary"
+              class="[grid-area:1/1] self-center justify-self-end mr-2.5 cursor-pointer rounded-full leading-none border border-base bg-base px-2 py-0.5 text-xs font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-primary"
             >
               <span :if={@pending_count > 0} id="needs-you-count">{@pending_count}</span>
               <span :if={@pending_count == 0}>0</span>
