@@ -19,7 +19,9 @@ defmodule ForemanWeb.PullRequestsLive do
        merge_facts: nil,
        merge_remote: nil,
        merge_message: nil,
-       merge_record: nil
+       merge_record: nil,
+       approval_request: nil,
+       approval_note: nil
      )}
   end
 
@@ -43,8 +45,37 @@ defmodule ForemanWeb.PullRequestsLive do
      socket
      |> assign(project: params["project"])
      |> ForemanWeb.TicketDetail.load(params, uri)
-     |> refresh()}
+     |> refresh()
+     |> open_approval(params)}
   end
+
+  defp open_approval(socket, %{"request" => id}) do
+    case Foreman.Requests.get(id) do
+      %{kind: "merge", state: "pending", repo_key: key} = request
+      when key == socket.assigns.project ->
+        case Foreman.Requests.resolve(id, :approve, %{}) do
+          {:error, :confirmation_required} ->
+            socket = assign(socket, approval_request: id, approval_note: request.note)
+
+            {:noreply, socket} =
+              handle_event(
+                "merge-request",
+                %{"number" => to_string(request.facts["number"])},
+                socket
+              )
+
+            socket
+
+          _ ->
+            assign(socket, merge_message: "Request superseded")
+        end
+
+      _ ->
+        assign(socket, merge_message: "Request unavailable")
+    end
+  end
+
+  defp open_approval(socket, _), do: assign(socket, approval_request: nil, approval_note: nil)
 
   @impl true
   def handle_info(:reconcile, socket) do
@@ -99,7 +130,7 @@ defmodule ForemanWeb.PullRequestsLive do
                 facts["pr"]["head_sha"]
               )
 
-            if prior do
+            if prior && is_nil(socket.assigns.approval_request) do
               {:noreply,
                assign(socket,
                  merge_state: merge_state(prior.state),
@@ -132,7 +163,10 @@ defmodule ForemanWeb.PullRequestsLive do
   def handle_event("merge-cancel", _, socket) do
     case Action.step(socket.assigns.merge_state, :cancel, %{}) do
       {:idle, []} ->
-        {:noreply, assign(socket, merge_state: :idle, merge_facts: nil, merge_message: nil)}
+        {:noreply,
+         socket
+         |> assign(merge_state: :idle, merge_facts: nil, merge_message: nil)
+         |> close_approval_route()}
 
       _ ->
         {:noreply, socket}
@@ -154,12 +188,30 @@ defmodule ForemanWeb.PullRequestsLive do
 
     case Action.step(:confirming, :confirm, data) do
       {:merging, _} ->
-        case Merge.enqueue(socket.assigns.project, socket.assigns.merge_remote, facts) do
+        result =
+          if socket.assigns.approval_request do
+            case Foreman.Requests.confirm_merge(
+                   socket.assigns.approval_request,
+                   facts,
+                   socket.assigns.approval_note
+                 ) do
+              {:ok, %{state: "executing"} = request} ->
+                {:ok, Merge.get(request.outcome["result"]["action_id"])}
+
+              _ ->
+                {:error, :request_unavailable}
+            end
+          else
+            Merge.enqueue(socket.assigns.project, socket.assigns.merge_remote, facts)
+          end
+
+        case result do
           {:ok, row} ->
             {:noreply,
              socket
              |> assign(merge_state: :merging, merge_facts: nil, merge_record: row)
-             |> refresh()}
+             |> refresh()
+             |> close_approval_route()}
 
           {:error, _} ->
             {:noreply, assign(socket, merge_message: "Merge unavailable")}
@@ -174,6 +226,16 @@ defmodule ForemanWeb.PullRequestsLive do
 
   def handle_event("close-ticket", params, socket),
     do: {:noreply, ForemanWeb.TicketDetail.close(socket, params)}
+
+  defp close_approval_route(socket) do
+    if socket.assigns.approval_request do
+      socket
+      |> assign(approval_request: nil, approval_note: nil)
+      |> push_patch(to: ~p"/pull-requests?project=#{socket.assigns.project}")
+    else
+      socket
+    end
+  end
 
   defp refresh(socket) do
     repos = Foreman.RuntimeState.repos()

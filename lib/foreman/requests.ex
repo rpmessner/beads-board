@@ -157,10 +157,27 @@ defmodule Foreman.Requests do
 
           changed = approval_change(request, event)
 
-          if changed do
-            transition(request, :facts_changed, %{"reason" => changed})
-          else
-            transition(request, event, payload)
+          cond do
+            changed ->
+              transition(request, :facts_changed, %{"reason" => changed})
+
+            event == :approve and request.kind == "merge" and request.state == "pending" ->
+              case Foreman.Requests.Merge.unchanged(request.repo_key, request.facts) do
+                :ok ->
+                  with :ok <- validate(:approve, payload) do
+                    if Map.has_key?(payload, "note") do
+                      request |> Ecto.Changeset.change(note: payload["note"]) |> Repo.update!()
+                    end
+
+                    {:error, :confirmation_required}
+                  end
+
+                {:error, reason} ->
+                  transition(request, :facts_changed, %{"reason" => to_string(reason)})
+              end
+
+            true ->
+              transition(request, event, payload)
           end
       end
     end)
@@ -178,6 +195,77 @@ defmodule Foreman.Requests do
   end
 
   defp approval_change(_, _), do: nil
+
+  @doc "Final modal confirmation: request approval, existing merge intent and linkage commit together."
+  def confirm_merge(id, facts, note \\ nil) do
+    transaction(fn ->
+      case get(id) do
+        %{kind: "merge"} = request ->
+          lock(request.repo_key)
+          request = get(id)
+
+          cond do
+            request.state != "pending" ->
+              {:error, :invalid}
+
+            facts["pr"]["number"] != request.facts["number"] or
+                facts["pr"]["head_sha"] != request.facts["expected_sha"] ->
+              {:error, :invalid}
+
+            true ->
+              case Foreman.Requests.Merge.unchanged(request.repo_key, request.facts) do
+                :ok ->
+                  with {:ok, approved} <- transition(request, :approve, %{"note" => note}),
+                       {:ok, action} <-
+                         Foreman.Merge.enqueue(request.repo_key, request.facts["remote"], facts),
+                       {:ok, executing} <-
+                         transition(approved, :start, %{"result" => %{"action_id" => action.id}}) do
+                    {:ok, executing}
+                  else
+                    {:error, reason} -> Repo.rollback(reason)
+                  end
+
+                {:error, reason} ->
+                  transition(request, :facts_changed, %{"reason" => to_string(reason)})
+              end
+          end
+
+        _ ->
+          {:error, :invalid}
+      end
+    end)
+  end
+
+  @doc "Observe existing merge audits; never perform or retry a forge write."
+  def reconcile_merges do
+    Repo.all(from r in Request, where: r.kind == "merge" and r.state in ["pending", "executing"])
+    |> Enum.each(fn request ->
+      if request.state == "pending" do
+        # Recheck under the request lock rather than superseding from a stale read.
+        resolve(request.id, :approve, %{})
+      else
+        action =
+          request.outcome["result"]["action_id"]
+          |> Foreman.Merge.get()
+          |> Foreman.Merge.reconcile()
+
+        if action && action.state in ["merged", "failed"] do
+          result = %{
+            "action_id" => action.id,
+            "merge_sha" => action.merge_sha,
+            "state" => action.state
+          }
+
+          event =
+            if action.state == "merged" and is_nil(action.error), do: :succeeded, else: :failed
+
+          resolve(request.id, event, %{"result" => result, "reason" => action.error})
+        end
+      end
+    end)
+
+    :ok
+  end
 
   def supersede(key) do
     for request <- for_ticket(key), request.state == "pending" do

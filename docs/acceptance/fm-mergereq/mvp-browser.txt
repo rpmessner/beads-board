@@ -1,0 +1,1 @@
+Fake forge browser acceptance passed: refusal, confirmation, moved head, failure, partial failure, merge, retarget, observed stage, close suggestion, light/dark and mobile.

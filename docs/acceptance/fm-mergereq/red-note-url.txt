@@ -1,0 +1,16 @@
+Running ExUnit with seed: 921197, max_cases: 16
+Excluding tags: [:test]
+Including tags: [location: {"test/foreman_web/live/pull_requests_live_test.exs", 64}]
+
+
+
+  1) test inbox approval opens existing confirmation without enqueueing; cancel keeps ask pending (ForemanWeb.PullRequestsLiveTest)
+     test/foreman_web/live/pull_requests_live_test.exs:64
+     Expected false or nil, got true
+     code: refute URI.decode_query(URI.parse(path).query) |> Map.has_key?("note")
+     stacktrace:
+       test/foreman_web/live/pull_requests_live_test.exs:86: (test)
+
+
+Finished in 0.5 seconds (0.00s async, 0.5s sync)
+1 test, 1 failure (9 excluded)

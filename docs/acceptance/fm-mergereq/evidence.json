@@ -1,0 +1,126 @@
+{
+  "outcomes": [
+    {
+      "scenario": "merged",
+      "result": {
+        "actor": "pi",
+        "bead_id": "bb-demo.1",
+        "facts": {
+          "expected_sha": "0123456789abcdef0123456789abcdef01234567",
+          "number": 5,
+          "remote": "scratch/merge"
+        },
+        "id": "43c5cc74-4f82-4d38-856c-9d7f0662c027",
+        "inserted_at": "2026-10-18T23:03:16.365286Z",
+        "kind": "merge",
+        "note": "",
+        "outcome": {
+          "reason": null,
+          "result": {
+            "action_id": 17,
+            "merge_sha": "merge-0123456789abcdef0123456789abcdef01234567",
+            "state": "merged"
+          }
+        },
+        "repo_key": "sample",
+        "session": "fm-mergereq",
+        "state": "done",
+        "updated_at": "2026-10-18T23:03:19.386751Z"
+      }
+    },
+    {
+      "scenario": "refused",
+      "result": {
+        "actor": "pi",
+        "bead_id": "bb-demo.1",
+        "facts": {
+          "expected_sha": "0123456789abcdef0123456789abcdef01234567",
+          "number": 5,
+          "remote": "scratch/merge"
+        },
+        "id": "e92a7518-eda8-45a3-be96-f6684fc88bd6",
+        "inserted_at": "2026-10-18T23:03:20.547040Z",
+        "kind": "merge",
+        "note": "",
+        "outcome": {
+          "reason": "head_moved",
+          "result": {
+            "action_id": 18,
+            "merge_sha": null,
+            "state": "failed"
+          }
+        },
+        "repo_key": "sample",
+        "session": "fm-mergereq",
+        "state": "failed",
+        "updated_at": "2026-10-18T23:03:21.180152Z"
+      }
+    },
+    {
+      "scenario": "failed",
+      "result": {
+        "actor": "pi",
+        "bead_id": "bb-demo.1",
+        "facts": {
+          "expected_sha": "0123456789abcdef0123456789abcdef01234567",
+          "number": 5,
+          "remote": "scratch/merge"
+        },
+        "id": "4d888e20-3d4b-411b-bfd8-e69db356a761",
+        "inserted_at": "2026-10-18T23:03:21.954150Z",
+        "kind": "merge",
+        "note": "",
+        "outcome": {
+          "reason": "unavailable",
+          "result": {
+            "action_id": 19,
+            "merge_sha": null,
+            "state": "failed"
+          }
+        },
+        "repo_key": "sample",
+        "session": "fm-mergereq",
+        "state": "failed",
+        "updated_at": "2026-10-18T23:03:22.423787Z"
+      }
+    },
+    {
+      "scenario": "partial",
+      "result": {
+        "actor": "pi",
+        "bead_id": "bb-demo.1",
+        "facts": {
+          "expected_sha": "0123456789abcdef0123456789abcdef01234567",
+          "number": 5,
+          "remote": "scratch/merge"
+        },
+        "id": "477a4905-29f6-43ce-b11f-db47646256ec",
+        "inserted_at": "2026-10-18T23:03:23.238076Z",
+        "kind": "merge",
+        "note": "",
+        "outcome": {
+          "reason": "unavailable",
+          "result": {
+            "action_id": 20,
+            "merge_sha": "merge-0123456789abcdef0123456789abcdef01234567",
+            "state": "failed"
+          }
+        },
+        "repo_key": "sample",
+        "session": "fm-mergereq",
+        "state": "failed",
+        "updated_at": "2026-10-18T23:03:23.890330Z"
+      }
+    }
+  ],
+  "errors": [],
+  "widths": [
+    390,
+    1440
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "beforeConfirmationJobs": 0
+}

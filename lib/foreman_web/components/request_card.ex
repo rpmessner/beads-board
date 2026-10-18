@@ -15,6 +15,7 @@ defmodule ForemanWeb.RequestCard do
       </div>
       <.push_facts :if={@request.kind == "push"} request={@request} />
       <.open_pr_facts :if={@request.kind == "open_pr"} request={@request} />
+      <.merge_facts :if={@request.kind == "merge"} request={@request} />
       <p :if={@request.kind == "decision"} class="break-words font-medium">
         {@request.facts["question"]}
       </p>
@@ -52,6 +53,21 @@ defmodule ForemanWeb.RequestCard do
         <dt class="mt-2 text-foreground-softer sm:mt-0">{label}</dt>
         <dd class="min-w-0 whitespace-pre-wrap break-words [overflow-wrap:anywhere]" phx-no-format>{@request.facts[key]}</dd>
       </div>
+    </dl>
+    """
+  end
+
+  attr :request, :any, required: true
+
+  def merge_facts(assigns) do
+    ~H"""
+    <dl class="grid min-w-0 grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+      <dt class="text-foreground-softer">Repository</dt>
+      <dd class="break-all font-mono">{@request.facts["remote"]}</dd>
+      <dt class="text-foreground-softer">Pull request</dt>
+      <dd class="font-mono">#{@request.facts["number"]}</dd>
+      <dt class="text-foreground-softer">Head</dt>
+      <dd class="break-all font-mono">{@request.facts["expected_sha"]}</dd>
     </dl>
     """
   end

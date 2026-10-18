@@ -18,7 +18,21 @@ defmodule ForemanWeb.NeedsYouLive do
     do: {:noreply, ForemanWeb.TicketDetail.load(socket, params, uri)}
 
   def handle_event("resolve", %{"id" => id, "decision" => params, "action" => "approve"}, socket) do
-    {:noreply, result(socket, Requests.resolve(id, :approve, %{"note" => params["note"]}))}
+    case Requests.resolve(id, :approve, %{"note" => params["note"]}) do
+      {:error, :confirmation_required} ->
+        request = Requests.get(id)
+
+        query =
+          URI.encode_query(%{
+            "project" => request.repo_key,
+            "request" => id
+          })
+
+        {:noreply, push_navigate(socket, to: "/pull-requests?" <> query)}
+
+      outcome ->
+        {:noreply, result(socket, outcome)}
+    end
   end
 
   def handle_event("resolve", %{"id" => id, "decision" => params, "action" => "answer"}, socket) do
@@ -117,7 +131,7 @@ defmodule ForemanWeb.NeedsYouLive do
   attr :id, :string, required: true
   attr :request, :any, required: true
 
-  def request_card(%{request: %{kind: kind}} = assigns) when kind in ["push", "open_pr"],
+  def request_card(%{request: %{kind: kind}} = assigns) when kind in ["push", "open_pr", "merge"],
     do: action_card(assigns)
 
   def request_card(assigns), do: decision_card(assigns)
@@ -131,7 +145,9 @@ defmodule ForemanWeb.NeedsYouLive do
     ~H"""
     <article id={@id} class="rounded-xl border border-base bg-base p-5 shadow-sm sm:p-6">
       <div class="mb-4 flex flex-wrap items-center gap-2 text-xs text-foreground-softer">
-        <Badge.badge>{if @request.kind == "push", do: "Push", else: "Open PR"}</Badge.badge>
+        <Badge.badge>
+          {%{"push" => "Push", "open_pr" => "Open PR", "merge" => "Merge"}[@request.kind]}
+        </Badge.badge>
         <.link
           patch={"/needs-you?" <> URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})}
           class="font-mono hover:underline"
@@ -143,6 +159,7 @@ defmodule ForemanWeb.NeedsYouLive do
       </div>
       <ForemanWeb.RequestCard.push_facts :if={@request.kind == "push"} request={@request} />
       <ForemanWeb.RequestCard.open_pr_facts :if={@request.kind == "open_pr"} request={@request} />
+      <ForemanWeb.RequestCard.merge_facts :if={@request.kind == "merge"} request={@request} />
       <.form
         for={@form}
         id={@request.kind <> "-" <> @request.id}

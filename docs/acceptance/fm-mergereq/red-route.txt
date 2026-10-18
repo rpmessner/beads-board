@@ -1,0 +1,20 @@
+Compiling 3 files (.ex)
+Generated foreman app
+Running ExUnit with seed: 412248, max_cases: 16
+Excluding tags: [:test]
+Including tags: [location: {"test/foreman_web/live/pull_requests_live_test.exs", 64}]
+
+
+
+  1) test inbox approval opens existing confirmation without enqueueing; cancel keeps ask pending (ForemanWeb.PullRequestsLiveTest)
+     test/foreman_web/live/pull_requests_live_test.exs:64
+     ** (ArgumentError) expected ForemanWeb.PullRequestsLive to patch to "/pull-requests?project=sample", but got none
+     code: assert_patch(view, "/pull-requests?project=sample")
+     stacktrace:
+       (phoenix_live_view 1.1.31) lib/phoenix_live_view/test/live_view_test.ex:1505: Phoenix.LiveViewTest.assert_navigation/4
+       (phoenix_live_view 1.1.31) lib/phoenix_live_view/test/live_view_test.ex:1396: Phoenix.LiveViewTest.assert_patch/3
+       test/foreman_web/live/pull_requests_live_test.exs:92: (test)
+
+
+Finished in 0.6 seconds (0.00s async, 0.6s sync)
+1 test, 1 failure (9 excluded)

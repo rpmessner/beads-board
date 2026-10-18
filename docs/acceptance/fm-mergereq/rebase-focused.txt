@@ -1,0 +1,7 @@
+Compiling 18 files (.ex)
+Generated foreman app
+Running ExUnit with seed: 453709, max_cases: 16
+
+................................................................................................................
+Finished in 8.3 seconds (0.00s async, 8.3s sync)
+112 tests, 0 failures
