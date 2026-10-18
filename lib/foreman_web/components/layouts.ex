@@ -56,23 +56,33 @@ defmodule ForemanWeb.Layouts do
         </nav>
         <section :if={@repos != []} class="space-y-2 px-2.5" aria-label="Projects">
           <h2 class="bb-label">Projects · tickets</h2>
-          <.link
-            :for={repo <- @repos}
-            id={"sidebar-project-" <> repo["key"]}
-            patch={if @active == :initiatives, do: project_path(@filters, repo["key"])}
-            navigate={if @active != :initiatives, do: project_path(%{}, repo["key"])}
-            class={[
-              "bb-project bb-nav text-xs",
-              @active == :initiatives && @filters["project"] == repo["key"] && "bb-nav-active"
-            ]}
-            aria-current={@active == :initiatives && @filters["project"] == repo["key"] && "true"}
-          >
-            <span class="bb-project-dot"></span>
-            <span class="min-w-0 flex-1 truncate" title={repo["key"]}>{repo["key"]}</span>
-            <span class="text-foreground-softer">
-              {if repo["health"].state == "unreachable", do: "down", else: repo["count"]}
-            </span>
-          </.link>
+          <div :for={repo <- @repos} class="bb-project-row flex items-center gap-1">
+            <.link
+              id={"sidebar-project-" <> repo["key"]}
+              patch={if @active == :initiatives, do: project_path(@filters, repo["key"])}
+              navigate={if @active != :initiatives, do: project_path(%{}, repo["key"])}
+              class={[
+                "bb-project bb-nav min-w-0 flex-1 text-xs",
+                @active == :initiatives && @filters["project"] == repo["key"] && "bb-nav-active"
+              ]}
+              aria-current={@active == :initiatives && @filters["project"] == repo["key"] && "true"}
+            >
+              <span class="bb-project-dot"></span>
+              <span class="min-w-0 flex-1 truncate" title={repo["key"]}>{repo["key"]}</span>
+              <span class="text-foreground-softer">
+                {if repo["health"].state == "unreachable", do: "down", else: repo["count"]}
+              </span>
+            </.link>
+            <.link
+              id={"sidebar-documents-" <> repo["key"]}
+              navigate={~p"/documents/#{repo["key"]}"}
+              class="rounded p-2 text-foreground-softer hover:bg-base hover:text-foreground"
+              aria-label={"Documents · " <> repo["key"]}
+              title="Documents"
+            >
+              <.icon name="hero-document-text" class="size-4" />
+            </.link>
+          </div>
         </section>
         <div class="mt-auto space-y-4 px-2.5">
           <div class="flex gap-2">

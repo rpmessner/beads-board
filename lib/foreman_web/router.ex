@@ -22,6 +22,7 @@ defmodule ForemanWeb.Router do
       live "/needs-you", NeedsYouLive, :index
       live "/", InitiativesLive, :index
       live "/settings", SettingsLive, :index
+      live "/documents/:repo", DocumentsLive, :show
       live "/pull-requests", PullRequestsLive, :index
       live "/epics/:repo/:id", EpicLive, :show
     end

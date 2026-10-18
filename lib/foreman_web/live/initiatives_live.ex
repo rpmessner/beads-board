@@ -398,7 +398,13 @@ defmodule ForemanWeb.InitiativesLive do
               <span class="font-mono text-xs text-foreground-softer">{elem(draft.key, 1)}</span>
             </div>
             <Badge.badge color={stage_color(draft.stage)}>{draft.stage}</Badge.badge>
-            <span class="col-span-4 truncate font-mono text-xs">{draft.spec_link || "—"}</span>
+            <span class="col-span-4 min-w-0 truncate font-mono text-xs">
+              <ForemanWeb.TicketDetail.document_link
+                :if={draft.spec_link}
+                repo={elem(draft.key, 0)}
+                path={draft.spec_link}
+              /><span :if={!draft.spec_link}>—</span>
+            </span>
           </div>
         </div>
       </section>

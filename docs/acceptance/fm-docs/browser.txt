@@ -1,0 +1,9 @@
+#document-content table: 293px box / 370px content; scrolled 77px
+#document-content pre: 291px box / 388px content; scrolled 97px
+#ticket-overview table: 327px box / 370px content; scrolled 43px
+#ticket-overview pre: 325px box / 381px content; scrolled 56px
+#document-content table: 293px box / 370px content; scrolled 77px
+#document-content pre: 291px box / 388px content; scrolled 97px
+#ticket-overview table: 327px box / 370px content; scrolled 43px
+#ticket-overview pre: 325px box / 381px content; scrolled 56px
+PASS: documents and tickets, 390/1440 × light/dark; scoped ticket headings, unchanged document headings, no page overflow, visible local scrolling to the right edge at 390px; theme colors, relative navigation/back, removed-worktree report and draft spec; no page errors.

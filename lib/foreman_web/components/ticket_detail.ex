@@ -164,7 +164,9 @@ defmodule ForemanWeb.TicketDetail do
                 :if={@ticket.raw[key] not in [nil, ""]}
               >
                 <h3 class="bb-label mb-2">{title}</h3>
-                <p class="whitespace-pre-wrap break-words text-sm leading-6">{@ticket.raw[key]}</p>
+                <div class="fm-markdown">
+                  {Phoenix.HTML.raw(Foreman.Markdown.render(@ticket.raw[key], repo: @ticket.repo))}
+                </div>
               </div>
               <div :if={@ticket.raw["dependencies"] not in [nil, []]}>
                 <h3 class="bb-label mb-2">Dependencies</h3>
@@ -252,7 +254,12 @@ defmodule ForemanWeb.TicketDetail do
           <Tabs.tabs_panel name="ticket-history" active={@tab == "history"} class="pt-5">
             <section id="ticket-history-section">
               <div id="ticket-history" phx-update="stream">
-                <.history_row :for={{id, event} <- @streams.ticket_history} id={id} event={event} />
+                <.history_row
+                  :for={{id, event} <- @streams.ticket_history}
+                  id={id}
+                  event={event}
+                  repo={@ticket.repo}
+                />
               </div>
             </section>
           </Tabs.tabs_panel>
@@ -295,7 +302,9 @@ defmodule ForemanWeb.TicketDetail do
                       note.inserted_at
                     } /></span>
                   </div>
-                  <p class="whitespace-pre-wrap break-words">{note.body}</p>
+                  <div class="fm-markdown">
+                    {Phoenix.HTML.raw(Foreman.Markdown.render(note.body, repo: @ticket.repo))}
+                  </div>
                 </article>
               </div>
             </section>
@@ -308,6 +317,7 @@ defmodule ForemanWeb.TicketDetail do
 
   attr :id, :string, required: true
   attr :event, :map, required: true
+  attr :repo, :string, required: true
 
   def history_row(assigns) do
     assigns = assign(assigns, :payload, history_payload(assigns.event))
@@ -327,10 +337,39 @@ defmodule ForemanWeb.TicketDetail do
       <dl :if={@payload != []} class="mt-2 grid grid-cols-[90px_minmax(0,1fr)] gap-2">
         <%= for {key, value} <- @payload do %>
           <dt class="text-foreground-softer">{key}</dt>
-          <dd class="whitespace-pre-wrap break-words">{value_text(value)}</dd>
+          <dd class="whitespace-pre-wrap break-words">
+            <%= if key in ["Brief", "Report", "Spec", "Path"] do %>
+              <.document_link repo={@repo} path={value} />
+            <% else %>
+              {value_text(value)}
+            <% end %>
+          </dd>
         <% end %>
       </dl>
     </article>
+    """
+  end
+
+  attr :repo, :string, required: true
+  attr :path, :string, required: true
+
+  def document_link(assigns) do
+    uri = URI.parse(assigns.path)
+
+    target =
+      if uri.scheme in ["http", "https"],
+        do: assigns.path,
+        else: Foreman.Markdown.viewer_path(assigns.repo, assigns.path)
+
+    assigns = assign(assigns, :target, target)
+
+    ~H"""
+    <.link
+      navigate={@target}
+      class="break-words font-mono text-xs underline decoration-current/30 underline-offset-4 hover:decoration-current"
+    >
+      {@path}
+    </.link>
     """
   end
 
@@ -377,6 +416,8 @@ defmodule ForemanWeb.TicketDetail do
       {"report_path", "Report"},
       {"path", if(event.event == "report", do: "Report", else: "Path")},
       {"spec_link", "Spec"},
+      {"spec_path", "Spec"},
+      {"spec", "Spec"},
       {"beads_epic_id", "Epic"},
       {"body", "Body"}
     ]
