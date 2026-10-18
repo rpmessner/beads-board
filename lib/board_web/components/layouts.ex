@@ -18,8 +18,8 @@ defmodule BoardWeb.Layouts do
         <nav aria-label="Main" class="space-y-1">
           <.link
             navigate={~p"/"}
-            class={["bb-nav", @active == :initiatives && "bb-nav-active"]}
-            aria-current={@active == :initiatives && "page"}
+            class={["bb-nav", @active in [:initiatives, :epic] && "bb-nav-active"]}
+            aria-current={@active in [:initiatives, :epic] && "page"}
           >
             <.icon name="hero-bars-3-bottom-left" class="size-4" /> Initiatives
           </.link>

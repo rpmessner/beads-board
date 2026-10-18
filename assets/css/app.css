@@ -49,4 +49,9 @@ a.bb-nav-active { background: light-dark(#e4e4e7, #3f3f46); color: var(--foregro
 .bb-project-dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; background: #8b5cf6; }
 .bb-project:nth-child(3n) .bb-project-dot { background: #14b8a6; }
 .bb-project:nth-child(3n + 1) .bb-project-dot { background: #ec4899; }
+.bb-graph-scroll { scrollbar-color: var(--foreground-softer) var(--background-sunken); scrollbar-width: auto; }
+.bb-graph-scroll::-webkit-scrollbar { height: 12px; }
+.bb-graph-scroll::-webkit-scrollbar-track { background: var(--background-sunken); }
+.bb-graph-scroll::-webkit-scrollbar-thumb { background: var(--foreground-softer); border: 3px solid var(--background-sunken); border-radius: 6px; }
+.bb-graph-scroll:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }

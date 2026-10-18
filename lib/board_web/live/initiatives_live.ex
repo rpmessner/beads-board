@@ -34,7 +34,7 @@ defmodule BoardWeb.InitiativesLive do
   end
 
   @impl true
-  def handle_params(params, _uri, socket) do
+  def handle_params(params, uri, socket) do
     remembered = socket.assigns.remembered_filters
 
     {state, effects} =
@@ -42,7 +42,12 @@ defmodule BoardWeb.InitiativesLive do
 
     restore? = Keyword.has_key?(effects, :restore)
     filters = Filters.normalize(if(restore?, do: remembered, else: params), socket.assigns)
-    socket = socket |> assign(filters: filters, filter_restore: state) |> refresh()
+
+    socket =
+      socket
+      |> assign(filters: filters, filter_restore: state)
+      |> BoardWeb.TicketDetail.load(params, uri)
+      |> refresh()
 
     {:noreply,
      if(restore?, do: push_patch(socket, to: Filters.path(filters), replace: true), else: socket)}
@@ -53,6 +58,9 @@ defmodule BoardWeb.InitiativesLive do
     filters = Filters.normalize(Map.merge(socket.assigns.filters, filters), socket.assigns)
     {:noreply, push_patch(socket, to: Filters.path(filters))}
   end
+
+  def handle_event("close-ticket", params, socket),
+    do: {:noreply, BoardWeb.TicketDetail.close(socket, params)}
 
   def handle_event("toggle-filters", _, socket) do
     {state, []} = Disclosure.step(socket.assigns.filter_disclosure, :toggle, %{})
@@ -81,6 +89,7 @@ defmodule BoardWeb.InitiativesLive do
   def handle_info({:notification, :board_events, _}, socket), do: {:noreply, refresh(socket)}
 
   defp refresh(socket) do
+    socket = BoardWeb.TicketDetail.refresh(socket)
     data = Board.Initiatives.snapshot(socket.assigns.filters)
     filters = Filters.normalize(socket.assigns.filters, data)
     socket = assign(socket, :filters, filters)
@@ -203,6 +212,11 @@ defmodule BoardWeb.InitiativesLive do
         kind: :ticket,
         depth: depth
       })
+
+  defp epic_path({repo, id}, uri) do
+    query = URI.parse(Board.TicketSheet.path(uri)).query
+    ~p"/epics/#{repo}/#{id}" <> if(query, do: "?" <> query, else: "")
+  end
 
   defp finished?(epic), do: epic.stage in [:done, :shipped]
   defp dom_key({repo, id}), do: Base.url_encode64(repo <> "/" <> id, padding: false)
@@ -370,7 +384,12 @@ defmodule BoardWeb.InitiativesLive do
           >
             <span class="text-xs">{draft.repo}</span>
             <div class="min-w-0">
-              <p class="truncate font-medium">{draft.title}</p>
+              <.link
+                navigate={epic_path(draft.key, @page_uri)}
+                class="block truncate font-medium hover:underline"
+              >
+                {draft.title}
+              </.link>
               <span class="font-mono text-xs text-foreground-softer">{elem(draft.key, 1)}</span>
             </div>
             <Badge.badge color={stage_color(draft.stage)}>{draft.stage}</Badge.badge>
@@ -382,7 +401,13 @@ defmodule BoardWeb.InitiativesLive do
         <h2 class="bb-section-title">
           Epics <span class="text-foreground-softer">{@epic_count}</span>
         </h2>
-        <.epic_list id="epics" rows={@streams.epics} expanded={@expanded} columns={@columns} />
+        <.epic_list
+          id="epics"
+          rows={@streams.epics}
+          expanded={@expanded}
+          columns={@columns}
+          uri={@page_uri}
+        />
       </section>
       <section id="done-panel" class="bb-initiative-panel overflow-x-auto">
         <button
@@ -403,6 +428,7 @@ defmodule BoardWeb.InitiativesLive do
           :if={expanded?(@expanded, "done")}
           id="done"
           rows={@streams.done}
+          uri={@page_uri}
           expanded={@expanded}
           columns={@columns}
         />
@@ -444,11 +470,17 @@ defmodule BoardWeb.InitiativesLive do
                 />{row.repo}<span class="text-xs text-foreground-softer">{row.count}</span>
               </button>
             <% else %>
-              <.ticket row={row} />
+              <.ticket row={row} uri={@page_uri} />
             <% end %>
           </div>
         </div>
       </section>
+      <BoardWeb.TicketDetail.sheet
+        ticket={@ticket}
+        state={@sheet_state}
+        return_to={@sheet_return}
+        streams={@streams}
+      />
     </Layouts.app>
     """
   end
@@ -457,6 +489,7 @@ defmodule BoardWeb.InitiativesLive do
   attr :rows, :any, required: true
   attr :expanded, :map, required: true
   attr :columns, :list, required: true
+  attr :uri, :string, required: true
 
   defp epic_list(assigns) do
     ~H"""
@@ -476,29 +509,37 @@ defmodule BoardWeb.InitiativesLive do
       >
         <%= case row.kind do %>
           <% :epic -> %>
-            <button
-              type="button"
-              id={"toggle-" <> row.id}
-              phx-click="toggle"
-              phx-value-id={row.id}
-              aria-expanded={to_string(expanded?(@expanded, row.id))}
-              class="bb-initiative-grid bb-initiative-row w-full text-left hover:bg-sunken"
-            >
+            <div class="bb-initiative-grid bb-initiative-row w-full text-left hover:bg-sunken">
               <span class="truncate text-xs">{row.repo}</span>
               <div
                 class="flex min-w-0 items-center gap-2"
                 style={"padding-left: #{row.depth * 16}px"}
               >
-                <.icon
-                  name={
-                    if expanded?(@expanded, row.id),
-                      do: "hero-chevron-down",
-                      else: "hero-chevron-right"
-                  }
-                  class="size-3 shrink-0"
-                />
+                <button
+                  type="button"
+                  id={"toggle-" <> row.id}
+                  phx-click="toggle"
+                  phx-value-id={row.id}
+                  aria-label={"Expand " <> row.bead_id}
+                  aria-expanded={to_string(expanded?(@expanded, row.id))}
+                >
+                  <.icon
+                    name={
+                      if expanded?(@expanded, row.id),
+                        do: "hero-chevron-down",
+                        else: "hero-chevron-right"
+                    }
+                    class="size-3 shrink-0"
+                  />
+                </button>
                 <div class="min-w-0">
-                  <p class="truncate font-medium" title={row.title}>{row.title}</p>
+                  <.link
+                    navigate={epic_path(row.key, @uri)}
+                    class="block truncate font-medium hover:underline"
+                    title={row.title}
+                  >
+                    {row.title}
+                  </.link>
                   <span class="font-mono text-xs text-foreground-softer">{row.bead_id}</span>
                   <Badge.badge :if={row.stale} color="warning" class="ml-2">stale</Badge.badge>
                 </div>
@@ -550,13 +591,13 @@ defmodule BoardWeb.InitiativesLive do
               >
                 —
               </span>
-            </button>
+            </div>
           <% :section -> %>
             <h3 class="bb-section-label" style={"padding-left: #{24 + row.depth * 16}px"}>
               {row.title}
             </h3>
           <% :ticket -> %>
-            <.ticket row={row} />
+            <.ticket row={row} uri={@uri} />
         <% end %>
       </div>
     </div>
@@ -564,11 +605,13 @@ defmodule BoardWeb.InitiativesLive do
   end
 
   attr :row, :map, required: true
+  attr :uri, :string, required: true
 
   defp ticket(assigns) do
     ~H"""
-    <div
-      class="bb-ticket items-center gap-3 border-t border-base px-5 py-3"
+    <.link
+      patch={Board.TicketSheet.path(@uri, @row.key)}
+      class="bb-ticket items-center gap-3 border-t border-base px-5 py-3 hover:bg-sunken"
       style={"padding-left: #{24 + @row.depth * 16}px"}
     >
       <span class="bb-ticket-id shrink-0 truncate font-mono text-xs text-foreground-softer md:w-28">
@@ -578,7 +621,7 @@ defmodule BoardWeb.InitiativesLive do
       <Badge.badge class="bb-ticket-stage" color={stage_color(@row.stage)}>{@row.stage}</Badge.badge>
       <span class="text-xs text-foreground-softer">{@row.type} · {@row.status}</span>
       <Badge.badge :if={@row.stale} color="warning">stale</Badge.badge>
-    </div>
+    </.link>
     """
   end
 end

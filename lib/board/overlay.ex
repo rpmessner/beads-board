@@ -228,6 +228,13 @@ defmodule Board.Overlay do
   defp stringify(map), do: map |> Jason.encode!() |> Jason.decode!()
   defp notify({repo, id}), do: Board.Events.broadcast(:overlay_changed, repo <> "/" <> id)
 
+  def allowed_events(key) do
+    case get(key) do
+      nil -> []
+      row -> allowed(row, data(canonical(key)))
+    end
+  end
+
   defp allowed(row, data) do
     Enum.filter(row.machine.__fsm__(:events), fn event ->
       row.machine.__fsm__(:sources)[event] == :claimed and
@@ -235,7 +242,7 @@ defmodule Board.Overlay do
           {:error, _},
           row.machine.step(
             row.stage,
-            {event, %{window: "<new session>", beads_epic_id: "<epic>"}},
+            {event, %{window: (data.session_window || "") <> ":new", beads_epic_id: "<epic>"}},
             data
           )
         )
