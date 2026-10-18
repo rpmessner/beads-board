@@ -58,6 +58,9 @@ defmodule ForemanWeb.InitiativesLive do
     {:noreply, push_patch(socket, to: Filters.path(filters))}
   end
 
+  def handle_event("launch-session", params, socket),
+    do: {:noreply, socket |> ForemanWeb.PlanningSession.launch(params) |> refresh()}
+
   def handle_event("close-ticket", params, socket),
     do: {:noreply, ForemanWeb.TicketDetail.close(socket, params)}
 
@@ -388,9 +391,9 @@ defmodule ForemanWeb.InitiativesLive do
             :for={{id, draft} <- @streams.drafts}
             id={id}
             data-bead={elem(draft.key, 1)}
-            class="bb-initiative-grid bb-initiative-row"
+            class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-base p-4 md:grid-cols-[100px_minmax(0,1fr)_100px_minmax(0,1fr)_auto]"
           >
-            <span class="text-xs">{draft.repo}</span>
+            <span class="hidden text-xs md:block">{draft.repo}</span>
             <div class="min-w-0">
               <.link
                 navigate={epic_path(draft.key, @page_uri)}
@@ -401,13 +404,19 @@ defmodule ForemanWeb.InitiativesLive do
               <span class="font-mono text-xs text-foreground-softer">{elem(draft.key, 1)}</span>
             </div>
             <Badge.badge color={stage_color(draft.stage)}>{draft.stage}</Badge.badge>
-            <span class="col-span-4 min-w-0 truncate font-mono text-xs">
+            <span class="min-w-0 truncate font-mono text-xs">
               <ForemanWeb.TicketDetail.document_link
                 :if={draft.spec_link}
                 repo={elem(draft.key, 0)}
                 path={draft.spec_link}
               /><span :if={!draft.spec_link}>—</span>
             </span>
+            <ForemanWeb.PlanningSession.launch_button
+              id={"launch-" <> id}
+              key={draft.key}
+              allowed={Foreman.Sessions.launchable?(draft)}
+              session={draft.planning_session}
+            />
           </div>
         </div>
       </section>
@@ -562,6 +571,12 @@ defmodule ForemanWeb.InitiativesLive do
               </div>
               <div>
                 <Badge.badge color={stage_color(row.stage)}>{row.stage}</Badge.badge>
+                <ForemanWeb.PlanningSession.launch_button
+                  id={"launch-" <> id}
+                  key={row.key}
+                  allowed={Foreman.Sessions.launchable?(row)}
+                  session={row.planning_session}
+                />
               </div>
               <div class="bb-epic-progress space-y-1.5">
                 <span

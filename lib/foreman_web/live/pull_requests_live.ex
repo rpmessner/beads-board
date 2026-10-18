@@ -224,6 +224,9 @@ defmodule ForemanWeb.PullRequestsLive do
 
   def handle_event("merge-confirm", _, socket), do: {:noreply, socket}
 
+  def handle_event("launch-session", params, socket),
+    do: {:noreply, socket |> ForemanWeb.PlanningSession.launch(params) |> refresh()}
+
   def handle_event("close-ticket", params, socket),
     do: {:noreply, ForemanWeb.TicketDetail.close(socket, params)}
 

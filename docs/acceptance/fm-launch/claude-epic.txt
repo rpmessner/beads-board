@@ -1,0 +1,41 @@
+▐▛███▛█   Claude Code v2.1.302
+▝▜██████▀  Opus 5.5 · Claude Max
+ ▝▝   ▝▝   /tmp/fm-launch-scratch
+
+  Updated to latest. Got 37 features, 227 bugfixes, and 65 other changes.
+  code.claude.com/docs/en/changelog for details
+
+
+❯ You are the coordinator for draft:greeting in project scratch.
+  Read AGENTS.md and the board draft draft:greeting and docs/greeting.md. Start
+  /tight-spec for this ticket.
+  Keep planning scoped to this ticket. Follow the foreman skill for board
+  updates and the house workflow for specs, build dispatch, and review. Ask the
+  user when a decision is theirs.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Bash(for f in tickets/*; do echo "== $f"; cat "$f"; done; grep -rn "greeting"
+      . 2>/dev/null | grep -v '^./.git/')
+  ⎿  == tickets/scratch-1.md
+     # scratch-1
+     Plan a command that prints a greeting. Ask which greeting; do not impl
+     … +11 lines (ctrl+o to expand)
+  ⎿  Allowed by auto mode classifier
+────────────────────────────────────────────────────────────────────────────────
+ ☐ Greeting
+
+What exact greeting text should draft:greeting specify?
+
+❯ 1. Hello
+     Plain "Hello". This also matches the expected output in scratch-bug, which
+     reports "Goodbye" where "Hello" should be.
+  2. Hello, world!
+     The classic form, with punctuation.
+  3. Hello, <name>!
+     Takes a name as an argument. This adds an input to the spec.
+  4. Type something.
+────────────────────────────────────────────────────────────────────────────────
+  5. Chat about this
+
+Enter to select · ↑/↓ to navigate · Esc to cancel

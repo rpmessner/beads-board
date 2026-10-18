@@ -19,6 +19,7 @@ defmodule Foreman.Events do
     forge_changed: "forge_changed",
     merge_changed: "merge_changed",
     requests_changed: "requests_changed",
+    sessions_changed: "sessions_changed",
     forge_requested: "forge_requested",
     sync_status_changed: "sync_status_changed",
     projection_changed: "projection_changed",

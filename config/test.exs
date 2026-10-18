@@ -1,6 +1,9 @@
 import Config
 
-config :foreman, runtime_enabled: false, config_directory: "/tmp/bb-exec/test-config"
+config :foreman,
+  runtime_enabled: false,
+  session_prompt_fallback: true,
+  config_directory: "/tmp/bb-exec/test-config"
 
 # Jobs are inserted into the SQL sandbox and explicitly executed by tests.
 config :foreman, Oban, testing: :manual, queues: false, plugins: false

@@ -31,6 +31,7 @@ defmodule Foreman.FsmDocsTest do
         {"notification_permission", Foreman.NotificationPermission},
         {"delivery_machine", Foreman.DeliveryMachine},
         {"spool_machine", Foreman.SpoolMachine},
+        {"session_machine", Foreman.SessionMachine},
         {"epic", Foreman.Epic},
         {"disclosure", Foreman.Initiatives.Disclosure},
         {"ticket_sheet", Foreman.TicketSheet},

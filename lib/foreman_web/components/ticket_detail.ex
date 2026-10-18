@@ -7,6 +7,20 @@ defmodule ForemanWeb.TicketDetail do
     key = Foreman.TicketSheet.key(params["ticket"])
     ticket = key && Foreman.Drilldown.ticket(key)
 
+    ticket =
+      if ticket,
+        do:
+          Map.merge(ticket, %{
+            launchable: Foreman.Sessions.launchable?(Foreman.Sessions.target(key)),
+            planning_session: Foreman.Sessions.get(key),
+            files?:
+              Enum.any?(
+                Foreman.RuntimeState.repos(),
+                &(&1["key"] == ticket.repo and &1["tickets"] == "files")
+              )
+          }),
+        else: nil
+
     {state, []} =
       Foreman.TicketSheet.step(
         Map.get(socket.assigns, :sheet_state, :closed),
@@ -91,8 +105,8 @@ defmodule ForemanWeb.TicketDetail do
             <span id="ticket-stage">
               <Badge.badge color="info">{@ticket.stage}</Badge.badge>
             </span>
-            <Badge.badge>
-              {if !@ticket.raw["acceptance_progress"], do: "bd: "}{@ticket.raw["status"] ||
+            <Badge.badge id="ticket-status">
+              {if !@ticket.files?, do: "bd: "}{@ticket.raw["status"] ||
                 "unavailable"}
             </Badge.badge>
             <Badge.badge :if={@ticket.raw["acceptance_progress"]} id="ticket-acceptance-progress">
@@ -104,6 +118,12 @@ defmodule ForemanWeb.TicketDetail do
             <Badge.badge :if={@ticket.raw["priority"] != nil}>P{@ticket.raw["priority"]}</Badge.badge>
           </div>
           <div id="ticket-actions" class="flex flex-wrap gap-2">
+            <ForemanWeb.PlanningSession.launch_button
+              id="ticket-launch"
+              key={@ticket.key}
+              allowed={@ticket.launchable}
+              session={@ticket.planning_session}
+            />
             <code
               :if={@ticket.close_suggested}
               id="ticket-close-suggestion"
@@ -113,6 +133,7 @@ defmodule ForemanWeb.TicketDetail do
             </code>
           </div>
         </header>
+        <ForemanWeb.PlanningSession.status id="ticket" session={@ticket.planning_session} />
         <Tabs.tabs id="ticket-tabs">
           <Tabs.tabs_list
             active_tab={"ticket-" <> @tab}

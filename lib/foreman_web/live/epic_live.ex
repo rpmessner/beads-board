@@ -19,6 +19,9 @@ defmodule ForemanWeb.EpicLive do
      |> refresh()}
   end
 
+  def handle_event("launch-session", params, socket),
+    do: {:noreply, socket |> ForemanWeb.PlanningSession.launch(params) |> refresh()}
+
   def handle_event("close-ticket", params, socket),
     do: {:noreply, ForemanWeb.TicketDetail.close(socket, params)}
 
@@ -36,6 +39,8 @@ defmodule ForemanWeb.EpicLive do
     |> ForemanWeb.TicketDetail.refresh()
     |> assign(
       epic: epic && summary(epic),
+      planning_session: Foreman.Sessions.get(socket.assigns.epic_key),
+      launchable: Foreman.Sessions.launchable?(epic),
       repos: Foreman.RuntimeState.repos()
     )
     |> stream(:columns, if(epic, do: epic.columns, else: []), reset: true)
@@ -85,6 +90,12 @@ defmodule ForemanWeb.EpicLive do
               <ForemanWeb.TicketDetail.document_link repo={elem(@epic_key, 0)} path={@epic.spec_link} />
             </p>
           </div>
+          <ForemanWeb.PlanningSession.launch_button
+            id="epic-launch"
+            key={@epic_key}
+            allowed={@launchable}
+            session={@planning_session}
+          />
           <div :if={@epic.total > 0} class="w-64 space-y-2">
             <p class="flex justify-between text-xs">
               <span>{@epic.closed} / {@epic.total} closed</span><span>{round(100 * @epic.closed / @epic.total)}%</span>
@@ -100,6 +111,7 @@ defmodule ForemanWeb.EpicLive do
             </div>
           </div>
         </header>
+        <ForemanWeb.PlanningSession.status id="epic" session={@planning_session} />
         <section>
           <h2 class="bb-label mb-3">Epic stage history</h2>
           <div id="epic-history" phx-update="stream" class="flex flex-wrap gap-4">

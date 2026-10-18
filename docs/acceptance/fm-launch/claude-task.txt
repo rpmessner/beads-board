@@ -1,0 +1,37 @@
+▐▛███▛█   Claude Code v2.1.302
+▝▜██████▀  Opus 5.5 · Claude Max
+ ▝▝   ▝▝   /tmp/fm-launch-scratch
+
+  Updated to latest. Got 37 features, 227 bugfixes, and 65 other changes.
+  code.claude.com/docs/en/changelog for details
+
+
+❯ You are the coordinator for scratch-1 in project scratch.
+  Read AGENTS.md and tickets/scratch-1.md. Start flow for this ticket.
+  Keep planning scoped to this ticket. Follow the foreman skill for board
+  updates and the house workflow for specs, build dispatch, and review. Ask the
+  user when a decision is theirs.
+
+● Bash(cat tickets/scratch-1.md && ls -R docs tickets && for f in $(find docs
+      -type f); do echo "== $f"; cat "$f"; done)
+  ⎿  # scratch-1
+     Plan a command that prints a greeting. Ask which greeting; do not impl
+     ement.
+     … +9 lines (ctrl+o to expand)
+  ⎿  Allowed by auto mode classifier
+────────────────────────────────────────────────────────────────────────────────
+ ☐ Greeting
+
+What greeting text should the scratch-1 command print?
+
+❯ 1. Hello, world!
+     The usual default; a fixed string.
+  2. Hello, <name>!
+     Takes an optional name argument and falls back to 'world'.
+  3. Hi there!
+     A short, informal fixed string.
+  4. Type something.
+────────────────────────────────────────────────────────────────────────────────
+  5. Chat about this
+
+Enter to select · ↑/↓ to navigate · Esc to cancel

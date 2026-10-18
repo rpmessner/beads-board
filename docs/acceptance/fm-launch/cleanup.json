@@ -1,0 +1,6 @@
+{
+  "scratch_server_stopped": true,
+  "acceptance_server_stopped": true,
+  "claude_processes_stopped": true,
+  "port": 4784
+}
