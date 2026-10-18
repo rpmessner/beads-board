@@ -6,9 +6,9 @@ defmodule Foreman.Merge.RetargetJob do
   def timeout(_), do: :timer.seconds(60)
   @impl true
   def perform(%Oban.Job{args: %{"action_id" => id}}),
-    do: run(id, Foreman.Forge.adapter(), Foreman.Forge.options())
+    do: run(id, Foreman.Forge.adapter())
 
-  def run(id, adapter, opts) do
+  def run(id, adapter, opts \\ nil) do
     case Merge.claim(id, :retarget) do
       nil -> :ok
       row -> execute(row, adapter, opts)
@@ -20,7 +20,9 @@ defmodule Foreman.Merge.RetargetJob do
     child = row.facts["child"]
 
     result =
-      with true <- (caps.write && caps.retarget) || {:error, :manual_retarget},
+      with :ok <- Foreman.Preview.allow_external_write(),
+           opts = opts || Foreman.Forge.options(),
+           true <- (caps.write && caps.retarget) || {:error, :manual_retarget},
            true <- Merge.configured?(row) || {:error, :config_changed},
            {:ok, snapshot} <-
              adapter.list(row.remote, Keyword.put(opts, :tracked, [child["number"]])),

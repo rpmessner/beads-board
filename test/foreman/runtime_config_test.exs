@@ -24,6 +24,14 @@ defmodule Foreman.RuntimeConfigTest do
     end)
   end
 
+  test "dev honors the preview port and database URL" do
+    System.put_env("PORT", "4891")
+    System.put_env("DATABASE_URL", "ecto://localhost/foreman_preview_scratch")
+    config = Config.Reader.read!("config/runtime.exs", env: :dev, target: :host)
+    assert config[:foreman][ForemanWeb.Endpoint][:http][:port] == 4891
+    assert config[:foreman][Foreman.Repo][:url] == "ecto://localhost/foreman_preview_scratch"
+  end
+
   test "worker production config does not require an endpoint signing secret" do
     System.put_env("FOREMAN_ROLE", "worker")
     config = Config.Reader.read!("config/runtime.exs", env: :prod, target: :host)

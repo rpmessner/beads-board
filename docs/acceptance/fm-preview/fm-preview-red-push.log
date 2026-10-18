@@ -1,0 +1,42 @@
+Running ExUnit with seed: 185035, max_cases: 16
+Excluding tags: [:test]
+Including tags: [location: {"test/foreman/push_test.exs", 152}, location: "test/foreman/runtime_config_test.exs"]
+
+.......
+
+  1) test preview refuses an approved push and audits the refusal without git (Foreman.PushTest)
+     test/foreman/push_test.exs:150
+     match (=) failed
+     code:  assert %{state: "failed", outcome: %{"reason" => "refused in preview"}} = Requests.get(request.id)
+     left:  %{state: "failed", outcome: %{"reason" => "refused in preview"}}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "78b4bf84-60d6-495b-84ba-86615597312b",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "push",
+              actor: "user",
+              session: nil,
+              facts: %{
+                "expected_sha" => "2c7cffd6a3f523eea8967ee0aecf67006fea21bc",
+                "local_branch" => "main",
+                "remote" => "owner/repo",
+                "remote_branch" => "feature",
+                "worktree" => "/tmp/foreman-push-9412"
+              },
+              state: "done",
+              outcome: %{
+                "result" => %{
+                  "sha" => "2c7cffd6a3f523eea8967ee0aecf67006fea21bc"
+                }
+              },
+              note: nil,
+              inserted_at: ~U[2026-10-18 22:21:34.582212Z],
+              updated_at: ~U[2026-10-18 22:21:34.638708Z]
+            }
+     stacktrace:
+       test/foreman/push_test.exs:164: (test)
+
+
+Finished in 0.4 seconds (0.00s async, 0.4s sync)
+8 tests, 1 failure (23 excluded)

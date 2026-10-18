@@ -38,6 +38,12 @@ default_port = if config_env() == :test, do: "4002", else: "4747"
 port = String.to_integer(System.get_env("PORT", default_port))
 config :foreman, ForemanWeb.Endpoint, http: [ip: {127, 0, 0, 1}, port: port]
 
+if config_env() == :dev do
+  if database_url = System.get_env("DATABASE_URL") do
+    config :foreman, Foreman.Repo, url: database_url
+  end
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

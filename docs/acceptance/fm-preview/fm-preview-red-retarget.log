@@ -1,0 +1,56 @@
+Running ExUnit with seed: 83566, max_cases: 16
+
+..
+
+  1) test preview refuses a copied retarget without erasing merge evidence (Foreman.MergeJobTest)
+     test/foreman/merge_job_test.exs:70
+     match (=) failed
+     code:  assert %{state: "failed", error: "refused in preview", merge_sha: "merge-confirmed"} = Merge.get(row.id)
+     left:  %{state: "failed", error: "refused in preview", merge_sha: "merge-confirmed"}
+     right: %Foreman.Merge.Record{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "merge_actions">,
+              id: 50,
+              repo_key: "sample",
+              remote: "owner/repo",
+              number: 5,
+              head_sha: "confirmed",
+              requested_by: "local_ui",
+              facts: %{
+                "child" => %{
+                  "checks" => "none",
+                  "draft" => false,
+                  "head_sha" => "child-sha",
+                  "mergeable" => "mergeable",
+                  "number" => 6,
+                  "source_branch" => "child",
+                  "state" => "open",
+                  "target_branch" => "stack",
+                  "title" => "Child"
+                },
+                "default_branch" => "main",
+                "pr" => %{
+                  "checks" => "none",
+                  "draft" => false,
+                  "head_sha" => "confirmed",
+                  "mergeable" => "mergeable",
+                  "number" => 5,
+                  "source_branch" => "stack",
+                  "state" => "open",
+                  "target_branch" => "main",
+                  "title" => "Bottom"
+                }
+              },
+              state: "merged",
+              error: nil,
+              merge_sha: "merge-confirmed",
+              claimed_at: ~U[2026-10-18 22:22:23.614357Z],
+              retarget_claimed_at: ~U[2026-10-18 22:22:23.636537Z],
+              inserted_at: ~U[2026-10-18 22:22:23.601206Z],
+              updated_at: ~U[2026-10-18 22:22:23.640034Z]
+            }
+     stacktrace:
+       test/foreman/merge_job_test.exs:76: (test)
+
+..............
+Finished in 0.8 seconds (0.00s async, 0.8s sync)
+17 tests, 1 failure

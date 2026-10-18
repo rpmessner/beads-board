@@ -22,11 +22,12 @@ defmodule Foreman.Requests.PushJob do
 
   defp execute(request, opts) do
     adapter = Keyword.get(opts, :adapter, Foreman.Forge.adapter())
-    forge_options = Keyword.get_lazy(opts, :forge_options, &Foreman.Forge.options/0)
     facts = request.facts
 
     result =
-      with true <- adapter.capabilities().write || {:error, :read_only},
+      with :ok <- Foreman.Preview.allow_external_write(),
+           forge_options = Keyword.get_lazy(opts, :forge_options, &Foreman.Forge.options/0),
+           true <- adapter.capabilities().write || {:error, :read_only},
            {:ok, repo} <- Push.configured(request.repo_key),
            true <- repo["github"] == facts["remote"] || {:error, :config_changed},
            :ok <- Push.shape(facts),
