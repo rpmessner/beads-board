@@ -49,6 +49,36 @@ defmodule Foreman.Requests do
     end
   end
 
+  def reconcile_pushes do
+    requests =
+      Repo.all(from r in Request, where: r.kind == "push" and r.state in ["pending", "executing"])
+
+    Enum.each(requests, fn request ->
+      cond do
+        request.state == "pending" and Foreman.Requests.Push.unchanged(request.facts) != :ok ->
+          resolve(request.id, :facts_changed, %{"reason" => "local_sha_changed"})
+
+        request.state == "executing" ->
+          active =
+            Repo.exists?(
+              from j in Oban.Job,
+                where:
+                  j.worker == "Foreman.Requests.PushJob" and
+                    fragment("?->>'request_id'", j.args) == ^request.id and
+                    j.state in ["available", "scheduled", "executing", "retryable"]
+            )
+
+          if not active or DateTime.diff(DateTime.utc_now(), request.updated_at) > 90,
+            do: resolve(request.id, :orphaned, %{})
+
+        true ->
+          :ok
+      end
+    end)
+
+    :ok
+  end
+
   def pending_count, do: Repo.aggregate(from(r in Request, where: r.state == "pending"), :count)
 
   def pending,
@@ -89,7 +119,13 @@ defmodule Foreman.Requests do
         request ->
           lock(request.repo_key)
           request = Repo.get!(Request, id)
-          transition(request, event, payload)
+
+          if event == :approve and request.kind == "push" and request.state == "pending" and
+               Foreman.Requests.Push.unchanged(request.facts) != :ok do
+            transition(request, :facts_changed, %{"reason" => "local_sha_changed"})
+          else
+            transition(request, event, payload)
+          end
       end
     end)
   end
@@ -122,7 +158,7 @@ defmodule Foreman.Requests do
           |> Ecto.Changeset.change(
             state: to_string(next),
             outcome: outcome,
-            note: payload["note"]
+            note: Map.get(payload, "note", request.note)
           )
           |> Repo.update!()
 

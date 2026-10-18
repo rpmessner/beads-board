@@ -1,0 +1,42 @@
+Compiling 1 file (.ex)
+Generated foreman app
+Running ExUnit with seed: 513402, max_cases: 16
+
+...................
+
+  1) test configuration removal during the forge read prevents the push (Foreman.PushTest)
+     test/foreman/push_test.exs:468
+     match (=) failed
+     code:  assert %{state: "failed", outcome: %{"reason" => "forge_disabled"}} = Requests.get(request.id)
+     left:  %{state: "failed", outcome: %{"reason" => "forge_disabled"}}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "61f542b9-cbf2-4914-bfda-57ab2ea3cf69",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "push",
+              actor: "user",
+              session: nil,
+              facts: %{
+                "expected_sha" => "334e82dd554ca81c522d458a4e137859c2419478",
+                "local_branch" => "main",
+                "remote" => "owner/repo",
+                "remote_branch" => "feature",
+                "worktree" => "/tmp/foreman-push-291"
+              },
+              state: "done",
+              outcome: %{
+                "result" => %{
+                  "sha" => "334e82dd554ca81c522d458a4e137859c2419478"
+                }
+              },
+              note: nil,
+              inserted_at: ~U[2026-10-18 19:55:12.986305Z],
+              updated_at: ~U[2026-10-18 19:55:13.036938Z]
+            }
+     stacktrace:
+       test/foreman/push_test.exs:478: (test)
+
+..
+Finished in 2.6 seconds (0.00s async, 2.6s sync)
+22 tests, 1 failure

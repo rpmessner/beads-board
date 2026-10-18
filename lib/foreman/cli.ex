@@ -19,6 +19,8 @@ defmodule Foreman.CLI do
     "revive" => "revive"
   }
   @switches [
+    worktree: :string,
+    remote_branch: :string,
     question: :string,
     option: :keep,
     recommendation: :string,
@@ -148,6 +150,24 @@ defmodule Foreman.CLI do
     }
   end
 
+  defp ask_facts("push", opts) do
+    %{
+      "worktree" => opts[:worktree],
+      "local_branch" => opts[:branch],
+      "expected_sha" => opts[:sha],
+      "remote_branch" => opts[:remote_branch]
+    }
+  end
+
+  defp ask_facts(_, opts) do
+    %{
+      "question" => opts[:question],
+      "options" => Keyword.get_values(opts, :option),
+      "recommendation" => opts[:recommendation],
+      "text" => opts[:text]
+    }
+  end
+
   def parse(args, defaults \\ []) do
     {opts, args, invalid} = OptionParser.parse(args, strict: @switches)
 
@@ -166,12 +186,7 @@ defmodule Foreman.CLI do
             "kind" => "ticket",
             "id" => id,
             "request_kind" => request_kind,
-            "facts" => %{
-              "question" => opts[:question],
-              "options" => Keyword.get_values(opts, :option),
-              "recommendation" => opts[:recommendation],
-              "text" => opts[:text]
-            }
+            "facts" => ask_facts(request_kind, opts)
           })
 
         {:ok, %{request: request, json: opts[:json] || false}}

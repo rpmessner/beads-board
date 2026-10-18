@@ -58,6 +58,7 @@ defmodule Foreman.Runtime do
   def handle_info(_, state), do: {:noreply, state}
 
   defp reconcile(state, requested \\ :all) do
+    Foreman.Requests.reconcile_pushes()
     now = System.monotonic_time(:millisecond)
     config = Foreman.RuntimeState.config()
     repos = (config && config.config["repos"]) || []

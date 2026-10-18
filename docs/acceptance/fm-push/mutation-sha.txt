@@ -1,0 +1,42 @@
+Compiling 1 file (.ex)
+Generated foreman app
+Running ExUnit with seed: 859509, max_cases: 16
+
+......
+
+  1) test job rechecks moved sha and never invokes push (Foreman.PushTest)
+     test/foreman/push_test.exs:217
+     match (=) failed
+     code:  assert %{state: "failed", outcome: %{"reason" => "local_sha_changed"}} = Requests.get(request.id)
+     left:  %{state: "failed", outcome: %{"reason" => "local_sha_changed"}}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "f540a866-e4e0-452e-9561-97d0ccca9f0d",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "push",
+              actor: "user",
+              session: nil,
+              facts: %{
+                "expected_sha" => "5bda88ff82a7f5854fd0ff4a0973cdc48cb16efd",
+                "local_branch" => "main",
+                "remote" => "owner/repo",
+                "remote_branch" => "feature",
+                "worktree" => "/tmp/foreman-push-67"
+              },
+              state: "done",
+              outcome: %{
+                "result" => %{
+                  "sha" => "5bda88ff82a7f5854fd0ff4a0973cdc48cb16efd"
+                }
+              },
+              note: nil,
+              inserted_at: ~U[2026-10-18 19:55:39.770971Z],
+              updated_at: ~U[2026-10-18 19:55:39.810749Z]
+            }
+     stacktrace:
+       test/foreman/push_test.exs:236: (test)
+
+...............
+Finished in 2.6 seconds (0.00s async, 2.6s sync)
+22 tests, 1 failure

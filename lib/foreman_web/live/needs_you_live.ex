@@ -17,6 +17,10 @@ defmodule ForemanWeb.NeedsYouLive do
   def handle_params(params, uri, socket),
     do: {:noreply, ForemanWeb.TicketDetail.load(socket, params, uri)}
 
+  def handle_event("resolve", %{"id" => id, "decision" => params, "action" => "approve"}, socket) do
+    {:noreply, result(socket, Requests.resolve(id, :approve, %{"note" => params["note"]}))}
+  end
+
   def handle_event("resolve", %{"id" => id, "decision" => params, "action" => "answer"}, socket) do
     answer = if params["choice"] in [nil, ""], do: params["note"], else: params["choice"]
     result = Requests.resolve(id, :answer, %{"answer" => answer, "note" => params["note"]})
@@ -84,7 +88,7 @@ defmodule ForemanWeb.NeedsYouLive do
         >
           No pending requests
         </div>
-        <.decision_card :for={{id, request} <- @streams.pending} id={id} request={request} />
+        <.request_card :for={{id, request} <- @streams.pending} id={id} request={request} />
       </div>
       <details id="recent-outcomes" class="max-w-3xl border-t border-base pt-4">
         <summary class="cursor-pointer text-sm font-medium text-foreground-softer">
@@ -107,6 +111,72 @@ defmodule ForemanWeb.NeedsYouLive do
         uri={@page_uri}
       />
     </Layouts.app>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :request, :any, required: true
+
+  def request_card(%{request: %{kind: "push"}} = assigns), do: push_card(assigns)
+  def request_card(assigns), do: decision_card(assigns)
+
+  attr :id, :string, required: true
+  attr :request, :any, required: true
+
+  def push_card(assigns) do
+    assigns = assign(assigns, :form, to_form(%{"note" => ""}, as: :decision))
+
+    ~H"""
+    <article id={@id} class="rounded-xl border border-base bg-base p-5 shadow-sm sm:p-6">
+      <div class="mb-4 flex flex-wrap items-center gap-2 text-xs text-foreground-softer">
+        <Badge.badge>Push</Badge.badge>
+        <.link
+          patch={"/needs-you?" <> URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})}
+          class="font-mono hover:underline"
+        >
+          {@request.bead_id}
+        </.link>
+        <span>{@request.actor}<span :if={@request.session}> · {@request.session}</span></span>
+        <span class="ml-auto"><ForemanWeb.TicketDetail.timestamp at={@request.inserted_at} /></span>
+      </div>
+      <ForemanWeb.RequestCard.push_facts request={@request} />
+      <.form
+        for={@form}
+        id={"push-" <> @request.id}
+        phx-submit="resolve"
+        phx-value-id={@request.id}
+        class="mt-5 space-y-4"
+      >
+        <.input
+          field={@form[:note]}
+          id={"push-note-" <> @request.id}
+          type="textarea"
+          label="Note"
+          rows="2"
+          class="mt-2 block w-full rounded-lg border border-base bg-sunken px-3 py-2 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
+        <div class="flex gap-2">
+          <Button.button
+            id={"submit-approve-" <> @request.id}
+            type="submit"
+            name="action"
+            value="approve"
+            variant="solid"
+            color="primary"
+          >
+            Approve
+          </Button.button>
+          <Button.button
+            id={"submit-decline-" <> @request.id}
+            type="submit"
+            name="action"
+            value="decline"
+          >
+            Decline
+          </Button.button>
+        </div>
+      </.form>
+    </article>
     """
   end
 

@@ -1,0 +1,1 @@
+PASS: worker advanced scratch main 7a3061c6bdd5159978d7bc74039cfc0a4529df2f -> 797e13046f22f41dc6b471a2ea80b0a674a7a698; exact SHA, direct parent, epic refusal, no browser errors; request e38a7944-41bb-45cf-8f95-6058868d625b

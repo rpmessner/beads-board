@@ -1,0 +1,36 @@
+[
+  {
+    "event": "ask",
+    "from_state": "new",
+    "to_state": "pending",
+    "payload": {},
+    "request_id": "e38a7944-41bb-45cf-8f95-6058868d625b"
+  },
+  {
+    "event": "approve",
+    "from_state": "pending",
+    "to_state": "approved",
+    "payload": {
+      "note": ""
+    },
+    "request_id": "e38a7944-41bb-45cf-8f95-6058868d625b"
+  },
+  {
+    "event": "start",
+    "from_state": "approved",
+    "to_state": "executing",
+    "payload": {},
+    "request_id": "e38a7944-41bb-45cf-8f95-6058868d625b"
+  },
+  {
+    "event": "succeeded",
+    "from_state": "executing",
+    "to_state": "done",
+    "payload": {
+      "result": {
+        "sha": "797e13046f22f41dc6b471a2ea80b0a674a7a698"
+      }
+    },
+    "request_id": "e38a7944-41bb-45cf-8f95-6058868d625b"
+  }
+]

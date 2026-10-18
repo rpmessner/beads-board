@@ -13,7 +13,10 @@ defmodule ForemanWeb.RequestCard do
         <span>{@request.actor}</span>
         <span class="ml-auto"><ForemanWeb.TicketDetail.timestamp at={@request.updated_at} /></span>
       </div>
-      <p class="break-words font-medium">{@request.facts["question"]}</p>
+      <.push_facts :if={@request.kind == "push"} request={@request} />
+      <p :if={@request.kind == "decision"} class="break-words font-medium">
+        {@request.facts["question"]}
+      </p>
       <p :if={@request.outcome["answer"]} class="whitespace-pre-wrap break-words" phx-no-format>{@request.outcome["answer"]}</p>
       <p
         :if={@request.note not in [nil, "", @request.outcome["answer"]]}
@@ -24,6 +27,30 @@ defmodule ForemanWeb.RequestCard do
         {String.replace(@request.outcome["reason"], "_", " ")}
       </p>
     </article>
+    """
+  end
+
+  attr :request, :any, required: true
+
+  def push_facts(assigns) do
+    ~H"""
+    <dl class="grid min-w-0 grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+      <div
+        :for={
+          {label, key} <- [
+            {"Repository", "remote"},
+            {"Worktree", "worktree"},
+            {"Local branch", "local_branch"},
+            {"SHA", "expected_sha"},
+            {"Remote branch", "remote_branch"}
+          ]
+        }
+        class="contents"
+      >
+        <dt class="mt-2 text-foreground-softer sm:mt-0">{label}</dt>
+        <dd class="min-w-0 break-all font-mono">{@request.facts[key]}</dd>
+      </div>
+    </dl>
     """
   end
 end
