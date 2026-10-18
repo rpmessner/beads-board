@@ -1,5 +1,5 @@
-defmodule Board.Fixtures.Stage do
-  @moduledoc "Spec Decision 7, not wired into the application."
+defmodule Board.Stage do
+  @moduledoc "Ticket process stages (spec Decision 7). Persistence effects are interpreted by the overlay."
   use Board.Fsm, observed_never_invalid: true
 
   initial(:queued)
