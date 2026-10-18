@@ -1,0 +1,24 @@
+Compiling 2 files (.ex)
+Generated board app
+Running ExUnit with seed: 553345, max_cases: 16
+
+.
+
+  1) test Board.Forge.GitHub merge is head guarded and retarget changes only the base (Board.ForgeContractTest)
+     test/board/forge_contract_test.exs:65
+     Assertion with == failed
+     code:  assert payload["merge_method"] == "merge"
+     left:  "squash"
+     right: "merge"
+     stacktrace:
+       test/board/forge_contract_test.exs:86: anonymous fn/1 in Board.ForgeContractTest."test Board.Forge.GitHub merge is head guarded and retarget changes only the base"/1
+       (req 0.6.1) lib/req/steps.ex:1079: Req.Steps.run_plug/1
+       (req 0.6.1) lib/req/request.ex:1118: Req.Request.run_request/1
+       (req 0.6.1) lib/req/request.ex:1062: Req.Request.run/1
+       (board 0.1.0) lib/board/forge/github.ex:157: Board.Forge.GitHub.mutation/6
+       (board 0.1.0) lib/board/forge/github.ex:117: Board.Forge.GitHub.merge/4
+       test/board/forge_contract_test.exs:101: (test)
+
+..
+Finished in 0.07 seconds (0.07s async, 0.00s sync)
+4 tests, 1 failure

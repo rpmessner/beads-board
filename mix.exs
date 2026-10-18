@@ -5,6 +5,7 @@ defmodule Board.MixProject do
     [
       app: :board,
       version: "0.1.0",
+      escript: [main_module: Board.CLI, app: nil, emu_args: "+S 2:2"],
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,

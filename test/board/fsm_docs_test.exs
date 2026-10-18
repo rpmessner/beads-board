@@ -26,11 +26,16 @@ defmodule Board.FsmDocsTest do
 
   for {name, module} <- [
         {"stage", Board.Stage},
+        {"delivery_machine", Board.DeliveryMachine},
+        {"spool_machine", Board.SpoolMachine},
         {"epic", Board.Epic},
         {"disclosure", Board.Initiatives.Disclosure},
         {"ticket_sheet", Board.TicketSheet},
         {"reload_machine", Board.Config.ReloadMachine},
         {"read_machine", Board.Beads.ReadMachine},
+        {"read_lifecycle", Board.Forge.ReadLifecycle},
+        {"refresh_status", Board.Forge.RefreshStatus},
+        {"action", Board.Merge.Action},
         {"schedule_machine", Board.Beads.ScheduleMachine},
         {"sync_machine", Board.Beads.SyncMachine},
         {"watch_machine", Board.Config.WatchMachine}

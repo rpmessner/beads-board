@@ -1,6 +1,9 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
 
+# Agent CLI escript (built locally, installed only by the user).
+/board
+
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
 

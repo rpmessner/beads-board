@@ -46,6 +46,8 @@ defmodule Board.Initiatives do
 
     threshold = stale_seconds(config["board"]["stale_session_after"] || "2h")
 
+    cr_links = Board.Forge.Store.open_links()
+
     beads =
       Repo.all(
         from b in "beads", where: b.repo_key in ^keys, select: %{repo: b.repo_key, raw: b.raw}
@@ -64,6 +66,7 @@ defmodule Board.Initiatives do
 
         %{
           key: key,
+          crs: Map.get(cr_links, key, []),
           repo: repo,
           id: raw["id"],
           title: raw["title"],
@@ -81,11 +84,15 @@ defmodule Board.Initiatives do
         }
       end)
 
+    epic_aliases =
+      Map.new(epics, &{{&1.repo_key, &1.bead_id}, {&1.repo_key, &1.beads_epic_id || &1.bead_id}})
+
     links =
       Repo.all(
         from l in "epic_links",
           select: %{ticket: {l.repo_key, l.bead_id}, epic: {l.epic_repo_key, l.epic_bead_id}}
       )
+      |> Enum.map(fn link -> %{link | epic: Map.get(epic_aliases, link.epic, link.epic)} end)
 
     tree = Tree.build(beads, links)
 

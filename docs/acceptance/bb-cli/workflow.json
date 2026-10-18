@@ -1,0 +1,195 @@
+[
+  {
+    "args": [
+      "show",
+      "scratch-1"
+    ],
+    "exit": 0,
+    "body": {
+      "allowed": [
+        "dispatch",
+        "abandon"
+      ],
+      "history": [
+        {
+          "actor": "beads",
+          "effects": [],
+          "event": "backfill",
+          "from_stage": null,
+          "id": 2,
+          "inserted_at": "2026-10-18T07:38:29.833962",
+          "outcome": "row",
+          "payload": {},
+          "source": "backfill",
+          "to_stage": "queued"
+        }
+      ],
+      "id": "scratch-1",
+      "repo": "scratch",
+      "stage": "queued"
+    }
+  },
+  {
+    "args": [
+      "dispatch",
+      "scratch-1",
+      "--window",
+      "cli-build",
+      "--branch",
+      "scratch",
+      "--actor",
+      "pi"
+    ],
+    "exit": 0,
+    "body": {
+      "effects": [
+        {
+          "kind": "record",
+          "name": "session"
+        },
+        {
+          "kind": "emit",
+          "name": "stage"
+        }
+      ],
+      "stage": "dispatched"
+    }
+  },
+  {
+    "args": [
+      "progress",
+      "scratch-1",
+      "API and CLI connected"
+    ],
+    "exit": 0,
+    "body": {
+      "effects": [
+        {
+          "kind": "append",
+          "name": "progress"
+        },
+        {
+          "kind": "emit",
+          "name": "stage"
+        }
+      ],
+      "stage": "building"
+    }
+  },
+  {
+    "args": [
+      "report",
+      "scratch-1",
+      "--path",
+      "docs/sessions/bb-cli.md"
+    ],
+    "exit": 0,
+    "body": {
+      "effects": [
+        {
+          "kind": "record",
+          "name": "report"
+        },
+        {
+          "kind": "emit",
+          "name": "stage"
+        }
+      ],
+      "stage": "reported"
+    }
+  },
+  {
+    "args": [
+      "review",
+      "scratch-1"
+    ],
+    "exit": 0,
+    "body": {
+      "effects": [
+        {
+          "kind": "emit",
+          "name": "stage"
+        }
+      ],
+      "stage": "in_review"
+    }
+  },
+  {
+    "args": [
+      "commit",
+      "scratch-1",
+      "--sha",
+      "test-evidence"
+    ],
+    "exit": 0,
+    "body": {
+      "effects": [
+        {
+          "kind": "record",
+          "name": "commit"
+        },
+        {
+          "kind": "emit",
+          "name": "stage"
+        }
+      ],
+      "stage": "committed"
+    }
+  },
+  {
+    "args": [
+      "review",
+      "scratch-2"
+    ],
+    "exit": 3,
+    "body": {
+      "allowed": [
+        "dispatch",
+        "abandon"
+      ],
+      "stage": "queued"
+    }
+  },
+  {
+    "args": [
+      "show",
+      "scratch-2"
+    ],
+    "exit": 0,
+    "body": {
+      "allowed": [
+        "dispatch",
+        "abandon"
+      ],
+      "history": [
+        {
+          "actor": "beads",
+          "effects": [],
+          "event": "backfill",
+          "from_stage": null,
+          "id": 3,
+          "inserted_at": "2026-10-18T07:38:29.837344",
+          "outcome": "row",
+          "payload": {},
+          "source": "backfill",
+          "to_stage": "queued"
+        },
+        {
+          "actor": "user",
+          "effects": [],
+          "event": "review",
+          "from_stage": "queued",
+          "id": 9,
+          "inserted_at": "2026-10-18T07:38:40.461637",
+          "outcome": "invalid",
+          "payload": {},
+          "source": "claimed",
+          "to_stage": "queued"
+        }
+      ],
+      "id": "scratch-2",
+      "repo": "scratch",
+      "stage": "queued"
+    }
+  }
+]

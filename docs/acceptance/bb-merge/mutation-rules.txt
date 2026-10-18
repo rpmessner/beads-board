@@ -1,0 +1,154 @@
+Compiling 2 files (.ex)
+Generated board app
+Running ExUnit with seed: 443808, max_cases: 16
+
+
+
+  1) test all safety rules are enforced by the job, not cached UI (Board.MergeJobTest)
+     test/board/merge_job_test.exs:114
+     match (=) failed
+     The following variables were pinned:
+       reason = "draft"
+     code:  assert %{state: "failed", error: ^reason, merge_sha: nil} = Merge.get(row.id)
+     left:  %{state: "failed", error: ^reason, merge_sha: nil}
+     right: %Board.Merge.Record{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "merge_actions">,
+              id: 122,
+              repo_key: "sample",
+              remote: "owner/repo",
+              number: 5,
+              head_sha: "confirmed",
+              requested_by: "local_ui",
+              facts: %{
+                "child" => %{
+                  "checks" => "none",
+                  "draft" => false,
+                  "head_sha" => "child-sha",
+                  "mergeable" => "mergeable",
+                  "number" => 6,
+                  "source_branch" => "child",
+                  "state" => "open",
+                  "target_branch" => "stack",
+                  "title" => "Child"
+                },
+                "default_branch" => "main",
+                "pr" => %{
+                  "checks" => "none",
+                  "draft" => false,
+                  "head_sha" => "confirmed",
+                  "mergeable" => "mergeable",
+                  "number" => 5,
+                  "source_branch" => "stack",
+                  "state" => "open",
+                  "target_branch" => "main",
+                  "title" => "Bottom"
+                }
+              },
+              state: "retargeting",
+              error: nil,
+              merge_sha: "merge-confirmed",
+              claimed_at: ~U[2026-10-18 07:44:31.653585Z],
+              retarget_claimed_at: nil,
+              inserted_at: ~U[2026-10-18 07:44:31.632100Z],
+              updated_at: ~U[2026-10-18 07:44:31.662773Z]
+            }
+     stacktrace:
+       test/board/merge_job_test.exs:133: anonymous fn/4 in Board.MergeJobTest."test all safety rules are enforced by the job, not cached UI"/1
+       (elixir 1.19.5) lib/enum.ex:2520: Enum."-reduce/3-lists^foldl/2-0-"/3
+       test/board/merge_job_test.exs:118: (test)
+
+.
+
+  2) test the job refuses a top PR even when enqueued without the UI guard (Board.MergeJobTest)
+     test/board/merge_job_test.exs:72
+     match (=) failed
+     code:  assert %{state: "failed", error: "not_bottom", merge_sha: nil} = Merge.get(row.id)
+     left:  %{state: "failed", error: "not_bottom", merge_sha: nil}
+     right: %Board.Merge.Record{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "merge_actions">,
+              id: 124,
+              repo_key: "sample",
+              remote: "owner/repo",
+              number: 6,
+              head_sha: "child-sha",
+              requested_by: "local_ui",
+              facts: %{
+                "child" => nil,
+                "default_branch" => "main",
+                "pr" => %{
+                  "checks" => "none",
+                  "draft" => false,
+                  "head_sha" => "child-sha",
+                  "mergeable" => "mergeable",
+                  "number" => 6,
+                  "source_branch" => "child",
+                  "state" => "open",
+                  "target_branch" => "stack",
+                  "title" => "Child"
+                }
+              },
+              state: "merged",
+              error: nil,
+              merge_sha: "merge-child-sha",
+              claimed_at: ~U[2026-10-18 07:44:31.696297Z],
+              retarget_claimed_at: nil,
+              inserted_at: ~U[2026-10-18 07:44:31.691815Z],
+              updated_at: ~U[2026-10-18 07:44:31.699245Z]
+            }
+     stacktrace:
+       test/board/merge_job_test.exs:84: (test)
+
+....
+
+  3) test configuration and confirmed child changes block the write (Board.MergeJobTest)
+     test/board/merge_job_test.exs:194
+     match (=) failed
+     code:  assert %{state: "failed", error: "stack_changed"} = Merge.get(row.id)
+     left:  %{state: "failed", error: "stack_changed"}
+     right: %Board.Merge.Record{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "merge_actions">,
+              id: 130,
+              repo_key: "sample",
+              remote: "owner/repo",
+              number: 5,
+              head_sha: "confirmed",
+              requested_by: "local_ui",
+              facts: %{
+                "child" => %{
+                  "checks" => "none",
+                  "draft" => false,
+                  "head_sha" => "child-sha",
+                  "mergeable" => "mergeable",
+                  "number" => 6,
+                  "source_branch" => "child",
+                  "state" => "open",
+                  "target_branch" => "stack",
+                  "title" => "Child"
+                },
+                "default_branch" => "main",
+                "pr" => %{
+                  "checks" => "none",
+                  "draft" => false,
+                  "head_sha" => "confirmed",
+                  "mergeable" => "mergeable",
+                  "number" => 5,
+                  "source_branch" => "stack",
+                  "state" => "open",
+                  "target_branch" => "main",
+                  "title" => "Bottom"
+                }
+              },
+              state: "retargeting",
+              error: nil,
+              merge_sha: "merge-confirmed",
+              claimed_at: ~U[2026-10-18 07:44:31.775948Z],
+              retarget_claimed_at: nil,
+              inserted_at: ~U[2026-10-18 07:44:31.771034Z],
+              updated_at: ~U[2026-10-18 07:44:31.779289Z]
+            }
+     stacktrace:
+       test/board/merge_job_test.exs:205: (test)
+
+.....
+Finished in 0.4 seconds (0.00s async, 0.4s sync)
+13 tests, 3 failures

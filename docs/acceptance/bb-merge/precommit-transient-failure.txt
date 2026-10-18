@@ -1,0 +1,18 @@
+Repository hygiene: no license material or operator paths detected
+Running ExUnit with seed: 66350, max_cases: 16
+
+.............................................................................................................................................................................................................................
+
+  1) test drafts appear above epics and filters cover status, label, project and stale (BoardWeb.InitiativesLiveTest)
+     test/board_web/live/initiatives_live_test.exs:227
+     ** (MatchError) no match of right hand side value:
+
+         {:error, {:redirect, %{to: "http://www.example.com/"}}}
+
+     code: {:ok, view, _} = live(conn, "/")
+     stacktrace:
+       test/board_web/live/initiatives_live_test.exs:235: (test)
+
+...............
+Finished in 13.7 seconds (2.4s async, 11.3s sync)
+4 properties, 233 tests, 1 failure
