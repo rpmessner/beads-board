@@ -38,8 +38,9 @@ defmodule Board.Beads.ProjectionTest do
     output = File.read!("test/fixtures/beads/export.jsonl")
     assert {:ok, :changed} = Projection.replace("orphan", output)
 
+    Repo.update_all(from(t in "tickets", where: t.repo_key == "orphan"), set: [stage: "building"])
+
     Repo.insert_all("tickets", [
-      %{repo_key: "orphan", bead_id: "demo-1.1", stage: "building", stage_changed_at: now},
       %{repo_key: "unrelated", bead_id: "demo-1.1", stage: "reported", stage_changed_at: now}
     ])
 
@@ -55,14 +56,9 @@ defmodule Board.Beads.ProjectionTest do
     output = File.read!("test/fixtures/beads/export.jsonl")
     assert {:ok, :changed} = Projection.replace("rebuild", output)
 
-    Repo.insert_all("tickets", [
-      %{
-        repo_key: "rebuild",
-        bead_id: "demo-1.1",
-        stage: "committed",
-        stage_changed_at: DateTime.utc_now()
-      }
-    ])
+    Repo.update_all(from(t in "tickets", where: t.repo_key == "rebuild"),
+      set: [stage: "committed"]
+    )
 
     Repo.delete_all(from r in "bead_repos", where: r.key == "rebuild")
     assert Projection.list_raw("rebuild") == []

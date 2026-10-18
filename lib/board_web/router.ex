@@ -17,7 +17,7 @@ defmodule BoardWeb.Router do
   scope "/", BoardWeb do
     pipe_through :browser
 
-    live "/", SettingsLive, :index
+    live "/", InitiativesLive, :index
     live "/settings", SettingsLive, :index
   end
 

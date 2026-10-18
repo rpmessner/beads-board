@@ -21,6 +21,8 @@ defmodule BoardWeb.SettingsLiveTest do
     ])
 
     {:ok, view, _} = live(conn, "/settings")
+    assert has_element?(view, "a.bb-nav-active[aria-current=page]", "Settings")
+    refute has_element?(view, "p", "The board never writes")
     assert has_element?(view, "#repo-sample")
     assert has_element?(view, "#discovered-repos pre", "[[repos]]")
     assert has_element?(view, "#enabled-sample[disabled]")
