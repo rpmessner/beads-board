@@ -79,15 +79,20 @@ defmodule BoardWeb.LiveViewClockTest do
     BoardWeb.LiveViewClock.install(fn -> 1_000 end)
     parent = self()
 
-    start_supervised!({Task,
-     fn ->
-       # Tasks inherit the test's callers; model an unrelated test process.
-       Process.delete(:"$callers")
-       token = Phoenix.LiveView.Static.sign_token(BoardWeb.Endpoint, %{probe: :isolated})
-       send(parent, {:independent_token, token})
-     end})
+    pid =
+      start_supervised!({Task,
+       fn ->
+         # Tasks inherit the test's callers; model an unrelated test process.
+         Process.delete(:"$callers")
+         token = Phoenix.LiveView.Static.sign_token(BoardWeb.Endpoint, %{probe: :isolated})
+         send(parent, {:independent_token, token})
+       end})
 
-    assert_receive {:independent_token, token}
+    # The task sends before it exits, so its exit guarantees the token is in the mailbox;
+    # the default 100 ms assert_receive was too short under full-suite load.
+    ref = Process.monitor(pid)
+    assert_receive {:DOWN, ^ref, :process, ^pid, _}, 5_000
+    assert_received {:independent_token, token}
     [_, encoded, _signature] = String.split(token, ".")
 
     {_, signed_at, _} =
