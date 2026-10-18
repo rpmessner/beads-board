@@ -16,6 +16,8 @@ defmodule Board.Events do
 
   @kinds %{
     config_changed: "config_changed",
+    forge_changed: "forge_changed",
+    forge_requested: "forge_requested",
     sync_status_changed: "sync_status_changed",
     projection_changed: "projection_changed",
     overlay_changed: "overlay_changed",

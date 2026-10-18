@@ -154,7 +154,16 @@ defmodule BoardWeb.TicketDetail do
           <div>
             <h3 class="bb-label mb-2">Linked CRs</h3>
             <div id="ticket-crs" class="flex gap-2">
-              <Badge.badge :for={number <- @ticket.crs}>#{number}</Badge.badge>
+              <a
+                :for={cr <- @ticket.change_requests}
+                href={cr["url"]}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="hover:underline"
+                title={cr["title"]}
+              >
+                <Badge.badge>#{cr["number"]} · {cr["state"]}</Badge.badge>
+              </a>
             </div>
           </div>
           <div>

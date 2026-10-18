@@ -46,6 +46,8 @@ defmodule Board.Initiatives do
 
     threshold = stale_seconds(config["board"]["stale_session_after"] || "2h")
 
+    cr_links = Board.Forge.Store.open_links()
+
     beads =
       Repo.all(
         from b in "beads", where: b.repo_key in ^keys, select: %{repo: b.repo_key, raw: b.raw}
@@ -64,6 +66,7 @@ defmodule Board.Initiatives do
 
         %{
           key: key,
+          crs: Map.get(cr_links, key, []),
           repo: repo,
           id: raw["id"],
           title: raw["title"],

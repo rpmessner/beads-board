@@ -33,6 +33,17 @@ defmodule Board.Runtime do
       ),
       do: {:noreply, reconcile(state, key)}
 
+  def handle_info(
+        {:notification, :board_events, %{"kind" => "forge_requested", "key" => key}},
+        state
+      ) do
+    if Board.Forge.SyncJob.configured(key) &&
+         Board.Forge.SyncJob.due?(Board.Forge.Store.get(key), true),
+       do: Board.Forge.SyncJob.enqueue(key, true)
+
+    {:noreply, state}
+  end
+
   def handle_info({:notification, :board_events, %{"kind" => "config_changed"}}, state),
     do: {:noreply, reconcile(state)}
 
@@ -42,6 +53,13 @@ defmodule Board.Runtime do
     now = System.monotonic_time(:millisecond)
     config = Board.RuntimeState.config()
     repos = (config && config.config["repos"]) || []
+
+    Enum.each(repos, fn repo ->
+      if repo["enabled"] && repo["forge"] == "github" && repo["github"] &&
+           Board.Forge.SyncJob.due?(Board.Forge.Store.get(repo["key"])) do
+        Board.Forge.SyncJob.enqueue(repo["key"])
+      end
+    end)
 
     groups =
       repos

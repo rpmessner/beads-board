@@ -36,6 +36,7 @@ defmodule Board.Initiatives.Tree do
            planned: Enum.reject(tickets, &MapSet.member?(fallout, &1.key)),
            fallout: Enum.filter(tickets, &MapSet.member?(fallout, &1.key)),
            total: length(tickets),
+           cr_count: tickets |> Enum.flat_map(&Map.get(&1, :crs, [])) |> Enum.uniq() |> length(),
            closed: Enum.count(tickets, &(&1.status == "closed")),
            histogram: Enum.frequencies_by(tickets, & &1.stage),
            stage: stage(epic.stage, tickets),
