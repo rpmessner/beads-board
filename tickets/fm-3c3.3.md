@@ -2,7 +2,7 @@
 id: fm-3c3.3
 title: "Notification drawer"
 type: feature
-status: in_progress
+status: closed
 priority: 2
 parent: fm-3c3
 blocked_by: ["fm-zgd.1"]
@@ -10,8 +10,8 @@ related: []
 discovered_from: null
 labels: []
 created: 2026-10-18
-closed: null
-close_reason: null
+closed: 2026-10-18
+close_reason: "Merged b1a08d0: notification drawer."
 ---
 
 ## What to build
