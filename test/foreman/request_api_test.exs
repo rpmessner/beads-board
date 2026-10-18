@@ -124,7 +124,7 @@ defmodule Foreman.RequestAPITest do
         assert CLI.run(["ask", "push", "s-1", "--project", "sample", "--json"], opts) == 0
       end)
 
-    assert Jason.decode!(output)["warning"] =~ "unsupported_kind"
+    assert Jason.decode!(output)["warning"] =~ "not_committed"
     output = capture_io(fn -> assert CLI.run(["wait", "bad", "--timeout", "-1"], opts) == 0 end)
     assert Jason.decode!(output)["warning"] =~ "usage"
     assert Requests.pending_count() == 0

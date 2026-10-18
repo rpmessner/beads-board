@@ -80,6 +80,39 @@ defmodule ForemanWeb.NeedsYouLiveTest do
              Requests.get(request.id)
   end
 
+  test "push card shows all named facts and decline does not enqueue", %{conn: conn} do
+    request =
+      Foreman.Repo.insert!(%Foreman.Requests.Request{
+        repo_key: "sample",
+        bead_id: "s-1",
+        kind: "push",
+        actor: "pi",
+        state: "pending",
+        facts: %{
+          "remote" => "owner/repo",
+          "worktree" => "/tmp/scratch",
+          "local_branch" => "feature",
+          "remote_branch" => "published",
+          "expected_sha" => String.duplicate("a", 40)
+        }
+      })
+
+    {:ok, view, _} = live(conn, "/needs-you")
+
+    for text <- ["owner/repo", "/tmp/scratch", "feature", "published", String.duplicate("a", 40)] do
+      assert has_element?(view, "#request-#{request.id} dd", text)
+    end
+
+    assert has_element?(view, "#submit-approve-#{request.id}", "Approve")
+
+    view
+    |> form("#push-#{request.id}", decision: %{note: "Not now"})
+    |> render_submit(%{"action" => "decline"})
+
+    assert %{state: "declined", note: "Not now"} = Requests.get(request.id)
+    assert Foreman.Repo.aggregate(Oban.Job, :count) == 0
+  end
+
   test "ticket Requests tab lists only that ticket's asks", %{conn: conn, request: request} do
     {:ok, view, _} = live(conn, "/?ticket=sample:s-1&tab=requests")
     assert has_element?(view, "#ticket-requests-tab[aria-selected=true]")

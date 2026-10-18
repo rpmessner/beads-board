@@ -1,0 +1,79 @@
+[
+  {
+    "args": [
+      "ask",
+      "push",
+      "push-1",
+      "--project",
+      "scratch",
+      "--worktree",
+      "/tmp/fm-push-scratch",
+      "--branch",
+      "main",
+      "--sha",
+      "7a3061c6bdd5159978d7bc74039cfc0a4529df2f",
+      "--remote-branch",
+      "acceptance/fm-push-1792353529431"
+    ],
+    "output": "ed25f1c2-cbb1-4327-aac6-9e27ed7d961c",
+    "exit": 0
+  },
+  {
+    "args": [
+      "wait",
+      "ed25f1c2-cbb1-4327-aac6-9e27ed7d961c",
+      "--timeout",
+      "60"
+    ],
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"push-1\",\"facts\":{\"expected_sha\":\"7a3061c6bdd5159978d7bc74039cfc0a4529df2f\",\"local_branch\":\"main\",\"remote\":\"rpmessner/beads-board-scratch\",\"remote_branch\":\"acceptance/fm-push-1792353529431\",\"worktree\":\"/tmp/fm-push-scratch\"},\"id\":\"ed25f1c2-cbb1-4327-aac6-9e27ed7d961c\",\"inserted_at\":\"2026-10-18T19:58:50.263368Z\",\"kind\":\"push\",\"note\":\"\",\"outcome\":{\"result\":{\"sha\":\"7a3061c6bdd5159978d7bc74039cfc0a4529df2f\"}},\"repo_key\":\"scratch\",\"session\":\"fm-push\",\"state\":\"done\",\"updated_at\":\"2026-10-18T19:58:52.495519Z\"}",
+    "exit": 0
+  },
+  {
+    "args": [
+      "ask",
+      "push",
+      "push-2",
+      "--project",
+      "scratch",
+      "--worktree",
+      "/tmp/fm-push-scratch",
+      "--branch",
+      "main",
+      "--sha",
+      "7a3061c6bdd5159978d7bc74039cfc0a4529df2f",
+      "--remote-branch",
+      "main"
+    ],
+    "output": "601f5674-c4c8-40d4-9c5c-6460db9f53e1",
+    "exit": 0
+  },
+  {
+    "args": [
+      "wait",
+      "601f5674-c4c8-40d4-9c5c-6460db9f53e1",
+      "--timeout",
+      "60"
+    ],
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"push-2\",\"facts\":{\"expected_sha\":\"7a3061c6bdd5159978d7bc74039cfc0a4529df2f\",\"local_branch\":\"main\",\"remote\":\"rpmessner/beads-board-scratch\",\"remote_branch\":\"main\",\"worktree\":\"/tmp/fm-push-scratch\"},\"id\":\"601f5674-c4c8-40d4-9c5c-6460db9f53e1\",\"inserted_at\":\"2026-10-18T19:58:53.657060Z\",\"kind\":\"push\",\"note\":\"\",\"outcome\":{\"result\":{\"sha\":\"7a3061c6bdd5159978d7bc74039cfc0a4529df2f\"}},\"repo_key\":\"scratch\",\"session\":\"fm-push\",\"state\":\"done\",\"updated_at\":\"2026-10-18T19:58:54.805452Z\"}",
+    "exit": 0
+  },
+  {
+    "args": [
+      "ask",
+      "push",
+      "push-e.1",
+      "--project",
+      "scratch",
+      "--worktree",
+      "/tmp/fm-push-scratch",
+      "--branch",
+      "main",
+      "--sha",
+      "7a3061c6bdd5159978d7bc74039cfc0a4529df2f",
+      "--remote-branch",
+      "main"
+    ],
+    "output": "warning: foreman refused command: epic_default_branch",
+    "exit": 0
+  }
+]

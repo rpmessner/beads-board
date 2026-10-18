@@ -1,0 +1,40 @@
+Running ExUnit with seed: 3381, max_cases: 16
+
+...............
+
+  1) test approval note survives worker transitions (Foreman.PushTest)
+     test/foreman/push_test.exs:449
+     match (=) failed
+     code:  assert %{state: "done", note: "Publish this SHA"} = Requests.get(request.id)
+     left:  %{state: "done", note: "Publish this SHA"}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "c50abedf-0ad2-4175-bfb1-b8a654ce0050",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "push",
+              actor: "user",
+              session: nil,
+              facts: %{
+                "expected_sha" => "9872fe840492a77b665f226e818407eae53c328e",
+                "local_branch" => "main",
+                "remote" => "owner/repo",
+                "remote_branch" => "feature",
+                "worktree" => "/tmp/foreman-push-131"
+              },
+              state: "done",
+              outcome: %{
+                "result" => %{
+                  "sha" => "9872fe840492a77b665f226e818407eae53c328e"
+                }
+              },
+              note: nil,
+              inserted_at: ~U[2026-10-18 19:52:51.756864Z],
+              updated_at: ~U[2026-10-18 19:52:51.790314Z]
+            }
+     stacktrace:
+       test/foreman/push_test.exs:455: (test)
+
+....
+Finished in 2.3 seconds (0.00s async, 2.3s sync)
+20 tests, 1 failure

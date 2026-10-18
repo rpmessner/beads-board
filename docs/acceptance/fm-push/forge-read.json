@@ -1,0 +1,19 @@
+{
+  "change_requests": [
+    {
+      "body": "Disposable stacked child fixture.",
+      "checks": "none",
+      "draft": false,
+      "head_sha": "2e8aa23947317903351a25bbffe97b9c9e319557",
+      "merge_state": "CLEAN",
+      "mergeable": "mergeable",
+      "number": 2,
+      "source_branch": "pr/acceptance-child",
+      "state": "open",
+      "target_branch": "main",
+      "title": "Retarget acceptance child",
+      "url": "https://github.com/rpmessner/beads-board-scratch/pull/2"
+    }
+  ],
+  "default_branch": "main"
+}

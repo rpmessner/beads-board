@@ -1,0 +1,38 @@
+{
+  "id": "e38a7944-41bb-45cf-8f95-6058868d625b",
+  "before": {
+    "ref": "refs/heads/main",
+    "sha": "7a3061c6bdd5159978d7bc74039cfc0a4529df2f"
+  },
+  "parent": "7a3061c6bdd5159978d7bc74039cfc0a4529df2f",
+  "expectedSha": "797e13046f22f41dc6b471a2ea80b0a674a7a698",
+  "after": {
+    "ref": "refs/heads/main",
+    "sha": "797e13046f22f41dc6b471a2ea80b0a674a7a698"
+  },
+  "result": {
+    "actor": "pi",
+    "bead_id": "push-2",
+    "facts": {
+      "expected_sha": "797e13046f22f41dc6b471a2ea80b0a674a7a698",
+      "local_branch": "main",
+      "remote": "rpmessner/beads-board-scratch",
+      "remote_branch": "main",
+      "worktree": "/tmp/fm-push-scratch"
+    },
+    "id": "e38a7944-41bb-45cf-8f95-6058868d625b",
+    "inserted_at": "2026-10-18T20:49:18.478237Z",
+    "kind": "push",
+    "note": "",
+    "outcome": {
+      "result": {
+        "sha": "797e13046f22f41dc6b471a2ea80b0a674a7a698"
+      }
+    },
+    "repo_key": "scratch",
+    "session": "fm-push",
+    "state": "done",
+    "updated_at": "2026-10-18T20:49:20.155957Z"
+  },
+  "errors": []
+}
