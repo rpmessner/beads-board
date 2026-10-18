@@ -1,0 +1,31 @@
+Compiling 1 file (.ex)
+Generated board app
+Running ExUnit with seed: 740571, max_cases: 16
+
+
+
+  1) test every request transition and its effects (Board.RequestMachineTest)
+     test/board/request_machine_test.exs:5
+     Assertion with == failed
+     code:  assert Machine.step(from, event, %{kind: kind}) == {to, effects}
+     left:  {:error, {:invalid, :pending, :approve}}
+     right: {:approved, [enqueue: :job]}
+     stacktrace:
+       test/board/request_machine_test.exs:18: anonymous fn/2 in Board.RequestMachineTest."test every request transition and its effects"/1
+       (elixir 1.19.5) lib/enum.ex:2520: Enum."-reduce/3-lists^foldl/2-0-"/3
+       test/board/request_machine_test.exs:6: (test)
+
+.
+
+  2) test wrong kind claims are invalid (Board.RequestMachineTest)
+     test/board/request_machine_test.exs:22
+     match (=) failed
+     code:  assert {:error, _} = Machine.step(:pending, :approve, %{kind: "decision"})
+     left:  {:error, _}
+     right: {:approved, [enqueue: :job]}
+     stacktrace:
+       test/board/request_machine_test.exs:23: (test)
+
+
+Finished in 0.01 seconds (0.01s async, 0.00s sync)
+3 tests, 2 failures

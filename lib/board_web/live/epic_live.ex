@@ -36,7 +36,6 @@ defmodule BoardWeb.EpicLive do
     |> BoardWeb.TicketDetail.refresh()
     |> assign(
       epic: epic && summary(epic),
-      page_title: if(epic, do: epic.title, else: "Epic not found"),
       repos: Board.RuntimeState.repos()
     )
     |> stream(:columns, if(epic, do: epic.columns, else: []), reset: true)
@@ -58,7 +57,7 @@ defmodule BoardWeb.EpicLive do
 
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} active={:epic} repos={@repos}>
+    <Layouts.app flash={@flash} pending_count={@pending_count} active={:epic} repos={@repos}>
       <nav class="flex gap-2 text-xs text-foreground-softer" aria-label="Breadcrumb">
         <.link id="epic-back" navigate={home_path(@page_uri)}>Initiatives</.link><span>/</span><span>{elem(@epic_key, 0)}</span><span>/</span><span class="font-mono">{elem(@epic_key, 1)}</span>
       </nav>

@@ -5,7 +5,7 @@ defmodule Board.CLITransport do
     {event, body} = classify(http(request, opts))
 
     {event, body} =
-      if event == :unavailable and request["action"] in ["show", "ls"],
+      if event == :unavailable and request["action"] in ["show", "ls", "wait"],
         do: {:refused, %{"warning" => "board unavailable; read was not queued"}},
         else: {event, body}
 

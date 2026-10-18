@@ -1,0 +1,67 @@
+[
+  {
+    "command": "board abandon scratch-1 --project scratch",
+    "output": "stage: abandoned",
+    "exit": 0
+  },
+  {
+    "command": "board revive scratch-1 --project scratch",
+    "output": "stage: queued",
+    "exit": 0
+  },
+  {
+    "command": "board ask decision scratch-1 --project scratch --question Which layout should the build use? --option Wide --option Compact --recommendation Compact --text Keep the existing keyboard shortcuts.",
+    "output": "624ba367-a4a8-4dcd-ae23-368a6e69f521",
+    "exit": 0
+  },
+  {
+    "command": "board wait 624ba367-a4a8-4dcd-ae23-368a6e69f521 --timeout 0",
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"scratch-1\",\"facts\":{\"options\":[\"Wide\",\"Compact\"],\"question\":\"Which layout should the build use?\",\"recommendation\":\"Compact\",\"text\":\"Keep the existing keyboard shortcuts.\"},\"id\":\"624ba367-a4a8-4dcd-ae23-368a6e69f521\",\"inserted_at\":\"2026-10-18T18:57:59.139122Z\",\"kind\":\"decision\",\"note\":null,\"outcome\":{},\"repo_key\":\"scratch\",\"session\":\"bb-inbox\",\"state\":\"pending\",\"updated_at\":\"2026-10-18T18:57:59.139122Z\"}",
+    "exit": 0
+  },
+  {
+    "command": "board ask decision scratch-1 --project scratch --question Include the optional animation? --option Include --option Skip --recommendation Skip",
+    "output": "f43ac985-3a76-40b7-a768-000f463044cf",
+    "exit": 0
+  },
+  {
+    "command": "board wait 624ba367-a4a8-4dcd-ae23-368a6e69f521 --timeout 60",
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"scratch-1\",\"facts\":{\"options\":[\"Wide\",\"Compact\"],\"question\":\"Which layout should the build use?\",\"recommendation\":\"Compact\",\"text\":\"Keep the existing keyboard shortcuts.\"},\"id\":\"624ba367-a4a8-4dcd-ae23-368a6e69f521\",\"inserted_at\":\"2026-10-18T18:57:59.139122Z\",\"kind\":\"decision\",\"note\":\"Keep the shortcuts.\",\"outcome\":{\"answer\":\"Compact\"},\"repo_key\":\"scratch\",\"session\":\"bb-inbox\",\"state\":\"answered\",\"updated_at\":\"2026-10-18T18:58:00.705588Z\"}",
+    "exit": 0
+  },
+  {
+    "command": "board wait f43ac985-3a76-40b7-a768-000f463044cf --timeout 60",
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"scratch-1\",\"facts\":{\"options\":[\"Include\",\"Skip\"],\"question\":\"Include the optional animation?\",\"recommendation\":\"Skip\",\"text\":null},\"id\":\"f43ac985-3a76-40b7-a768-000f463044cf\",\"inserted_at\":\"2026-10-18T18:58:00.176752Z\",\"kind\":\"decision\",\"note\":\"Keep this slice focused.\",\"outcome\":{},\"repo_key\":\"scratch\",\"session\":\"bb-inbox\",\"state\":\"declined\",\"updated_at\":\"2026-10-18T18:58:01.231643Z\"}",
+    "exit": 0
+  },
+  {
+    "command": "board ask decision scratch-1 --project scratch --question Which alternative?",
+    "output": "ed7fc17d-b1ac-4228-915a-5096cd1758d9",
+    "exit": 0
+  },
+  {
+    "command": "board wait ed7fc17d-b1ac-4228-915a-5096cd1758d9 --timeout 60",
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"scratch-1\",\"facts\":{\"options\":[],\"question\":\"Which alternative?\",\"recommendation\":null,\"text\":null},\"id\":\"ed7fc17d-b1ac-4228-915a-5096cd1758d9\",\"inserted_at\":\"2026-10-18T18:58:04.069899Z\",\"kind\":\"decision\",\"note\":\"Use the existing layout.\",\"outcome\":{\"answer\":\"Use the existing layout.\"},\"repo_key\":\"scratch\",\"session\":\"bb-inbox\",\"state\":\"answered\",\"updated_at\":\"2026-10-18T18:58:04.154646Z\"}",
+    "exit": 0
+  },
+  {
+    "command": "board ask decision scratch-1 --project scratch --question Continue this build?",
+    "output": "579e28b8-85e6-4197-af0e-ab9eb64ff5ec",
+    "exit": 0
+  },
+  {
+    "command": "board abandon scratch-1 --project scratch",
+    "output": "stage: abandoned",
+    "exit": 0
+  },
+  {
+    "command": "board wait 579e28b8-85e6-4197-af0e-ab9eb64ff5ec --timeout 60",
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"scratch-1\",\"facts\":{\"options\":[],\"question\":\"Continue this build?\",\"recommendation\":null,\"text\":null},\"id\":\"579e28b8-85e6-4197-af0e-ab9eb64ff5ec\",\"inserted_at\":\"2026-10-18T18:58:05.191972Z\",\"kind\":\"decision\",\"note\":null,\"outcome\":{\"reason\":\"ticket_finished\"},\"repo_key\":\"scratch\",\"session\":\"bb-inbox\",\"state\":\"superseded\",\"updated_at\":\"2026-10-18T18:58:05.727721Z\"}",
+    "exit": 0
+  },
+  {
+    "command": "board revive scratch-1 --project scratch",
+    "output": "stage: queued",
+    "exit": 0
+  }
+]

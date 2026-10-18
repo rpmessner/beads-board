@@ -19,6 +19,11 @@ defmodule Board.CLI do
     "revive" => "revive"
   }
   @switches [
+    question: :string,
+    option: :keep,
+    recommendation: :string,
+    text: :string,
+    timeout: :integer,
     json: :boolean,
     actor: :string,
     session: :string,
@@ -57,9 +62,22 @@ defmodule Board.CLI do
     case parse(args) do
       {:ok, %{request: request, json: json?}} ->
         request = Map.put(request, "request_id", Ecto.UUID.generate())
-        {code, body} = Board.CLITransport.deliver(request, opts)
-        if json?, do: IO.puts(Jason.encode!(body)), else: IO.puts(format(body))
-        code
+
+        {code, body} =
+          if request["action"] == "wait" do
+            deadline = System.monotonic_time(:millisecond) + request["timeout"] * 1_000
+            wait(request, opts, deadline)
+          else
+            Board.CLITransport.deliver(request, opts)
+          end
+
+        cond do
+          request["action"] == "wait" or json? -> IO.puts(Jason.encode!(body))
+          request["action"] == "ask" and is_binary(body["id"]) -> IO.puts(body["id"])
+          true -> IO.puts(format(body))
+        end
+
+        if request["action"] in ["ask", "wait"], do: 0, else: code
 
       {:error, _} ->
         warn(args, "usage: board <verb> <id> [options]; see docs/sessions/bb-cli.md")
@@ -70,8 +88,31 @@ defmodule Board.CLI do
     :exit, _ -> warn(args, "board unavailable; agent may continue")
   end
 
+  defp wait(request, opts, deadline) do
+    {_, body} = Board.CLITransport.deliver(request, opts)
+
+    case Board.RequestWait.step(:waiting, {:response, body}, %{}) do
+      {:finished, _} ->
+        {0, body}
+
+      {:waiting, _} ->
+        remaining = deadline - System.monotonic_time(:millisecond)
+
+        if remaining <= 0 do
+          {:finished, _} = Board.RequestWait.step(:waiting, :timeout, %{})
+          {0, body}
+        else
+          receive do
+          after
+            min(remaining, Keyword.get(opts, :poll_interval, 500)) ->
+              wait(request, opts, deadline)
+          end
+        end
+    end
+  end
+
   defp warn(args, message) do
-    if "--json" in args,
+    if "--json" in args or List.first(args) == "wait",
       do: IO.puts(Jason.encode!(%{warning: message})),
       else: IO.puts("warning: " <> message)
 
@@ -86,6 +127,15 @@ defmodule Board.CLI do
   defp format(%{"stage" => stage}), do: "stage: #{stage}"
   defp format(body), do: Jason.encode!(body)
 
+  defp request_identity(opts, defaults) do
+    %{
+      "actor" => opts[:actor] || defaults[:actor] || System.get_env("BOARD_ACTOR", "user"),
+      "session" => opts[:session] || defaults[:session] || System.get_env("BOARD_SESSION"),
+      "project" => opts[:project] || opts[:repo],
+      "cwd" => defaults[:cwd] || File.cwd!()
+    }
+  end
+
   def parse(args, defaults \\ []) do
     {opts, args, invalid} = OptionParser.parse(args, strict: @switches)
 
@@ -96,6 +146,33 @@ defmodule Board.CLI do
       end
 
     case {invalid, args} do
+      {[], ["ask", request_kind, id]} when kind == "ticket" ->
+        request =
+          request_identity(opts, defaults)
+          |> Map.merge(%{
+            "action" => "ask",
+            "kind" => "ticket",
+            "id" => id,
+            "request_kind" => request_kind,
+            "facts" => %{
+              "question" => opts[:question],
+              "options" => Keyword.get_values(opts, :option),
+              "recommendation" => opts[:recommendation],
+              "text" => opts[:text]
+            }
+          })
+
+        {:ok, %{request: request, json: opts[:json] || false}}
+
+      {[], ["wait", id]} when kind == "ticket" ->
+        timeout = Keyword.get(opts, :timeout, 300)
+
+        if timeout >= 0 do
+          {:ok, %{request: %{"action" => "wait", "id" => id, "timeout" => timeout}, json: true}}
+        else
+          {:error, :usage}
+        end
+
       {[], [verb | rest]} ->
         event = if(kind == "epic", do: @epic, else: @ticket)[verb]
         read_or_link = kind == "ticket" and verb in ~w(show ls attach detach)

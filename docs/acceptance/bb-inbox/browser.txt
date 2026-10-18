@@ -1,0 +1,1 @@
+PASS: real ask/wait, browser answer and decline with note; two live tabs; pending order; draft input preserved; light/dark × 390/1440; Requests tab; no browser errors

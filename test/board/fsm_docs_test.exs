@@ -26,6 +26,8 @@ defmodule Board.FsmDocsTest do
 
   for {name, module} <- [
         {"stage", Board.Stage},
+        {"request", Board.Request},
+        {"request_wait", Board.RequestWait},
         {"delivery_machine", Board.DeliveryMachine},
         {"spool_machine", Board.SpoolMachine},
         {"epic", Board.Epic},

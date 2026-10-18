@@ -69,6 +69,38 @@ When HTTP or authentication is unavailable, writes go directly to Postgres. `BOA
 
 Replay takes committed pending rows in ID order under a database advisory lock. An applied or rejected row remains as a receipt. A missing project/entity or transient failure leaves the oldest row pending for a later boot/tick. A permanently unresolved row holds later rows pending; inspect `spooled_events.result`, `request`, and `state` rather than deleting authoritative records blindly.
 
+## Decision requests (bb-zgd.1)
+
+```sh
+request=$(board ask decision bb-123 --question "Which layout?" \
+  --option Wide --option Compact --recommendation Compact)
+board wait "$request" --timeout 300
+```
+
+`ask decision <ticket-or-epic>` accepts `--question` (required), repeatable `--option`,
+`--recommendation` (one of those options), and `--text` (optional context). Identity,
+`--project`, actor and session flags work as above; use `draft:<slug>` for a draft.
+Success prints the UUID alone, or `{id,state}` with `--json`. No action kinds are enabled yet.
+
+`wait <uuid>` always prints JSON. It polls every 500 ms until answered, declined,
+withdrawn, superseded, done or failed. `--timeout` is nonnegative seconds (default 300);
+zero performs one read. At timeout it prints the current request, including `state`,
+`outcome` and `note`. A transport failure prints a JSON warning instead. HTTP calls
+retain the existing bounded transport timeouts, so a deadline can overrun by one call.
+Ask and wait always exit 0, including refusals and malformed input. Wait never spools.
+
+The authenticated `/api/commands` envelope adds:
+
+- `action: "ask"`, `id: <ticket-or-epic>`, `request_kind: "decision"`, `facts: {question,
+  options, recommendation, text}`, plus the existing identity and UUID fields.
+- `action: "wait"`, `id: <request-uuid>` returns the current request immediately;
+  the CLI owns polling. It does not resolve ticket prefixes or force a beads read.
+
+The ask's envelope UUID is also its durable request ID. An offline spool warning's
+`request_id` can therefore be passed to `wait` after replay. Before replay it returns
+`not_found`; a warning is not a successful ask. Replaying the same envelope creates
+one request. Answers and declines are browser actions, not agent command verbs.
+
 ## User setup
 
 These are user steps, not actions performed by this build session.

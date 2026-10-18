@@ -26,6 +26,9 @@ defmodule BoardWeb.TicketDetail do
     |> stream(:ticket_history, if(ticket, do: ticket.history, else: []), reset: true)
     |> stream(:ticket_sessions, if(ticket, do: ticket.sessions, else: []), reset: true)
     |> stream(:ticket_notes, if(ticket, do: ticket.notes, else: []), reset: true)
+    |> stream(:ticket_requests, if(ticket, do: Board.Requests.for_ticket(key), else: []),
+      reset: true
+    )
   end
 
   def refresh(socket) do
@@ -106,7 +109,7 @@ defmodule BoardWeb.TicketDetail do
           <Tabs.tabs_list
             active_tab={"ticket-" <> @tab}
             size="xs"
-            class="max-w-full gap-x-4 overflow-x-auto"
+            class="max-w-full gap-x-3 overflow-x-auto sm:gap-x-4"
           >
             <:tab
               :for={
@@ -114,16 +117,31 @@ defmodule BoardWeb.TicketDetail do
                   {"overview", "Overview"},
                   {"history", "Stage history"},
                   {"sessions", "Sessions"},
-                  {"notes", "Agent notes"}
+                  {"notes", "Agent notes"},
+                  {"requests", "Requests"}
                 ]
               }
               name={"ticket-" <> key}
               class="shrink-0 whitespace-nowrap"
               phx-click={JS.patch(Board.TicketSheet.tab_path(@uri, key))}
             >
-              {label}
+              <span class="sm:hidden">
+                {if key == "history",
+                  do: "History",
+                  else: if(key == "notes", do: "Notes", else: label)}
+              </span>
+              <span class="hidden sm:inline">{label}</span>
             </:tab>
           </Tabs.tabs_list>
+          <Tabs.tabs_panel name="ticket-requests" active={@tab == "requests"} class="pt-5">
+            <div id="ticket-requests" phx-update="stream" class="space-y-3">
+              <BoardWeb.RequestCard.summary
+                :for={{id, request} <- @streams.ticket_requests}
+                id={id}
+                request={request}
+              />
+            </div>
+          </Tabs.tabs_panel>
           <Tabs.tabs_panel name="ticket-overview" active={@tab == "overview"} class="pt-5">
             <section id="ticket-overview" class="space-y-5">
               <div

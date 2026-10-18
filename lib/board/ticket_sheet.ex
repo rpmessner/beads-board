@@ -21,7 +21,7 @@ defmodule Board.TicketSheet do
   def key(_), do: nil
 
   @doc "Normalizes the URL tab value; missing or unknown values select Overview."
-  def tab(value) when value in ~w(overview history sessions notes), do: value
+  def tab(value) when value in ~w(overview history sessions notes requests), do: value
   def tab(_), do: "overview"
 
   def tab_path(uri, tab) do

@@ -23,7 +23,6 @@ defmodule BoardWeb.InitiativesLive do
     {:ok,
      socket
      |> assign(
-       page_title: "Initiatives",
        filters: %{},
        filter_disclosure: disclosure,
        remembered_filters: remembered,
@@ -248,7 +247,13 @@ defmodule BoardWeb.InitiativesLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} active={:initiatives} repos={@repos} filters={@filters}>
+    <Layouts.app
+      flash={@flash}
+      pending_count={@pending_count}
+      active={:initiatives}
+      repos={@repos}
+      filters={@filters}
+    >
       <div
         id="initiative-filter-memory"
         phx-hook="InitiativeFilters"
