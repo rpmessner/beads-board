@@ -1,6 +1,26 @@
 # fm-mergereq: fm-zgd.5
 
-Implemented and verified on branch `fm-mergereq`. No commits, pushes, ticket edits, bd commands, subagents, or live GitHub writes. The installed service, configuration and database were untouched. The isolated acceptance server on port 4785 is stopped.
+Implemented and verified on branch `fm-mergereq`. The initial build made no commits. The coordinator then committed it, and the authorized rebase follow-up is recorded below. No pushes, ticket edits, bd commands, subagents, or live GitHub writes. The installed service, configuration and database were untouched. The isolated acceptance server on port 4785 is stopped.
+
+## Rebase follow-up
+
+The tree was already clean at `10b78df`, so there was no uncommitted work requiring a WIP commit. `git rebase main` rebased that implementation onto `6de79a0`, producing `9e2ca35`.
+
+Resolved all six conflicted files without dropping either feature:
+
+- CLI retains open-PR `--head`/`--body-file` and merge `--pr`, with separate fact builders.
+- `Requests` retains the open-PR and push approval-change checks, plus merge confirmation routing and reconciliation.
+- Kind registration and the runtime tick retain push, open_pr, merge and decision support.
+- Shared cards retain separate open-PR and merge facts, stable form IDs, and explicit labels for all action kinds.
+
+Post-rebase verification:
+
+- [112 focused tests passed](../acceptance/fm-mergereq/rebase-focused.txt), covering all four request kinds, CLI/API, approval, jobs, concurrency and both LiveViews.
+- [The merge-request browser runner passed](../acceptance/fm-mergereq/rebase-browser.txt) with real CLI waits and fake-forge merged/refused/failed/partial outcomes. All eight refreshed screenshots were opened and inspected at 390/1440 in both themes. No clipping, overflow or browser errors.
+- [Final `mix precommit`](../acceptance/fm-mergereq/rebase-precommit.txt), seed 887073: **5 properties, 483 tests, 0 failures**. Hygiene passed with no application warnings.
+- Assets and the acceptance escript rebuilt successfully. `git diff --check` passed. Port 4785 was stopped after the browser run.
+
+Reviewed the resolved diff against main: the open-PR approval guards and job enqueue remain intact; only merge approval takes the confirm route. All write jobs and their guards remain unchanged. No unresolved finding. The earlier sections describe the initial build and its original gates.
 
 ## Changes and flow
 
