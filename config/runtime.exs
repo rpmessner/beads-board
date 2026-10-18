@@ -8,7 +8,7 @@ end
 
 config :board, :role, role
 
-if config_env() != :test do
+if config_env() not in [:test, :acceptance] do
   config :board,
     config_directory: System.get_env("BOARD_CONFIG_DIR", Path.expand("~/.config/beads-board")),
     discovery_root: System.get_env("BOARD_DISCOVERY_ROOT", Path.expand("~/dev"))

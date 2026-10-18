@@ -5,16 +5,14 @@ config :board, runtime_enabled: false, config_directory: "/tmp/bb-exec/test-conf
 # Jobs are inserted into the SQL sandbox and explicitly executed by tests.
 config :board, Oban, testing: :manual, queues: false, plugins: false
 
-# Configure your database
-#
-# The MIX_TEST_PARTITION environment variable can be used
-# to provide built-in test partitioning in CI environment.
-# Run `mix help test` for more information.
+# __DIR__ identifies this checkout even when Mix runs from a subdirectory.
+checkout = Path.basename(Path.expand("..", __DIR__))
+
 config :board, Board.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "beads_board_test#{System.get_env("MIX_TEST_PARTITION")}",
+  database: "beads_board_test_#{checkout}#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 

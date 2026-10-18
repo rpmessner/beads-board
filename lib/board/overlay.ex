@@ -367,9 +367,11 @@ defmodule Board.Overlay do
   end
 
   defp persist_effect({:record, :spec_link}, _, row, _, payload, _) do
-    Repo.update_all(from(e in "epics", where: e.id == ^row.id),
-      set: [spec_link: payload["spec_link"]]
-    )
+    if Map.has_key?(payload, "spec_link") do
+      Repo.update_all(from(e in "epics", where: e.id == ^row.id),
+        set: [spec_link: payload["spec_link"]]
+      )
+    end
   end
 
   defp persist_effect({:link, :beads_epic}, {repo, id}, row, _, payload, _) do

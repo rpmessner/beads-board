@@ -11,6 +11,7 @@ defmodule BoardWeb.Router do
   end
 
   pipeline :api do
+    plug BoardWeb.AgentAuth
     plug :accepts, ["json"]
   end
 
@@ -21,6 +22,15 @@ defmodule BoardWeb.Router do
     live "/settings", SettingsLive, :index
     live "/pull-requests", PullRequestsLive, :index
     live "/epics/:repo/:id", EpicLive, :show
+  end
+
+  scope "/api", BoardWeb do
+    pipe_through :api
+    get "/tickets/:repo/:id", AgentController, :show
+    post "/tickets/:repo/:id/events", AgentController, :event
+    post "/commands", AgentController, :command
+    get "/repos", AgentController, :catalog
+    post "/repos/:repo/sync", AgentController, :sync
   end
 
   # Other scopes may use custom stacks.
