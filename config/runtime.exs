@@ -74,6 +74,8 @@ if config_env() == :prod do
 
   config :board, BoardWeb.Endpoint,
     url: [host: host, port: port, scheme: "http"],
+    # Loopback-only server: the browser may name it either way (WSL forwards localhost).
+    check_origin: ["//127.0.0.1", "//localhost"],
     http: [
       ip: {127, 0, 0, 1}
     ],
