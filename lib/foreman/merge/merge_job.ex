@@ -7,9 +7,9 @@ defmodule Foreman.Merge.MergeJob do
   def timeout(_), do: :timer.seconds(60)
   @impl true
   def perform(%Oban.Job{args: %{"action_id" => id}}),
-    do: run(id, Foreman.Forge.adapter(), Foreman.Forge.options())
+    do: run(id, Foreman.Forge.adapter())
 
-  def run(id, adapter, opts) do
+  def run(id, adapter, opts \\ nil) do
     case Merge.claim(id, :merge) do
       nil -> :ok
       row -> execute(row, adapter, opts)
@@ -20,7 +20,9 @@ defmodule Foreman.Merge.MergeJob do
     caps = adapter.capabilities()
 
     result =
-      with true <- caps.write || {:error, :read_only},
+      with :ok <- Foreman.Preview.allow_external_write(),
+           opts = opts || Foreman.Forge.options(),
+           true <- caps.write || {:error, :read_only},
            true <- Merge.configured?(row) || {:error, :config_changed},
            {:ok, snapshot} <- adapter.list(row.remote, Keyword.put(opts, :tracked, [row.number])),
            :ok <- Merge.validate(snapshot, row),

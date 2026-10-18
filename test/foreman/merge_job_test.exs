@@ -50,6 +50,63 @@ defmodule Foreman.MergeJobTest do
     row
   end
 
+  defp preview! do
+    previous = System.get_env("PREVIEW")
+    System.put_env("PREVIEW", "1")
+
+    on_exit(fn ->
+      if previous, do: System.put_env("PREVIEW", previous), else: System.delete_env("PREVIEW")
+    end)
+  end
+
+  test "preview refuses a queued merge and leaves forge reads available", %{
+    snapshot: snapshot,
+    fake: fake
+  } do
+    row = enqueue(snapshot)
+    preview!()
+    assert :ok = MergeJob.run(row.id, Foreman.Forge.Fake, server: fake)
+    assert %{state: "failed", error: "refused in preview", merge_sha: nil} = Merge.get(row.id)
+    assert {:ok, ^snapshot} = Foreman.Forge.Fake.list("owner/repo", server: fake)
+    refute Repo.exists?(from j in Oban.Job, where: j.worker == "Foreman.Merge.RetargetJob")
+  end
+
+  test "preview refuses a copied retarget without erasing merge evidence", %{
+    snapshot: snapshot,
+    fake: fake
+  } do
+    row = enqueue(snapshot)
+    assert :ok = MergeJob.run(row.id, Foreman.Forge.Fake, server: fake)
+    {:ok, merged_snapshot} = Foreman.Forge.Fake.list("owner/repo", server: fake)
+    preview!()
+    assert :ok = RetargetJob.run(row.id, Foreman.Forge.Fake, server: fake)
+
+    assert %{state: "failed", error: "refused in preview", merge_sha: "merge-confirmed"} =
+             Merge.get(row.id)
+
+    assert {:ok, ^merged_snapshot} = Foreman.Forge.Fake.list("owner/repo", server: fake)
+  end
+
+  test "preview merge perform refuses without a credential service", %{snapshot: snapshot} do
+    row = enqueue(snapshot)
+    preview!()
+    assert :ok = MergeJob.perform(%Oban.Job{args: %{"action_id" => row.id}})
+    assert %{state: "failed", error: "refused in preview"} = Merge.get(row.id)
+  end
+
+  test "preview retarget perform refuses without a credential service", %{
+    snapshot: snapshot,
+    fake: fake
+  } do
+    row = enqueue(snapshot)
+    :ok = MergeJob.run(row.id, Foreman.Forge.Fake, server: fake)
+    preview!()
+    assert :ok = RetargetJob.perform(%Oban.Job{args: %{"action_id" => row.id}})
+
+    assert %{state: "failed", error: "refused in preview", merge_sha: "merge-confirmed"} =
+             Merge.get(row.id)
+  end
+
   test "durable audit precedes write; merge and retarget do not replay", %{
     snapshot: snapshot,
     fake: fake

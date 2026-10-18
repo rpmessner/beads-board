@@ -147,6 +147,62 @@ defmodule Foreman.PushTest do
     assert Repo.aggregate(Oban.Job, :count) == 0
   end
 
+  test "preview refuses an approved push and audits the refusal without git", %{facts: facts} do
+    committed()
+    {:ok, request} = Requests.ask({"sample", "s-1"}, "push", %{"facts" => facts})
+    {:ok, _} = Requests.resolve(request.id, :approve, %{})
+    previous = System.get_env("PREVIEW")
+    System.put_env("PREVIEW", "1")
+
+    on_exit(fn ->
+      if previous, do: System.put_env("PREVIEW", previous), else: System.delete_env("PREVIEW")
+    end)
+
+    fake =
+      start_supervised!(
+        {Foreman.Forge.Fake, %{"default_branch" => "main", "change_requests" => []}}
+      )
+
+    assert :ok =
+             Foreman.Requests.PushJob.run(request.id,
+               adapter: Foreman.Forge.Fake,
+               forge_options: [server: fake],
+               command: fn _, _ ->
+                 send(self(), :unexpected_git)
+                 {"", 0}
+               end
+             )
+
+    assert %{state: "failed", outcome: %{"reason" => "refused in preview"}} =
+             Requests.get(request.id)
+
+    refute_received :unexpected_git
+
+    assert Repo.exists?(
+             from e in "request_events",
+               where:
+                 e.request_id == ^Ecto.UUID.dump!(request.id) and e.event == "failed" and
+                   fragment("?->>'reason'", e.payload) == "refused in preview"
+           )
+  end
+
+  test "preview perform refuses even without a credential service", %{facts: facts} do
+    committed()
+    {:ok, request} = Requests.ask({"sample", "s-1"}, "push", %{"facts" => facts})
+    {:ok, _} = Requests.resolve(request.id, :approve, %{})
+    previous = System.get_env("PREVIEW")
+    System.put_env("PREVIEW", "1")
+
+    on_exit(fn ->
+      if previous, do: System.put_env("PREVIEW", previous), else: System.delete_env("PREVIEW")
+    end)
+
+    assert :ok = Foreman.Requests.PushJob.perform(%Oban.Job{args: %{"request_id" => request.id}})
+
+    assert %{state: "failed", outcome: %{"reason" => "refused in preview"}} =
+             Requests.get(request.id)
+  end
+
   test "worker pushes the exact sha to a bare remote only once", %{facts: facts, path: path} do
     committed()
     bare = path <> "-bare"

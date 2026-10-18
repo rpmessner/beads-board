@@ -1,0 +1,56 @@
+Running ExUnit with seed: 477219, max_cases: 16
+
+.............
+
+  1) test preview refuses a queued merge and leaves forge reads available (Foreman.MergeJobTest)
+     test/foreman/merge_job_test.exs:61
+     match (=) failed
+     code:  assert %{state: "failed", error: "refused in preview", merge_sha: nil} = Merge.get(row.id)
+     left:  %{state: "failed", error: "refused in preview", merge_sha: nil}
+     right: %Foreman.Merge.Record{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "merge_actions">,
+              id: 21,
+              repo_key: "sample",
+              remote: "owner/repo",
+              number: 5,
+              head_sha: "confirmed",
+              requested_by: "local_ui",
+              facts: %{
+                "child" => %{
+                  "checks" => "none",
+                  "draft" => false,
+                  "head_sha" => "child-sha",
+                  "mergeable" => "mergeable",
+                  "number" => 6,
+                  "source_branch" => "child",
+                  "state" => "open",
+                  "target_branch" => "stack",
+                  "title" => "Child"
+                },
+                "default_branch" => "main",
+                "pr" => %{
+                  "checks" => "none",
+                  "draft" => false,
+                  "head_sha" => "confirmed",
+                  "mergeable" => "mergeable",
+                  "number" => 5,
+                  "source_branch" => "stack",
+                  "state" => "open",
+                  "target_branch" => "main",
+                  "title" => "Bottom"
+                }
+              },
+              state: "retargeting",
+              error: nil,
+              merge_sha: "merge-confirmed",
+              claimed_at: ~U[2026-10-18 22:22:01.142203Z],
+              retarget_claimed_at: nil,
+              inserted_at: ~U[2026-10-18 22:22:01.135593Z],
+              updated_at: ~U[2026-10-18 22:22:01.147022Z]
+            }
+     stacktrace:
+       test/foreman/merge_job_test.exs:65: (test)
+
+..
+Finished in 0.7 seconds (0.00s async, 0.7s sync)
+16 tests, 1 failure

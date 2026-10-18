@@ -1,0 +1,38 @@
+{
+  "requests": [
+    {
+      "id": "5d962264-dd51-4591-a1d9-60c0e7cd7220",
+      "state": "failed",
+      "outcome": {
+        "reason": "refused in preview"
+      }
+    }
+  ],
+  "events": [
+    {
+      "event": "start",
+      "payload": {}
+    },
+    {
+      "event": "failed",
+      "payload": {
+        "reason": "refused in preview"
+      }
+    }
+  ],
+  "jobs": [
+    {
+      "worker": "Foreman.Requests.PushJob",
+      "state": "completed"
+    }
+  ],
+  "tickets": 41,
+  "port": 4881,
+  "source_request_state": "approved",
+  "external_boundary_calls": [],
+  "cleanup": {
+    "previews": [],
+    "scratch_databases": []
+  },
+  "browser": "LiveView connected; code edit live-reloaded; no overflow or browser errors"
+}

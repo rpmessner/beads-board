@@ -1,0 +1,17 @@
+Excerpt (dependency compilation omitted):
+Running ExUnit with seed: 311381, max_cases: 16
+
+...
+
+  1) test dev honors the preview port and database URL (Foreman.RuntimeConfigTest)
+     test/foreman/runtime_config_test.exs:27
+     Assertion with == failed
+     code:  assert config[:foreman][Foreman.Repo][:url] == "ecto://localhost/foreman_preview_scratch"
+     left:  nil
+     right: "ecto://localhost/foreman_preview_scratch"
+     stacktrace:
+       test/foreman/runtime_config_test.exs:32: (test)
+
+...
+Finished in 0.04 seconds (0.00s async, 0.04s sync)
+7 tests, 1 failure
