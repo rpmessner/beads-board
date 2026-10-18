@@ -1,8 +1,8 @@
 # Explicitly authorized scratch-only run:
-# BOARD_LIVE_MERGE_APPROVED=rpmessner/beads-board-scratch MIX_ENV=test PORT=4769 BOARD_ROLE=web mix run --no-start tools/merge-live-acceptance.exs
+# FOREMAN_LIVE_MERGE_APPROVED=rpmessner/foreman-scratch MIX_ENV=test PORT=4769 FOREMAN_ROLE=web mix run --no-start tools/merge-live-acceptance.exs
 # This transport records only response projections, never headers or credentials.
 defmodule MergeLiveAcceptance do
-  @remote "rpmessner/beads-board-scratch"
+  @remote "rpmessner/foreman-scratch"
   @fixtures "test/fixtures/forge/live-merge"
 
   def proxy(conn, token) do
@@ -12,7 +12,7 @@ defmodule MergeLiveAcceptance do
     kind =
       case {conn.method, conn.request_path, payload} do
         {"POST", "/graphql",
-         %{"variables" => %{"owner" => "rpmessner", "name" => "beads-board-scratch"}}} ->
+         %{"variables" => %{"owner" => "rpmessner", "name" => "foreman-scratch"}}} ->
           "list"
 
         {"PUT", "/repos/#{@remote}/pulls/1/merge", %{"merge_method" => "merge", "sha" => sha}}
@@ -52,7 +52,7 @@ defmodule MergeLiveAcceptance do
           }
       end
 
-    phase = Application.get_env(:board, :live_acceptance_phase, "initial")
+    phase = Application.get_env(:foreman, :live_acceptance_phase, "initial")
     request = if kind == "list", do: %{"tracked_query" => payload["query"]}, else: payload
     File.mkdir_p!(@fixtures)
 
@@ -76,9 +76,9 @@ defmodule MergeLiveAcceptance do
 
   def read do
     {:ok, snapshot} =
-      Board.Forge.GitHub.list(@remote, Keyword.put(Board.Forge.options(), :tracked, [1, 2]))
+      Foreman.Forge.GitHub.list(@remote, Keyword.put(Foreman.Forge.options(), :tracked, [1, 2]))
 
-    Board.Forge.Store.replace("scratch", @remote, snapshot)
+    Foreman.Forge.Store.replace("scratch", @remote, snapshot)
 
     IO.inspect(
       Enum.map(
@@ -92,7 +92,7 @@ defmodule MergeLiveAcceptance do
       {:notification, _, _, "merge_live_acceptance", command} ->
         case String.split(command, ":", parts: 2) do
           ["phase", phase] when phase in ["moved", "merge", "retarget", "observed"] ->
-            Application.put_env(:board, :live_acceptance_phase, phase)
+            Application.put_env(:foreman, :live_acceptance_phase, phase)
 
           ["read"] ->
             read()
@@ -107,24 +107,24 @@ defmodule MergeLiveAcceptance do
   end
 end
 
-unless System.get_env("BOARD_LIVE_MERGE_APPROVED") == "rpmessner/beads-board-scratch",
+unless System.get_env("FOREMAN_LIVE_MERGE_APPROVED") == "rpmessner/foreman-scratch",
   do: raise("Explicit scratch approval required")
 
 unless System.get_env("PORT") == "4769", do: raise("Acceptance requires isolated port 4769")
 
 config =
-  Application.fetch_env!(:board, Board.Repo)
-  |> Keyword.put(:database, "beads_board_merge_live_acceptance")
+  Application.fetch_env!(:foreman, Foreman.Repo)
+  |> Keyword.put(:database, "foreman_merge_live_acceptance")
   |> Keyword.put(:pool, DBConnection.ConnectionPool)
 
-Application.put_env(:board, Board.Repo, config)
-Application.put_env(:board, :runtime_enabled, false)
-Application.put_env(:board, :forge_adapter, Board.Forge.GitHub)
+Application.put_env(:foreman, Foreman.Repo, config)
+Application.put_env(:foreman, :runtime_enabled, false)
+Application.put_env(:foreman, :forge_adapter, Foreman.Forge.GitHub)
 
 Application.put_env(
-  :board,
-  BoardWeb.Endpoint,
-  Application.fetch_env!(:board, BoardWeb.Endpoint)
+  :foreman,
+  ForemanWeb.Endpoint,
+  Application.fetch_env!(:foreman, ForemanWeb.Endpoint)
   |> Keyword.put(:server, true)
   |> Keyword.put(:check_origin, false)
 )
@@ -138,31 +138,31 @@ end
 
 {:ok, _, _} =
   Ecto.Migrator.with_repo(
-    Board.Repo,
+    Foreman.Repo,
     &Ecto.Migrator.run(&1, "priv/repo/migrations", :up, all: true)
   )
 
-{:ok, _} = Application.ensure_all_started(:board)
+{:ok, _} = Application.ensure_all_started(:foreman)
 {token, 0} = System.cmd("gh", ["auth", "token"])
 token = String.trim(token)
 
-Application.put_env(:board, :forge_options,
+Application.put_env(:foreman, :forge_options,
   token: token,
   plug: fn conn -> MergeLiveAcceptance.proxy(conn, token) end
 )
 
 {:ok, defaults} =
-  Board.Config.parse_layers([{"defaults", File.read!("priv/board.defaults.toml")}])
+  Foreman.Config.parse_layers([{"defaults", File.read!("priv/foreman.defaults.toml")}])
 
 repo = %{
   "key" => "scratch",
   "path" => "/tmp/bb-scratch-no-beads",
   "enabled" => true,
   "forge" => "github",
-  "github" => "rpmessner/beads-board-scratch"
+  "github" => "rpmessner/foreman-scratch"
 }
 
-Board.Repo.insert_all(
+Foreman.Repo.insert_all(
   "board_config",
   [
     %{
@@ -185,8 +185,8 @@ beads = [
   }
 ]
 
-Board.Beads.Projection.replace("scratch", Enum.map_join(beads, "\n", &Jason.encode!/1))
-Board.RuntimeState.record("scratch", {:ok, :changed})
+Foreman.Beads.Projection.replace("scratch", Enum.map_join(beads, "\n", &Jason.encode!/1))
+Foreman.RuntimeState.record("scratch", {:ok, :changed})
 MergeLiveAcceptance.read()
 
 {:ok, notifications} =

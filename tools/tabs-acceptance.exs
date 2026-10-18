@@ -1,23 +1,23 @@
-# MIX_ENV=test PORT=4766 BOARD_ROLE=web mix run --no-start --no-halt tools/tabs-acceptance.exs
+# MIX_ENV=test PORT=4766 FOREMAN_ROLE=web mix run --no-start --no-halt tools/tabs-acceptance.exs
 # Separate committed-fixture DB; never reads or writes the installed board's DB.
 update? = System.argv() == ["update"]
 checkout = Path.basename(File.cwd!())
-repo = Application.fetch_env!(:board, Board.Repo)
+repo = Application.fetch_env!(:foreman, Foreman.Repo)
 
 repo =
   Keyword.merge(repo,
-    database: "beads_board_tabs_acceptance_#{checkout}",
+    database: "foreman_tabs_acceptance_#{checkout}",
     pool: DBConnection.ConnectionPool
   )
 
-Application.put_env(:board, Board.Repo, repo)
-Application.put_env(:board, :runtime_enabled, false)
-Application.put_env(:board, :role, "web")
+Application.put_env(:foreman, Foreman.Repo, repo)
+Application.put_env(:foreman, :runtime_enabled, false)
+Application.put_env(:foreman, :role, "web")
 
 Application.put_env(
-  :board,
-  BoardWeb.Endpoint,
-  Application.fetch_env!(:board, BoardWeb.Endpoint)
+  :foreman,
+  ForemanWeb.Endpoint,
+  Application.fetch_env!(:foreman, ForemanWeb.Endpoint)
   |> Keyword.put(:server, not update?)
   |> Keyword.put(:check_origin, ["//127.0.0.1:4766"])
 )
@@ -30,19 +30,19 @@ case Ecto.Adapters.Postgres.storage_up(repo) do
 end
 
 {:ok, _, _} =
-  Ecto.Migrator.with_repo(Board.Repo, fn repo ->
+  Ecto.Migrator.with_repo(Foreman.Repo, fn repo ->
     Ecto.Migrator.run(repo, "priv/repo/migrations", :up, all: true)
   end)
 
-{:ok, _} = Application.ensure_all_started(:board)
+{:ok, _} = Application.ensure_all_started(:foreman)
 key = {"sample", "fe-813.2"}
 
 if update? do
-  Board.Overlay.apply_event(key, :abandon)
-  Board.Overlay.apply_event(key, :revive)
-  Board.Overlay.apply_event(key, {:dispatch, %{window: "browser-live-worker"}})
+  Foreman.Overlay.apply_event(key, :abandon)
+  Foreman.Overlay.apply_event(key, :revive)
+  Foreman.Overlay.apply_event(key, {:dispatch, %{window: "browser-live-worker"}})
 
-  Board.Overlay.apply_event(
+  Foreman.Overlay.apply_event(
     key,
     {:report, %{body: "Browser hidden-tab update", path: "docs/sessions/bb-tabs.md"}},
     %{actor: "tab-builder"}
@@ -51,20 +51,20 @@ if update? do
   IO.puts("TABS_UPDATED")
 else
   {:ok, config} =
-    Board.Config.parse_layers([{"defaults", File.read!("priv/board.defaults.toml")}])
+    Foreman.Config.parse_layers([{"defaults", File.read!("priv/foreman.defaults.toml")}])
 
   config =
     Map.put(config, "repos", [
       %{
         "key" => "sample",
-        "path" => "/tmp/board-tabs-no-repo",
+        "path" => "/tmp/foreman-tabs-no-repo",
         "enabled" => true,
         "forge" => "github",
         "github" => "rpmessner/form-engine"
       }
     ])
 
-  Board.Repo.insert_all(
+  Foreman.Repo.insert_all(
     "board_config",
     [
       %{
@@ -91,12 +91,12 @@ else
     }
   ]
 
-  Board.Beads.Projection.replace("sample", Enum.map_join(beads, "\n", &Jason.encode!/1))
-  Board.Overlay.apply_event(key, :abandon)
-  Board.Overlay.apply_event(key, :revive)
-  Board.Overlay.apply_event(key, {:dispatch, %{window: "tab-builder", branch: "bb-tabs"}})
+  Foreman.Beads.Projection.replace("sample", Enum.map_join(beads, "\n", &Jason.encode!/1))
+  Foreman.Overlay.apply_event(key, :abandon)
+  Foreman.Overlay.apply_event(key, :revive)
+  Foreman.Overlay.apply_event(key, {:dispatch, %{window: "tab-builder", branch: "bb-tabs"}})
 
-  Board.Overlay.apply_event(
+  Foreman.Overlay.apply_event(
     key,
     {:report,
      %{body: "URL selection and hidden-stream checks verified.", path: "docs/sessions/bb-tabs.md"}}
@@ -108,11 +108,11 @@ else
   end)
 
   {:ok, snapshot} =
-    Board.Forge.GitHub.list("rpmessner/form-engine",
+    Foreman.Forge.GitHub.list("rpmessner/form-engine",
       token: "fixture",
       plug: {Req.Test, :tabs_acceptance}
     )
 
-  Board.Forge.Store.replace("sample", "rpmessner/form-engine", snapshot)
+  Foreman.Forge.Store.replace("sample", "rpmessner/form-engine", snapshot)
   IO.puts("TABS_ACCEPTANCE_READY")
 end

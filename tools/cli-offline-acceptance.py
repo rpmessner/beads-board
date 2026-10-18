@@ -9,14 +9,14 @@ import urllib.request
 import uuid
 
 root = Path.cwd()
-env = dict(os.environ, BOARD_URL="http://127.0.0.1:4759",
-           BOARD_TOKEN_FILE=str(root / "tmp/cli-token"),
-           PGDATABASE=f"beads_board_acceptance_{root.name}", PGHOST="127.0.0.1", PGPORT="5432",
-           PGUSER="postgres", PGPASSWORD="postgres", BOARD_DATABASE_URL="", DATABASE_URL="")
+env = dict(os.environ, FOREMAN_URL="http://127.0.0.1:4759",
+           FOREMAN_TOKEN_FILE=str(root / "tmp/cli-token"),
+           PGDATABASE=f"foreman_acceptance_{root.name}", PGHOST="127.0.0.1", PGPORT="5432",
+           PGUSER="postgres", PGPASSWORD="postgres", FOREMAN_DATABASE_URL="", DATABASE_URL="")
 
 
 def cli(*args, overrides=None):
-    result = subprocess.run([str(root / "board"), *args, "--json"],
+    result = subprocess.run([str(root / "foreman"), *args, "--json"],
                             env=env | (overrides or {}), text=True,
                             capture_output=True, timeout=12)
     assert result.returncode == 0, (result.returncode, result.stdout, result.stderr)
@@ -36,7 +36,7 @@ def stop():
     os.kill(pid, signal.SIGTERM)
     for _ in range(100):
         try:
-            urllib.request.urlopen(env["BOARD_URL"], timeout=0.2)
+            urllib.request.urlopen(env["FOREMAN_URL"], timeout=0.2)
         except OSError:
             return
         time.sleep(0.1)
@@ -47,13 +47,13 @@ def start():
     log = open(root / "tmp/cli-server.log", "a")
     server = subprocess.Popen(["mix", "run", "--no-halt", "tools/cli-acceptance-server.exs"],
                               env=env | {"MIX_ENV": "acceptance",
-                                         "BOARD_ROLE": "web", "PORT": "4759", "PHX_SERVER": "true"},
+                                         "FOREMAN_ROLE": "web", "PORT": "4759", "PHX_SERVER": "true"},
                               stdout=log, stderr=subprocess.STDOUT)
     (root / "tmp/cli-server.pid").write_text(str(server.pid))
     for _ in range(100):
         assert server.poll() is None, "server failed; inspect tmp/cli-server.log"
         try:
-            urllib.request.urlopen(env["BOARD_URL"], timeout=0.2)
+            urllib.request.urlopen(env["FOREMAN_URL"], timeout=0.2)
             return server
         except OSError:
             time.sleep(0.1)

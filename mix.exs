@@ -1,11 +1,11 @@
-defmodule Board.MixProject do
+defmodule Foreman.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :board,
+      app: :foreman,
       version: "0.1.0",
-      escript: [main_module: Board.CLI, app: nil, emu_args: "+S 2:2"],
+      escript: [main_module: Foreman.CLI, app: nil, emu_args: "+S 2:2"],
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -21,14 +21,14 @@ defmodule Board.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {Board.Application, []},
+      mod: {Foreman.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
 
   def cli do
     [
-      preferred_envs: [precommit: :test, "board.fsm.docs": :test]
+      preferred_envs: [precommit: :test, "foreman.fsm.docs": :test]
     ]
   end
 
@@ -90,15 +90,15 @@ defmodule Board.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind board", "esbuild board"],
+      "assets.build": ["compile", "tailwind foreman", "esbuild foreman"],
       "assets.deploy": [
-        "tailwind board --minify",
-        "esbuild board --minify",
+        "tailwind foreman --minify",
+        "esbuild foreman --minify",
         "phx.digest"
       ],
       precommit: [
         "compile --warnings-as-errors",
-        "board.hygiene",
+        "foreman.hygiene",
         "format --check-formatted",
         "test"
       ]

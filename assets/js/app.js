@@ -22,7 +22,7 @@ import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
-import {hooks as colocatedHooks} from "phoenix-colocated/board"
+import {hooks as colocatedHooks} from "phoenix-colocated/foreman"
 import topbar from "../vendor/topbar"
 import {InitiativeFilters, rememberedFilters, rememberedFiltersOpen} from "./initiative_filters"
 import {Hooks as fluxonHooks, DOM} from "../../deps/fluxon/priv/static/fluxon.esm.js"

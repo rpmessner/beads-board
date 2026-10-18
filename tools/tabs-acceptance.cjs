@@ -19,7 +19,7 @@ const {execFileSync} = require('node:child_process');
     });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    const base = process.env.BOARD_URL || 'http://127.0.0.1:4766';
+    const base = process.env.FOREMAN_URL || 'http://127.0.0.1:4766';
     const tabs = ['overview', 'history', 'sessions', 'notes'];
     const ready = async () => {
       await page.locator('[data-phx-main].phx-connected').waitFor();
@@ -83,7 +83,7 @@ const {execFileSync} = require('node:child_process');
       const before = {};
       for (const tab of ['history', 'sessions', 'notes']) before[tab] = await page.locator(`#ticket-${tab} article`).count();
       execFileSync('mix', ['run', '--no-start', 'tools/tabs-acceptance.exs', 'update'], {
-        env: {...process.env, MIX_ENV: 'test', PORT: '4766', BOARD_ROLE: 'web'}, stdio: 'pipe'
+        env: {...process.env, MIX_ENV: 'test', PORT: '4766', FOREMAN_ROLE: 'web'}, stdio: 'pipe'
       });
       await page.waitForFunction(before => Object.entries(before).every(([tab, count]) => document.querySelectorAll(`#ticket-${tab} article`).length > count), before);
       for (const tab of ['history', 'sessions', 'notes']) assert.ok(!(await page.locator(`#ticket-${tab}-panel`).isVisible()));

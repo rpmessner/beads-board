@@ -4,7 +4,7 @@
 const {chromium} = require('playwright');
 const {execFileSync} = require('node:child_process');
 const fs = require('node:fs');
-const out = process.env.BOARD_SCREENSHOTS || 'docs/acceptance/bb-init';
+const out = process.env.FOREMAN_SCREENSHOTS || 'docs/acceptance/bb-init';
 
 (async () => {
   fs.mkdirSync(out, {recursive: true});
@@ -12,7 +12,7 @@ const out = process.env.BOARD_SCREENSHOTS || 'docs/acceptance/bb-init';
   const page = await browser.newPage({viewport: {width: 1440, height: 1100}});
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto(process.env.BOARD_URL || 'http://127.0.0.1:4753/');
+  await page.goto(process.env.FOREMAN_URL || 'http://127.0.0.1:4753/');
   await page.waitForFunction(() => document.querySelector('[data-phx-main]')?.classList.contains('phx-connected'));
   const epic = id => page.locator(`#epics [data-bead="${id}"]`);
   for (const [id, closed, total] of [['fe-813', 5, 10], ['fe-lwp', 12, 19], ['bb-c2w', 4, 11]]) {
@@ -28,14 +28,14 @@ const out = process.env.BOARD_SCREENSHOTS || 'docs/acceptance/bb-init';
   if (!await page.locator('#epics-panel + #done-panel + #unplanned-panel').count()) throw Error('Done group is not above Unplanned');
   execFileSync('mix', ['run', '-e', `
     Logger.configure(level: :warning)
-    key = {"beads-board", "bb-c2w.5"}
-    if Board.Overlay.get(key).stage == :queued do
-      {:ok, _} = Board.Overlay.apply_event(key, {:dispatch, %{window: "bb-init", branch: "bb-init", brief_path: "docs/briefs/bb-init.md"}}, %{actor: "pi"})
+    key = {"foreman", "bb-c2w.5"}
+    if Foreman.Overlay.get(key).stage == :queued do
+      {:ok, _} = Foreman.Overlay.apply_event(key, {:dispatch, %{window: "bb-init", branch: "bb-init", brief_path: "docs/briefs/bb-init.md"}}, %{actor: "pi"})
     end
-    if Board.Overlay.get(key).stage in [:dispatched, :building, :reported] do
-      {:ok, _} = Board.Overlay.apply_event(key, {:progress, %{body: "Overlay, initiative tree and home implemented; verifying screenshots and review gates."}}, %{actor: "pi"})
+    if Foreman.Overlay.get(key).stage in [:dispatched, :building, :reported] do
+      {:ok, _} = Foreman.Overlay.apply_event(key, {:progress, %{body: "Overlay, initiative tree and home implemented; verifying screenshots and review gates."}}, %{actor: "pi"})
     end
-  `], {env: {...process.env, BOARD_ROLE: 'web'}, stdio: 'pipe'});
+  `], {env: {...process.env, FOREMAN_ROLE: 'web'}, stdio: 'pipe'});
   await epic('bb-c2w.5').getByText(/^\s*(building|reported)\s*$/, {exact: true}).waitFor({timeout: 10000});
   await page.screenshot({path: `${out}/build-children.png`, fullPage: true, animations: 'disabled'});
   await epic('bb-c2w').locator('button').click();

@@ -7,20 +7,20 @@ import shlex
 import subprocess
 import tempfile
 
-board = Path(__file__).resolve().parents[1] / "board"
-with tempfile.TemporaryDirectory(prefix="board-files-demo-") as directory:
+board = Path(__file__).resolve().parents[1] / "foreman"
+with tempfile.TemporaryDirectory(prefix="foreman-files-demo-") as directory:
     root = Path(directory)
     subprocess.run(["git", "init", "-q", directory], check=True)
     config = root / "config"
     config.mkdir()
-    (config / "board.toml").write_text(
+    (config / "foreman.toml").write_text(
         '[[repos]]\nkey = "demo"\nprefix = "demo"\npath = ' + json.dumps(directory) + "\n"
     )
-    env = dict(os.environ, BOARD_CONFIG_DIR=str(config), BOARD_URL="http://127.0.0.1:1",
-               BOARD_DATABASE_URL="postgres://none:none@127.0.0.1:1/none", PGPORT="1")
+    env = dict(os.environ, FOREMAN_CONFIG_DIR=str(config), FOREMAN_URL="http://127.0.0.1:1",
+               FOREMAN_DATABASE_URL="postgres://none:none@127.0.0.1:1/none", PGPORT="1")
 
     def run(*args):
-        print("$ board " + shlex.join(args) + " --json")
+        print("$ foreman " + shlex.join(args) + " --json")
         result = subprocess.run([str(board), *args, "--json"], cwd=root, env=env,
                                 text=True, capture_output=True, check=True)
         print(result.stdout.strip())

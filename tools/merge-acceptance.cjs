@@ -4,10 +4,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const {execFileSync} = require('node:child_process');
 const out = 'docs/acceptance/bb-merge';
-const base = process.env.BOARD_URL || 'http://127.0.0.1:4768';
+const base = process.env.FOREMAN_URL || 'http://127.0.0.1:4768';
 function control(command) {
   assert(['reset','move','fail','retarget-fail','drain','read'].includes(command));
-  execFileSync('psql', ['-h','localhost','-U','postgres','-d','beads_board_merge_acceptance','-c',`SELECT pg_notify('merge_acceptance', '${command}')`], {env:{...process.env,PGPASSWORD:'postgres'}});
+  execFileSync('psql', ['-h','localhost','-U','postgres','-d','foreman_merge_acceptance','-c',`SELECT pg_notify('merge_acceptance', '${command}')`], {env:{...process.env,PGPASSWORD:'postgres'}});
 }
 (async () => {
   fs.mkdirSync(out,{recursive:true});

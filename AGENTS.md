@@ -1,4 +1,4 @@
-# beads-board
+# foreman
 
 Spec: `docs/spec.md` (authoritative); design pass: `docs/design.md`; approved mockup: `docs/mockup/`.
 
@@ -6,7 +6,7 @@ Spec: `docs/spec.md` (authoritative); design pass: `docs/design.md`; approved mo
 
 - **On-screen text is labels, status and controls only.** No subtitles that explain behaviour, no footers about how the app works, no chatty toasts; behaviour notes go in docs. Status badges ("Waiting on #5") are fine.
 - **Times use the shared human format** (just now, 2 min ago, full time on hover), never raw seconds or ISO strings.
-- **Stateful features sit on declared `Board.Fsm` machines** (workflows, sync and job lifecycles, external conversations, stateful UI); the house code-review baseline treats ad hoc status fields as Important findings.
+- **Stateful features sit on declared `Foreman.Fsm` machines** (workflows, sync and job lifecycles, external conversations, stateful UI); the house code-review baseline treats ad hoc status fields as Important findings.
 - Beads is read-only; the repos gain no board files; storage is Postgres only.
 - LiveView self-redirects on WSL clock rollback: see `docs/known-issues.md` for the test-only signing allowance and production reload behavior.
 

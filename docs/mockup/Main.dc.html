@@ -64,7 +64,7 @@ input.search{height:36px;padding:0 12px 0 34px;border-radius:8px;border:1px soli
 <aside style="flex: 1 1 240px; max-width: 260px; min-width: 220px; box-sizing: border-box; padding: 16px 12px; border-right: 1px solid var(--border); background: var(--sunken); display: flex; flex-direction: column; gap: 24px">
 <div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="color: var(--fg-strong)"><circle cx="5" cy="12" r="2.5"></circle><circle cx="12" cy="12" r="2.5"></circle><circle cx="19" cy="12" r="2.5"></circle><path d="M7.5 12h2M14.5 12h2"></path></svg>
-<span style="font-weight: 600; color: var(--fg-strong); font-size: 15px">beads-board</span>
+<span style="font-weight: 600; color: var(--fg-strong); font-size: 15px">foreman</span>
 </div>
 <nav class="nav" aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
 <a class="on" href="Main.dc.html" aria-current="page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h7"></path><circle cx="19" cy="18" r="2"></circle></svg>Initiatives</a>
@@ -229,7 +229,7 @@ class Component extends DCLogic {
   renderVals() {
     const repos = [
       { key: 'fe', name: 'form-engine', color: 'oklch(58% .2 295)', sync: '30' },
-      { key: 'bb', name: 'beads-board', color: 'oklch(62% .16 340)', sync: '12' },
+      { key: 'bb', name: 'foreman', color: 'oklch(62% .16 340)', sync: '12' },
       { key: 'sk', name: 'skills', color: 'oklch(62% .12 175)', sync: '17' },
       { key: 'cdo', name: 'cooldown-o-matic', color: 'oklch(72% .16 70)', sync: '47' },
       { key: 'wow', name: 'ui-o-matic', color: 'oklch(58% .17 245)', sync: '417' },
@@ -247,13 +247,13 @@ class Component extends DCLogic {
       pr_open: ['PR open', 'badge b-success', 3], merged: ['merged', 'badge b-solid', 3], done: ['done', 'badge b-neutral', 4]
     };
     const D = [
-      ['bb', 'draft:board-two-way-sync', 'Two-way sync: the board proposes bd writes and applies them on confirm', 'speccing', 'docs/specs/two-way-sync.md (in progress)', 'started 2 h ago', '/tight-spec running'],
+      ['bb', 'draft:foreman-two-way-sync', 'Two-way sync: the board proposes bd writes and applies them on confirm', 'speccing', 'docs/specs/two-way-sync.md (in progress)', 'started 2 h ago', '/tight-spec running'],
       ['sk', 'draft:skill-evals', 'Skill evals: score house skills against recorded sessions', 'spec_approved', 'docs/specs/skill-evals.md', 'approved yesterday', 'next: /to-tickets'],
       ['fe', 'draft:doodler-arrange', 'Doodler step 2: arrange mode over kept sketches', 'idea', 'no spec yet', 'noted 3 d ago', 'next: /tight-spec']
     ];
     // repo, id, title, bdStatus, stage, closed, total, [Q,F,R,S,D], fallout, falloutOpen, crs, sub, stale
     const E = [
-      ['bb', 'bb-c2w', 'beads-board MVP: an epic-first work board for every local beads repo', 'open', 'building', 0, 11, [8, 3, 0, 0, 0], 0, 0, 0, 'spec docs/spec.md', false],
+      ['bb', 'bb-c2w', 'foreman MVP: an epic-first work board for every local beads repo', 'open', 'building', 0, 11, [8, 3, 0, 0, 0], 0, 0, 0, 'spec docs/spec.md', false],
       ['fe', 'fe-813', 'Doodler step 1: Record mode looper', 'open', 'building', 3, 9, [5, 1, 0, 0, 3], 0, 0, 2, 'spec docs/specs/doodler-step1-looper.md', false],
       ['fe', 'fe-lwp', 'Crawl: keyboard in, harmony out', 'open', 'building', 12, 19, [6, 1, 0, 0, 12], 2, 1, 0, 'no spec link', false],
       ['cdo', 'cdo-uha', '0007 merge-first integration then house-style refactor', 'in_progress', 'building', 5, 15, [4, 5, 1, 0, 5], 0, 0, 0, '5 sub-epics', true],
@@ -267,8 +267,8 @@ class Component extends DCLogic {
     ];
     // repo, id, title, type, prio, stage, bd, flag, flagCls
     const T = [
-      ['sk', 'sk-5o2', 'Board wiring: board skill, dispatch and the brief template', 'task', 2, 'queued', 'open', 'names bb-c2w in its description', 'badge b-dashed'],
-      ['sk', 'sk-osj', 'Board wiring: tight-spec and to-tickets epics, coordinator close-out', 'task', 2, 'queued', 'open', 'names bb-c2w in its description', 'badge b-dashed'],
+      ['sk', 'sk-5o2', 'Foreman wiring: board skill, dispatch and the brief template', 'task', 2, 'queued', 'open', 'names bb-c2w in its description', 'badge b-dashed'],
+      ['sk', 'sk-osj', 'Foreman wiring: tight-spec and to-tickets epics, coordinator close-out', 'task', 2, 'queued', 'open', 'names bb-c2w in its description', 'badge b-dashed'],
       ['wow', 'wow-ni8i', 'CastBar shield errors: SetAlphaFromBoolean(nil) when notInterruptible missing', 'bug', 1, 'queued', 'open', '', ''],
       ['wow', 'wow-v0f2', 'Port Coolinator 126–127 changes into cooldown-o-matic', 'task', 1, 'queued', 'in_progress', 'stale: bd in_progress, no session', 'badge b-warning'],
       ['dot', 'dot-4at', 'Decide zsh formatting: shfmt corrupts zsh, so dprint no longer formats .zsh', 'task', 3, 'queued', 'open', '', ''],

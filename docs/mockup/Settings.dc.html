@@ -44,7 +44,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <aside style="flex: 1 1 240px; max-width: 260px; min-width: 220px; box-sizing: border-box; padding: 16px 12px; border-right: 1px solid var(--border); background: var(--sunken); display: flex; flex-direction: column; gap: 24px">
 <div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="color: var(--fg-strong)"><circle cx="5" cy="12" r="2.5"></circle><circle cx="12" cy="12" r="2.5"></circle><circle cx="19" cy="12" r="2.5"></circle><path d="M7.5 12h2M14.5 12h2"></path></svg>
-<span style="font-weight: 600; color: var(--fg-strong); font-size: 15px">beads-board</span>
+<span style="font-weight: 600; color: var(--fg-strong); font-size: 15px">foreman</span>
 </div>
 <nav class="nav" aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
 <a href="Main.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h7"></path><circle cx="19" cy="18" r="2"></circle></svg>Initiatives</a>
@@ -69,9 +69,9 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <div style="display: flex; flex-direction: column; gap: 4px; flex: 999 1 360px; min-width: 0">
 <span class="sec">Config sources, merged in order</span>
 <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
-<span class="badge mono">priv/board.defaults.toml</span><span class="muted">then</span>
-<span class="badge mono">~/.config/beads-board/board.toml</span><span class="muted">then</span>
-<span class="badge mono">board.local.toml (untracked)</span>
+<span class="badge mono">priv/foreman.defaults.toml</span><span class="muted">then</span>
+<span class="badge mono">~/.config/foreman/foreman.toml</span><span class="muted">then</span>
+<span class="badge mono">foreman.local.toml (untracked)</span>
 </div>
 </div>
 <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 240px">
@@ -84,7 +84,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <sc-if value="{{bad}}" hint-placeholder-val="{{ false }}">
 <div role="alert" style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 8px; border: 1px solid color-mix(in oklab, var(--danger) 30%, var(--bg)); background: color-mix(in oklab, var(--danger) var(--mix), var(--bg)); color: color-mix(in oklab, var(--danger), var(--fgmix))">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16h.01"></path></svg>
-<div style="display: flex; flex-direction: column; gap: 4px"><b>board.toml line 15: columns[2].stages names "speccing", which is not a ticket stage.</b><span>Columns group ticket stages from Board.Stage only: queued, dispatched, building, reported, in_review, committed, pr_open, merged, done, abandoned. "speccing" is an epic stage (Board.Epic), and epic stages are fixed, not configurable. The last good config stays in use.</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><b>foreman.toml line 15: columns[2].stages names "speccing", which is not a ticket stage.</b><span>Columns group ticket stages from Foreman.Stage only: queued, dispatched, building, reported, in_review, committed, pr_open, merged, done, abandoned. "speccing" is an epic stage (Foreman.Epic), and epic stages are fixed, not configurable. The last good config stays in use.</span></div>
 </div>
 </sc-if>
 
@@ -97,7 +97,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 <thead><tr><th>Key</th><th>Path</th><th>GitHub</th><th>bd store</th><th>Read</th><th>Enabled</th></tr></thead>
 <tbody>
 <tr><td>form-engine</td><td class="mono">~/dev/music/form-engine</td><td class="mono">rpmessner/form-engine</td><td>embedded</td><td><span class="badge b-success">30 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="form-engine enabled"></label></td></tr>
-<tr><td>beads-board</td><td class="mono">~/dev/utils/beads-board</td><td class="mono">rpmessner/beads-board</td><td>embedded</td><td><span class="badge b-success">12 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="beads-board enabled"></label></td></tr>
+<tr><td>foreman</td><td class="mono">~/dev/utils/foreman</td><td class="mono">rpmessner/foreman</td><td>embedded</td><td><span class="badge b-success">12 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="foreman enabled"></label></td></tr>
 <tr><td>skills</td><td class="mono">~/dev/utils/skills</td><td class="mono">rpmessner/skills</td><td>embedded</td><td><span class="badge b-success">17 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="skills enabled"></label></td></tr>
 <tr><td>dotfiles</td><td class="mono">~/dev/dotfiles</td><td class="mono">rpmessner/dotfiles</td><td>embedded</td><td><span class="badge b-success">3 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="dotfiles enabled"></label></td></tr>
 <tr><td>ui-o-matic</td><td class="mono">~/dev/games/wow-addons/ui-o-matic</td><td class="mono">rpmessner/ui-o-matic</td><td>embedded</td><td><span class="badge b-success">417 · 5 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="ui-o-matic enabled"></label></td></tr>
@@ -110,7 +110,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 10px">
-<div class="sec">Board columns · from [[columns]]</div>
+<div class="sec">Foreman columns · from [[columns]]</div>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 10px">
 <div class="panel" style="padding: 12px; gap: 8px"><b style="color: var(--fg-strong)">Queued</b><div style="display: flex; flex-wrap: wrap; gap: 4px"><span class="badge mono">queued</span></div></div>
 <div class="panel" style="padding: 12px; gap: 8px"><b style="color: var(--fg-strong)">In flight</b><div style="display: flex; flex-wrap: wrap; gap: 4px"><span class="badge mono">dispatched</span><span class="badge mono">building</span></div></div>
@@ -120,7 +120,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 </div>
 <div class="muted">These columns lay out the epic view and the Unplanned lane. They group ticket stages only; config can name and group them, never invent them. Abandoned tickets are hidden unless filtered for.</div>
 <div class="panel" style="padding: 12px 16px; gap: 8px; box-shadow: none; background: var(--sunken)">
-<span class="sec">Epic stages · fixed by Board.Epic, not configurable</span>
+<span class="sec">Epic stages · fixed by Foreman.Epic, not configurable</span>
 <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center"><span class="badge mono">idea</span><span class="badge mono">speccing</span><span class="badge mono">spec_approved</span><span class="badge mono">ticketed</span><span class="muted">then derived:</span><span class="badge b-dashed mono">building</span><span class="badge b-dashed mono">shipping</span><span class="badge b-dashed mono">shipped</span><span class="muted">·</span><span class="badge mono">done</span><span class="badge mono">abandoned</span></div>
 </div>
 </section>
@@ -132,7 +132,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong
 </div>
 
 <aside style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
-<div class="sec">board.toml · read-only view</div>
+<div class="sec">foreman.toml · read-only view</div>
 <pre class="mono" style="margin: 0; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--sunken); color: var(--fg-strong); font-size: 12px; line-height: 19px; white-space: pre; overflow-x: auto">{{toml}}</pre>
 </aside>
 </div>
@@ -182,7 +182,7 @@ class Component extends DCLogic {
       bad, toml,
       statusCls: bad ? 'badge b-danger' : 'badge b-success',
       statusLabel: bad ? 'Invalid edit, last good config in use' : 'Valid · watching for changes',
-      statusSub: bad ? 'Edit saved 21:51:30, rejected. Loaded config from ' + this.state.loadedAt + '.' : 'Loaded ' + this.state.loadedAt + ' · inotify on ~/.config/beads-board/',
+      statusSub: bad ? 'Edit saved 21:51:30, rejected. Loaded config from ' + this.state.loadedAt + '.' : 'Loaded ' + this.state.loadedAt + ' · inotify on ~/.config/foreman/',
       reviewChip: bad ? 'badge b-danger mono' : 'badge mono',
       reviewName: bad ? 'speccing ?' : 'in_review',
       toggleBad: () => this.setState({ bad: !this.state.bad }),

@@ -2,7 +2,7 @@
 /_build/
 
 # Agent CLI escript (built locally, installed only by the user).
-/board
+/foreman
 
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
@@ -26,7 +26,7 @@ erl_crash.dump
 /tmp/
 
 # Ignore package tarball (built via "mix hex.build").
-board-*.tar
+foreman-*.tar
 
 # Ignore assets that are produced by build tools.
 /priv/static/assets/

@@ -3,17 +3,17 @@ const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const {execFileSync} = require('node:child_process');
-const remote = 'rpmessner/beads-board-scratch';
+const remote = 'rpmessner/foreman-scratch';
 const out = 'docs/acceptance/bb-merge/live';
 const base = 'http://127.0.0.1:4769';
 const git = (...args) => execFileSync('git',['-C','/tmp/bb-scratch',...args],{encoding:'utf8'}).trim();
 const gh = (...args) => execFileSync('gh',args,{encoding:'utf8'}).trim();
 function control(command) {
   assert(['phase:moved','phase:merge','phase:retarget','phase:observed','read','drain'].includes(command));
-  execFileSync('psql',['-h','localhost','-U','postgres','-d','beads_board_merge_live_acceptance','-c',`SELECT pg_notify('merge_live_acceptance','${command}')`],{env:{...process.env,PGPASSWORD:'postgres'}});
+  execFileSync('psql',['-h','localhost','-U','postgres','-d','foreman_merge_live_acceptance','-c',`SELECT pg_notify('merge_live_acceptance','${command}')`],{env:{...process.env,PGPASSWORD:'postgres'}});
 }
 (async () => {
-  assert.equal(process.env.BOARD_LIVE_MERGE_APPROVED,remote,'Explicit scratch approval required');
+  assert.equal(process.env.FOREMAN_LIVE_MERGE_APPROVED,remote,'Explicit scratch approval required');
   assert.equal(git('remote','get-url','origin'),`https://github.com/${remote}.git`);
   fs.mkdirSync(out,{recursive:true});
   const browser = await chromium.launch({headless:true});
@@ -40,7 +40,7 @@ function control(command) {
   git('switch','pr/acceptance-bottom');
   fs.appendFileSync('/tmp/bb-scratch/bottom.txt','Advance the head after confirmation opens.\n');
   git('add','bottom.txt');
-  git('-c','user.name=Board acceptance','-c','user.email=acceptance@example.invalid','commit','-m','Advance acceptance head after confirmation');
+  git('-c','user.name=Foreman acceptance','-c','user.email=acceptance@example.invalid','commit','-m','Advance acceptance head after confirmation');
   git('push','origin','pr/acceptance-bottom');
   const confirmedHead=git('rev-parse','HEAD');
   assert.notEqual(confirmedHead,initialHead);

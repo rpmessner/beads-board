@@ -1,17 +1,17 @@
 import Config
 
-role = System.get_env("BOARD_ROLE", "all")
+role = System.get_env("FOREMAN_ROLE", "all")
 
 unless role in ["web", "worker", "all"] do
-  raise "BOARD_ROLE must be web, worker or all"
+  raise "FOREMAN_ROLE must be web, worker or all"
 end
 
-config :board, :role, role
+config :foreman, :role, role
 
 if config_env() not in [:test, :acceptance] do
-  config :board,
-    config_directory: System.get_env("BOARD_CONFIG_DIR", Path.expand("~/.config/beads-board")),
-    discovery_root: System.get_env("BOARD_DISCOVERY_ROOT", Path.expand("~/dev"))
+  config :foreman,
+    config_directory: System.get_env("FOREMAN_CONFIG_DIR", Path.expand("~/.config/foreman")),
+    discovery_root: System.get_env("FOREMAN_DISCOVERY_ROOT", Path.expand("~/dev"))
 end
 
 # config/runtime.exs is executed for all environments, including
@@ -26,17 +26,17 @@ end
 # If you use `mix release`, you need to explicitly enable the server
 # by passing the PHX_SERVER=true when you start it:
 #
-#     PHX_SERVER=true bin/board start
+#     PHX_SERVER=true bin/foreman start
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
 if System.get_env("PHX_SERVER") do
-  config :board, BoardWeb.Endpoint, server: true
+  config :foreman, ForemanWeb.Endpoint, server: true
 end
 
 default_port = if config_env() == :test, do: "4002", else: "4747"
 port = String.to_integer(System.get_env("PORT", default_port))
-config :board, BoardWeb.Endpoint, http: [ip: {127, 0, 0, 1}, port: port]
+config :foreman, ForemanWeb.Endpoint, http: [ip: {127, 0, 0, 1}, port: port]
 
 if config_env() == :prod do
   database_url =
@@ -48,7 +48,7 @@ if config_env() == :prod do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :board, Board.Repo,
+  config :foreman, Foreman.Repo,
     # ssl: true,
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
@@ -72,7 +72,7 @@ if config_env() == :prod do
 
   host = "127.0.0.1"
 
-  config :board, BoardWeb.Endpoint,
+  config :foreman, ForemanWeb.Endpoint,
     url: [host: host, port: port, scheme: "http"],
     # Loopback-only server: the browser may name it either way (WSL forwards localhost).
     check_origin: ["//127.0.0.1", "//localhost"],
@@ -86,7 +86,7 @@ if config_env() == :prod do
   # To get SSL working, you will need to add the `https` key
   # to your endpoint configuration:
   #
-  #     config :board, BoardWeb.Endpoint,
+  #     config :foreman, ForemanWeb.Endpoint,
   #       https: [
   #         ...,
   #         port: 443,
@@ -108,7 +108,7 @@ if config_env() == :prod do
   # We also recommend setting `force_ssl` in your config/prod.exs,
   # ensuring no data is ever sent via http, always redirecting to https:
   #
-  #     config :board, BoardWeb.Endpoint,
+  #     config :foreman, ForemanWeb.Endpoint,
   #       force_ssl: [hsts: true]
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
@@ -118,7 +118,7 @@ if config_env() == :prod do
   # In production you need to configure the mailer to use a different adapter.
   # Here is an example configuration for Mailgun:
   #
-  #     config :board, Board.Mailer,
+  #     config :foreman, Foreman.Mailer,
   #       adapter: Swoosh.Adapters.Mailgun,
   #       api_key: System.get_env("MAILGUN_API_KEY"),
   #       domain: System.get_env("MAILGUN_DOMAIN")

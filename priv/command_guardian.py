@@ -49,7 +49,7 @@ def main():
     admission = socket.socket(socket.AF_UNIX)
     identity = request.get("identity")
     if identity:
-        name = "\0beads-board:" + hashlib.sha256(identity.encode()).hexdigest()
+        name = "\0foreman:" + hashlib.sha256(identity.encode()).hexdigest()
         try:
             admission.bind(name)
         except OSError:

@@ -1,7 +1,7 @@
 {
   "v": 3,
   "createdOnFiles": {"v": 1, "at": "2026-10-18T01:40:00Z"},
-  "title": "Beads Board design",
+  "title": "foreman design",
   "launch": {"view": "canvas"},
   "pages": [],
   "boards": {
@@ -10,11 +10,11 @@
     "Ticket.dc.html": {"x": 3040, "y": 0, "w": 1440, "h": 1240, "title": "3 · Ticket sheet", "expand": "fill", "is_interactive": true},
     "PRs.dc.html": {"x": 0, "y": 2080, "w": 1440, "h": 1120, "title": "4 · PR panel and merge", "expand": "fill", "is_interactive": true},
     "Machine.dc.html": {"x": 1520, "y": 2080, "w": 1440, "h": 1960, "title": "5 · Machines, generated"},
-    "Settings.dc.html": {"x": 3040, "y": 2080, "w": 1440, "h": 1240, "title": "6 · Settings, board.toml", "expand": "fill", "is_interactive": true}
+    "Settings.dc.html": {"x": 3040, "y": 2080, "w": 1440, "h": 1240, "title": "6 · Settings, foreman.toml", "expand": "fill", "is_interactive": true}
   },
   "order": ["Main.dc.html", "Epic.dc.html", "Ticket.dc.html", "PRs.dc.html", "Machine.dc.html", "Settings.dc.html"],
   "notes": {
-    "t1": {"x": 0, "y": -300, "text": "Beads Board: epics first", "kind": "title1", "maxW": 4480},
+    "t1": {"x": 0, "y": -300, "text": "foreman: epics first", "kind": "title1", "maxW": 4480},
     "t2": {"x": 0, "y": 1780, "text": "Shipping, the machines, config", "kind": "title1", "maxW": 4480}
   },
   "designSystems": []

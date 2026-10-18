@@ -1,0 +1,72 @@
+defmodule Foreman.CLITest do
+  use ExUnit.Case, async: true
+  alias Foreman.CLI
+
+  test "ticket verbs encode their claims with actor/session defaults" do
+    for {verb, event} <- [
+          {"dispatch", "dispatch"},
+          {"progress", "progress"},
+          {"report", "report"},
+          {"review", "review"},
+          {"changes", "request_changes"},
+          {"commit", "commit"},
+          {"abandon", "abandon"},
+          {"revive", "revive"}
+        ] do
+      assert {:ok,
+              %{
+                request: %{
+                  "id" => "s-1",
+                  "event" => ^event,
+                  "actor" => "pi",
+                  "session" => "build"
+                },
+                json: true
+              }} = CLI.parse([verb, "s-1", "--json"], actor: "pi", session: "build", cwd: "/work")
+    end
+
+    assert {:ok, %{request: %{"payload" => %{"body" => "working"}}}} =
+             CLI.parse(["progress", "s-1", "working"])
+
+    assert {:ok, %{request: %{"payload" => %{"window" => "build", "branch" => "feature"}}}} =
+             CLI.parse(["dispatch", "s-1", "--window", "build", "--branch", "feature"])
+  end
+
+  test "draft verbs use slugs and cwd or explicit project" do
+    for {verb, event} <- [
+          {"create", "create"},
+          {"spec", "start_spec"},
+          {"approve", "approve_spec"},
+          {"ticket", "ticket"},
+          {"abandon", "abandon"},
+          {"revive", "revive"}
+        ] do
+      assert {:ok,
+              %{
+                request: %{
+                  "id" => "draft:new-idea",
+                  "event" => ^event,
+                  "cwd" => "/work",
+                  "project" => "sample"
+                }
+              }} =
+               CLI.parse(["epic", verb, "draft:new-idea", "--project", "sample"], cwd: "/work")
+    end
+
+    assert {:ok, %{request: %{"id" => "s-e"}}} = CLI.parse(["epic", "abandon", "s-e"])
+  end
+
+  test "link verbs and read commands have stable envelopes; malformed options are warnings" do
+    for verb <- ["attach", "detach"] do
+      assert {:ok, %{request: %{"action" => ^verb, "id" => "s-1", "epic" => "o-e"}}} =
+               CLI.parse([verb, "s-1", "--epic", "o-e"])
+    end
+
+    assert {:ok, %{request: %{"action" => "show"}}} = CLI.parse(["show", "s-1"])
+
+    assert {:ok, %{request: %{"action" => "ls", "stage" => "building"}}} =
+             CLI.parse(["ls", "--stage", "building"])
+
+    assert {:error, :usage} = CLI.parse(["review", "s-1", "--typo"])
+  end
+end

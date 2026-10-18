@@ -1,4 +1,4 @@
-const key = "board:initiative-filters:v1"
+const key = "foreman:initiative-filters:v1"
 
 export const rememberedFilters = () => {
   try {
@@ -9,7 +9,7 @@ export const rememberedFilters = () => {
   }
 }
 
-const disclosureKey = "board:initiative-filters-open:v1"
+const disclosureKey = "foreman:initiative-filters-open:v1"
 
 export const rememberedFiltersOpen = () => {
   try { return localStorage.getItem(disclosureKey) === "true" } catch { return false }

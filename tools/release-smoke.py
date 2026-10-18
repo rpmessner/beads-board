@@ -18,8 +18,8 @@ import urllib.request
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE = ROOT / "_build/prod/rel/board"
-BIN = RELEASE / "bin/board"
+RELEASE = ROOT / "_build/prod/rel/foreman"
+BIN = RELEASE / "bin/foreman"
 
 
 def free_port():
@@ -57,7 +57,7 @@ def main():
     exporter.chmod(0o755)
     config = scratch / "config"
     config.mkdir()
-    (config / "board.toml").write_text(
+    (config / "foreman.toml").write_text(
         f'[[repos]]\nkey = "release-smoke"\npath = "{repo}"\nenabled = true\n'
     )
     vm_args = scratch / "vm.args"
@@ -68,10 +68,10 @@ def main():
         "HOME": str(scratch),
         "PATH": f"{fixture_bin}:/usr/local/bin:/usr/bin:/bin",
         "LANG": "C.UTF-8",
-        "DATABASE_URL": f"ecto://postgres:postgres@localhost/beads_board_release_{secrets.token_hex(6)}_test",
-        "BOARD_ROLE": "worker",
-        "BOARD_CONFIG_DIR": str(config),
-        "BOARD_DISCOVERY_ROOT": str(repo),
+        "DATABASE_URL": f"ecto://postgres:postgres@localhost/foreman_release_{secrets.token_hex(6)}_test",
+        "FOREMAN_ROLE": "worker",
+        "FOREMAN_CONFIG_DIR": str(config),
+        "FOREMAN_DISCOVERY_ROOT": str(repo),
         "RELEASE_DISTRIBUTION": "none",
         "RELEASE_TMP": str(scratch / "runtime"),
         "ERL_FLAGS": "+S 2:2",
@@ -79,15 +79,15 @@ def main():
     database_setup = '''
     {:ok, _} = Application.ensure_all_started(:ecto_sql)
     {:ok, _} = Application.ensure_all_started(:postgrex)
-    :ok = Ecto.Adapters.Postgres.storage_up(Board.Repo.config())
+    :ok = Ecto.Adapters.Postgres.storage_up(Foreman.Repo.config())
     IO.puts("SMOKE_DATABASE_CREATED")
-    {:ok, _, _} = Ecto.Migrator.with_repo(Board.Repo, &Ecto.Migrator.run(&1, :up, all: true))
+    {:ok, _, _} = Ecto.Migrator.with_repo(Foreman.Repo, &Ecto.Migrator.run(&1, :up, all: true))
     IO.puts("SMOKE_DATABASE_MIGRATED")
     '''
     database_cleanup = '''
     {:ok, _} = Application.ensure_all_started(:ecto_sql)
     {:ok, _} = Application.ensure_all_started(:postgrex)
-    :ok = Ecto.Adapters.Postgres.storage_down(Board.Repo.config())
+    :ok = Ecto.Adapters.Postgres.storage_down(Foreman.Repo.config())
     IO.puts("SMOKE_DATABASE_DROPPED")
     '''
     processes = []
@@ -101,7 +101,7 @@ def main():
             ports["worker"] = free_port()
         for role in ("web", "worker"):
             role_env = env | {
-                "BOARD_ROLE": role,
+                "FOREMAN_ROLE": role,
                 "PORT": str(ports[role]),
                 "PHX_SERVER": "true",
                 "RELEASE_VM_ARGS": str(vm_args),
@@ -123,8 +123,14 @@ def main():
         print("SMOKE_WEB_RECEIVED_SYNC_VIA_POSTGRES", flush=True)
         with urllib.request.urlopen(f"http://127.0.0.1:{ports['web']}/settings", timeout=5) as response:
             assert response.status == 200
-            assert b"release-smoke" in response.read()
-        print("SMOKE_WEB_HTTP_200_WITH_SYNCED_REPO", flush=True)
+            html = response.read()
+            assert b"release-smoke" in html
+            assert b"foreman</title>" in html
+            assert b"> foreman" in html
+        with urllib.request.urlopen(f"http://127.0.0.1:{ports['web']}/images/favicon.svg", timeout=5) as response:
+            assert response.status == 200
+            assert b'aria-label="foreman"' in response.read()
+        print("SMOKE_WEB_HTTP_200_WITH_SYNCED_REPO_AND_FOREMAN_BRANDING", flush=True)
         with socket.socket() as sock:
             assert sock.connect_ex(("127.0.0.1", ports["worker"])) != 0
         print("SMOKE_WORKER_PORT_CLOSED", flush=True)

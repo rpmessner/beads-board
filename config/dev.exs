@@ -1,11 +1,11 @@
 import Config
 
 # Configure your database
-config :board, Board.Repo,
+config :foreman, Foreman.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "beads_board_dev",
+  database: "foreman_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -16,7 +16,7 @@ config :board, Board.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :board, BoardWeb.Endpoint,
+config :foreman, ForemanWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}],
@@ -25,8 +25,8 @@ config :board, BoardWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "Zp0BcQzhX+ZzTQ+WJD31BlYDQ0rRbUc9U2QHG7J6lvyl+M3Ggbbqz3dgiqk91wdu",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:board, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:board, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:foreman, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:foreman, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -53,7 +53,7 @@ config :board, BoardWeb.Endpoint,
 # different ports.
 
 # Reload browser tabs when matching files change.
-config :board, BoardWeb.Endpoint,
+config :foreman, ForemanWeb.Endpoint,
   live_reload: [
     web_console_logger: true,
     patterns: [
@@ -62,13 +62,13 @@ config :board, BoardWeb.Endpoint,
       # Gettext translations
       ~r"priv/gettext/.*\.po$"E,
       # Router, Controllers, LiveViews and LiveComponents
-      ~r"lib/board_web/router\.ex$"E,
-      ~r"lib/board_web/(controllers|live|components)/.*\.(ex|heex)$"E
+      ~r"lib/foreman_web/router\.ex$"E,
+      ~r"lib/foreman_web/(controllers|live|components)/.*\.(ex|heex)$"E
     ]
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :board, dev_routes: true
+config :foreman, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
