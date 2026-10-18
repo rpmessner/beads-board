@@ -76,5 +76,60 @@ defmodule Board.ForgeGitHubTest do
     assert {:error, :credentials_or_remote} = GitHub.list("owner/repo", [])
   end
 
+  test "mutation failures are sanitized and neither redirects nor transport errors retry" do
+    opts = [token: "test", plug: {Req.Test, __MODULE__}]
+
+    for {status, reason} <- [
+          {301, :outcome_unknown},
+          {401, :unauthorized},
+          {403, :forbidden_or_rate_limited},
+          {404, :not_found},
+          {405, :merge_refused},
+          {409, :head_moved},
+          {422, :merge_refused},
+          {429, :forbidden_or_rate_limited},
+          {503, :outcome_unknown}
+        ] do
+      Req.Test.stub(__MODULE__, fn conn ->
+        send(self(), :mutation)
+
+        conn
+        |> Plug.Conn.put_resp_header("location", "https://example.invalid")
+        |> Plug.Conn.send_resp(status, "private details")
+      end)
+
+      assert {:error, ^reason} = GitHub.merge("owner/repo", 5, "confirmed", opts)
+      assert_received :mutation
+      refute_received :mutation
+    end
+
+    Req.Test.stub(__MODULE__, fn conn ->
+      send(self(), :mutation)
+      Req.Test.transport_error(conn, :timeout)
+    end)
+
+    assert {:error, :outcome_unknown} = GitHub.merge("owner/repo", 5, "confirmed", opts)
+    assert_received :mutation
+    refute_received :mutation
+    assert {:error, :outcome_unknown} = GitHub.retarget("owner/repo", 6, "main", opts)
+    assert_received :mutation
+    refute_received :mutation
+  end
+
+  test "successful HTTP status alone is not a successful mutation" do
+    opts = [token: "test", plug: {Req.Test, __MODULE__}]
+    Req.Test.stub(__MODULE__, &Req.Test.json(&1, %{"merged" => false}))
+    assert {:error, :merge_refused} = GitHub.merge("owner/repo", 5, "sha", opts)
+    Req.Test.stub(__MODULE__, &Req.Test.json(&1, %{"merged" => true}))
+    assert {:error, :invalid_response} = GitHub.merge("owner/repo", 5, "sha", opts)
+    Req.Test.stub(__MODULE__, &Req.Test.json(&1, %{"number" => 6, "base" => %{"ref" => "wrong"}}))
+    assert {:error, :invalid_response} = GitHub.retarget("owner/repo", 6, "main", opts)
+    assert {:error, :credentials_or_remote} = GitHub.merge("owner/repo", 5, "sha", [])
+    assert {:error, :credentials_or_remote} = GitHub.retarget("owner/repo", 6, "main", [])
+
+    assert {:error, :credentials_or_remote} =
+             GitHub.merge("owner/repo/../../elsewhere", 5, "sha", opts)
+  end
+
   defp fixture(name), do: File.read!("test/fixtures/forge/" <> name) |> Jason.decode!()
 end

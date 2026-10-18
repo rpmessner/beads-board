@@ -33,6 +33,7 @@ defmodule Board.FsmDocsTest do
         {"read_machine", Board.Beads.ReadMachine},
         {"read_lifecycle", Board.Forge.ReadLifecycle},
         {"refresh_status", Board.Forge.RefreshStatus},
+        {"action", Board.Merge.Action},
         {"schedule_machine", Board.Beads.ScheduleMachine},
         {"sync_machine", Board.Beads.SyncMachine},
         {"watch_machine", Board.Config.WatchMachine}

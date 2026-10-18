@@ -1,6 +1,8 @@
 defmodule BoardWeb.PullRequestsLive do
   use BoardWeb, :live_view
-  alias Fluxon.Components.{Badge, Button}
+  alias Fluxon.Components.{Badge, Button, Modal}
+  alias Board.Merge
+  alias Board.Merge.Action
 
   @impl true
   def mount(_, _, socket) do
@@ -9,13 +11,34 @@ defmodule BoardWeb.PullRequestsLive do
       Process.send_after(self(), :reconcile, 3_000)
     end
 
-    {:ok, assign(socket, page_title: "Pull requests", project: nil, refresh_state: :idle)}
+    {:ok,
+     assign(socket,
+       page_title: "Pull requests",
+       project: nil,
+       refresh_state: :idle,
+       merge_state: :idle,
+       merge_facts: nil,
+       merge_remote: nil,
+       merge_message: nil,
+       merge_record: nil
+     )}
   end
 
   @impl true
   def handle_params(params, uri, socket) do
     {state, []} = Board.Forge.RefreshStatus.step(socket.assigns.refresh_state, :cancel, %{})
     socket = socket |> assign(refresh_state: state) |> clear_flash(:info)
+
+    socket =
+      if params["project"] != socket.assigns.project,
+        do:
+          assign(socket,
+            merge_state: :idle,
+            merge_facts: nil,
+            merge_message: nil,
+            merge_record: nil
+          ),
+        else: socket
 
     {:noreply,
      socket
@@ -54,6 +77,102 @@ defmodule BoardWeb.PullRequestsLive do
     end
   end
 
+  def handle_event("merge-request", %{"number" => number}, socket) do
+    parsed = Integer.parse(number)
+
+    result =
+      with {n, ""} <- parsed,
+           %{snapshot: snapshot} <- socket.assigns.stored,
+           do: Merge.prepare(snapshot, n)
+
+    case result do
+      {:ok, facts} ->
+        case Action.step(
+               socket.assigns.merge_state,
+               :request,
+               Merge.data(facts, socket.assigns.capabilities)
+             ) do
+          {:confirming, []} ->
+            prior =
+              Merge.attempt(
+                socket.assigns.stored.remote,
+                facts["pr"]["number"],
+                facts["pr"]["head_sha"]
+              )
+
+            if prior do
+              {:noreply,
+               assign(socket,
+                 merge_state: merge_state(prior.state),
+                 merge_facts: nil,
+                 merge_record: prior,
+                 merge_message: record_label(prior)
+               )}
+            else
+              {:noreply,
+               assign(socket,
+                 merge_state: :confirming,
+                 merge_facts: facts,
+                 merge_remote: socket.assigns.stored.remote,
+                 merge_message: nil
+               )}
+            end
+
+          _ ->
+            {:noreply, assign(socket, merge_message: "Merge unavailable")}
+        end
+
+      {:error, reason} ->
+        {:noreply, assign(socket, merge_message: reason_label(reason))}
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("merge-cancel", _, socket) do
+    case Action.step(socket.assigns.merge_state, :cancel, %{}) do
+      {:idle, []} ->
+        {:noreply, assign(socket, merge_state: :idle, merge_facts: nil, merge_message: nil)}
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("merge-confirm", _, %{assigns: %{merge_state: :confirming}} = socket) do
+    facts = socket.assigns.merge_facts
+    current = Board.Forge.Store.get(socket.assigns.project)
+
+    unchanged =
+      current && current.remote == socket.assigns.merge_remote &&
+        Enum.any?(
+          current.snapshot["change_requests"] || [],
+          &(&1["number"] == facts["pr"]["number"] && &1["head_sha"] == facts["pr"]["head_sha"])
+        )
+
+    data = %{Merge.data(facts, socket.assigns.capabilities) | head_unchanged: !!unchanged}
+
+    case Action.step(:confirming, :confirm, data) do
+      {:merging, _} ->
+        case Merge.enqueue(socket.assigns.project, socket.assigns.merge_remote, facts) do
+          {:ok, row} ->
+            {:noreply,
+             socket
+             |> assign(merge_state: :merging, merge_facts: nil, merge_record: row)
+             |> refresh()}
+
+          {:error, _} ->
+            {:noreply, assign(socket, merge_message: "Merge unavailable")}
+        end
+
+      _ ->
+        {:noreply, assign(socket, merge_message: "Head moved · Reopen confirmation")}
+    end
+  end
+
+  def handle_event("merge-confirm", _, socket), do: {:noreply, socket}
+
   def handle_event("close-ticket", params, socket),
     do: {:noreply, BoardWeb.TicketDetail.close(socket, params)}
 
@@ -75,8 +194,23 @@ defmodule BoardWeb.PullRequestsLive do
         socket
       end
 
+    record = if project, do: Merge.latest(project)
+    record = if record && repo && record.remote == repo["github"], do: record
+
+    socket =
+      if record && socket.assigns.merge_state != :confirming do
+        assign(socket,
+          merge_record: record,
+          merge_state: merge_state(record.state),
+          merge_message: record_label(record)
+        )
+      else
+        socket
+      end
+
     socket
     |> assign(
+      capabilities: Board.Forge.adapter().capabilities(),
       repos: repos,
       project: project,
       panel: panel,
@@ -111,8 +245,29 @@ defmodule BoardWeb.PullRequestsLive do
   defp status(%{"checks" => checks}) when checks not in ["success", "none"],
     do: "Checks: #{checks}"
 
-  defp status(%{"mergeable" => "mergeable"}), do: "Ready · read-only"
+  defp status(%{"mergeable" => "mergeable"}), do: "Ready"
   defp status(_), do: "Mergeability unknown"
+
+  defp merge_state(state), do: Enum.find(Action.__fsm__(:states), &(Atom.to_string(&1) == state))
+  defp reason_label(:not_bottom), do: "Bottom of stack only"
+  defp reason_label(:head_moved), do: "Head moved"
+  defp reason_label(:not_mergeable), do: "Not mergeable"
+
+  defp reason_label(reason),
+    do: reason |> to_string() |> String.replace("_", " ") |> String.capitalize()
+
+  defp record_label(%{state: "merging"}), do: "Merging"
+
+  defp record_label(%{state: "retargeting", facts: facts}),
+    do: "Retargeting ##{facts["child"]["number"]}"
+
+  defp record_label(%{state: "merged", error: nil}), do: "Merged"
+
+  defp record_label(%{merge_sha: sha, facts: facts}) when not is_nil(sha),
+    do: "Merged · Manual retarget ##{facts["child"]["number"]} → #{facts["default_branch"]}"
+
+  defp record_label(%{error: "outcome_unknown"}), do: "Outcome unknown · Check forge"
+  defp record_label(%{error: error}), do: "Merge failed · #{reason_label(error)}"
 
   @impl true
   def render(assigns) do
@@ -169,6 +324,23 @@ defmodule BoardWeb.PullRequestsLive do
         >
           Sync failed · {@stored.error}
         </div>
+        <div
+          :if={@merge_message}
+          id="merge-status"
+          role="status"
+          data-state={@merge_state}
+          class="bb-panel flex flex-wrap items-center gap-3 text-sm"
+        >
+          <.icon
+            :if={@merge_state in [:merging, :retargeting]}
+            name="hero-arrow-path"
+            class="size-4 animate-spin"
+          />
+          {@merge_message}
+          <span :if={@merge_record} class="ml-auto text-xs text-foreground-softer">
+            <BoardWeb.TicketDetail.timestamp at={@merge_record.updated_at} />
+          </span>
+        </div>
         <div id="pull-requests" phx-update="stream" class="space-y-3">
           <div
             id="prs-empty"
@@ -221,6 +393,17 @@ defmodule BoardWeb.PullRequestsLive do
               <span data-parent={pr["parent"]}>
                 <Badge.badge>{status(pr)}</Badge.badge>
               </span>
+              <Button.button
+                :if={@capabilities.write}
+                id={"merge-request-#{pr["number"]}"}
+                phx-click="merge-request"
+                phx-value-number={pr["number"]}
+                disabled={@merge_state in [:confirming, :merging, :retargeting]}
+                variant="outline"
+                size="sm"
+              >
+                Merge
+              </Button.button>
             </div>
           </article>
         </div>
@@ -228,6 +411,70 @@ defmodule BoardWeb.PullRequestsLive do
       <p :if={!@panel} id="forge-no-remote" class="text-foreground-softer">
         No remote
       </p>
+      <Modal.modal
+        id="merge-confirm"
+        open={@merge_state == :confirming}
+        on_close={JS.push("merge-cancel")}
+        class="w-[min(540px,calc(100vw-2rem))] space-y-5"
+      >
+        <%= if @merge_facts do %>
+          <h2
+            id="merge-confirm-title"
+            class="text-lg font-semibold"
+            phx-mounted={
+              JS.set_attribute({"aria-labelledby", "merge-confirm-title"},
+                to: "#merge-confirm [role=dialog]"
+              )
+            }
+          >
+            Merge pull request
+          </h2>
+          <div class="font-medium">
+            #{@merge_facts["pr"]["number"]} · {@merge_facts["pr"]["title"]}
+          </div>
+          <dl class="grid grid-cols-[80px_minmax(0,1fr)] gap-x-4 gap-y-3 text-sm">
+            <dt class="text-foreground-softer">Target</dt>
+            <dd class="font-mono">{@merge_facts["default_branch"]}</dd>
+            <dt class="text-foreground-softer">Head</dt>
+            <dd class="break-all font-mono text-xs">{@merge_facts["pr"]["head_sha"]}</dd>
+            <dt class="text-foreground-softer">Method</dt>
+            <dd>Merge commit</dd>
+            <dt class="text-foreground-softer">Beads</dt>
+            <dd class="flex flex-wrap gap-1">
+              <Badge.badge :for={link <- @merge_facts["pr"]["links"] || []}>
+                {link["bead_id"]}
+              </Badge.badge>
+            </dd>
+            <dt class="text-foreground-softer">Guard</dt>
+            <dd>
+              {if @capabilities.head_guard, do: "Expected head SHA", else: "Weaker · Head re-read"}
+            </dd>
+            <dt :if={@merge_facts["child"]} class="text-foreground-softer">Then</dt>
+            <dd :if={@merge_facts["child"]}>
+              {if @capabilities.retarget, do: "Retarget", else: "Manual retarget"} #{@merge_facts[
+                "child"
+              ]["number"]} · {@merge_facts["child"]["target_branch"]} → {@merge_facts[
+                "default_branch"
+              ]}
+            </dd>
+          </dl>
+          <div :if={@merge_message} role="status" class="text-sm">{@merge_message}</div>
+          <div class="flex justify-end gap-2">
+            <Button.button id="merge-confirm-cancel" phx-click="merge-cancel" variant="outline">
+              Cancel
+            </Button.button>
+            <Button.button
+              id="merge-confirm-submit"
+              phx-click="merge-confirm"
+              phx-disable-with="Merging"
+              variant="solid"
+              color="primary"
+            >
+              Merge pull request
+            </Button.button>
+          </div>
+        <% end %>
+      </Modal.modal>
       <BoardWeb.TicketDetail.sheet
         ticket={@ticket}
         state={@sheet_state}

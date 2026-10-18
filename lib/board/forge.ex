@@ -10,9 +10,18 @@ defmodule Board.Forge do
   Transport/credential options are ephemeral and must not enter persisted jobs.
 
   Capabilities distinguish native head_guard/retarget support from enabled writes.
-  This read-only slice declares mutation signatures, but `write: false` and both
-  mutation callbacks return `{:error, :read_only}` until the merge-action ticket.
+  Mutations are merge commits only and never delete branches. Transports must not
+  retry writes automatically; ambiguous outcomes require observation, not replay.
   """
+  def adapter, do: Application.get_env(:board, :forge_adapter, Board.Forge.GitHub)
+
+  def options do
+    case Application.fetch_env(:board, :forge_options) do
+      {:ok, opts} -> opts
+      :error -> [token: Board.Forge.Credentials.token()]
+    end
+  end
+
   @type snapshot :: %{required(String.t()) => term()}
   @callback list(String.t(), keyword()) :: {:ok, snapshot()} | {:error, atom()}
   @callback merge(String.t(), pos_integer(), String.t(), keyword()) ::

@@ -1,5 +1,5 @@
 defmodule Board.Forge.GitHub do
-  @moduledoc "One bounded GraphQL read, including explicit states of previously open PRs. No mutations."
+  @moduledoc "Bounded GraphQL reads and head-guarded REST merge commits. Never deletes branches."
   @behaviour Board.Forge
   @fields "number title body headRefName baseRefName headRefOid isDraft mergeable mergeStateStatus url state commits(last:1) { nodes { commit { statusCheckRollup { state } } } }"
 
@@ -110,9 +110,61 @@ defmodule Board.Forge.GitHub do
   end
 
   @impl true
-  def capabilities, do: %{head_guard: true, retarget: true, write: false}
+  def capabilities, do: %{head_guard: true, retarget: true, write: true}
+
   @impl true
-  def merge(_, _, _, _), do: {:error, :read_only}
+  def merge(remote, number, sha, opts) when is_binary(sha) and byte_size(sha) > 0 do
+    case mutation(:put, remote, number, "/merge", %{merge_method: "merge", sha: sha}, opts) do
+      {:ok, %{"merged" => true, "sha" => merged_sha}} when is_binary(merged_sha) ->
+        {:ok, %{"sha" => merged_sha}}
+
+      {:ok, %{"merged" => false}} ->
+        {:error, :merge_refused}
+
+      {:ok, _} ->
+        {:error, :invalid_response}
+
+      error ->
+        error
+    end
+  end
+
   @impl true
-  def retarget(_, _, _, _), do: {:error, :read_only}
+  def retarget(remote, number, base, opts) when is_binary(base) and byte_size(base) > 0 do
+    case mutation(:patch, remote, number, "", %{base: base}, opts) do
+      {:ok, %{"number" => ^number, "base" => %{"ref" => ^base}}} -> :ok
+      {:ok, _} -> {:error, :invalid_response}
+      error -> error
+    end
+  end
+
+  defp mutation(method, remote, number, suffix, body, opts) do
+    token = Keyword.get(opts, :token)
+
+    if is_binary(remote) && Regex.match?(~r/\A[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\z/, remote) &&
+         is_integer(number) && number > 0 && is_binary(token) && token != "" do
+      request =
+        [
+          method: method,
+          url: "https://api.github.com/repos/#{remote}/pulls/#{number}#{suffix}",
+          auth: {:bearer, token},
+          json: body,
+          retry: false,
+          redirect: false,
+          receive_timeout: 15_000
+        ] ++ Keyword.take(opts, [:plug])
+
+      case Req.request(request) do
+        {:ok, %{status: 200, body: response}} -> {:ok, response}
+        {:ok, %{status: 409}} -> {:error, :head_moved}
+        {:ok, %{status: status}} when status in [405, 422] -> {:error, :merge_refused}
+        {:ok, %{status: 401}} -> {:error, :unauthorized}
+        {:ok, %{status: status}} when status in [403, 429] -> {:error, :forbidden_or_rate_limited}
+        {:ok, %{status: 404}} -> {:error, :not_found}
+        _ -> {:error, :outcome_unknown}
+      end
+    else
+      {:error, :credentials_or_remote}
+    end
+  end
 end
