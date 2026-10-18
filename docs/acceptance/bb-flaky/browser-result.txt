@@ -1,0 +1,1 @@
+PASS: fresh bare route stays put; saved view/search restore into URL; explicit URL wins; no page errors.

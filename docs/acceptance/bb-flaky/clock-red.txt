@@ -1,0 +1,25 @@
+==> ham
+Compiling 6 files (.ex)
+Generated ham app
+==> mimic
+Compiling 11 files (.ex)
+Generated mimic app
+==> board
+Compiling 2 files (.ex)
+Generated board app
+Running ExUnit with seed: 0, max_cases: 16
+
+
+
+  1) test LiveView signing tolerates a backwards clock step without replacing verification (BoardWeb.LiveViewClockTest)
+     test/board_web/live_view_clock_test.exs:5
+     Assertion with == failed
+     code:  assert signed_at == issued_at - 1000
+     left:  1792325498740
+     right: 1792325497740
+     stacktrace:
+       test/board_web/live_view_clock_test.exs:16: (test)
+
+.
+Finished in 0.1 seconds (0.1s async, 0.00s sync)
+2 tests, 1 failure
