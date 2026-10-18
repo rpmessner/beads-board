@@ -2,7 +2,7 @@
 id: fm-zgd.2
 title: "Browser notifications for new requests"
 type: feature
-status: open
+status: in_progress
 priority: 2
 parent: fm-zgd
 blocked_by: ["fm-zgd.1"]
