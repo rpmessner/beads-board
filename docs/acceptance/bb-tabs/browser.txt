@@ -1,0 +1,1 @@
+PASS: both pages × light/dark × 390/1440; all tabs, reload/back/forward, keyboard arrows and visible focus, close/Escape, hidden live history/sessions/notes; no page errors

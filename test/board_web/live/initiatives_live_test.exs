@@ -32,6 +32,82 @@ defmodule BoardWeb.InitiativesLiveTest do
     :ok
   end
 
+  test "sheet tab is selected from valid, unknown and missing URL params", %{conn: conn} do
+    for {query, selected} <- [
+          {"", "overview"},
+          {"&tab=history", "history"},
+          {"&tab=sessions", "sessions"},
+          {"&tab=notes", "notes"},
+          {"&tab=unknown", "overview"},
+          {"&tab[]=history", "overview"}
+        ] do
+      {:ok, view, _} = live(conn, "/?ticket=sample:f" <> query)
+      assert has_element?(view, "#ticket-#{selected}-tab[aria-selected=true]")
+      assert has_element?(view, "#ticket-#{selected}-panel:not([hidden])")
+      assert has_element?(view, "#ticket-overview h3")
+
+      for section <- ~w(history sessions notes) do
+        refute has_element?(view, "#ticket-#{section}-section > h3")
+      end
+
+      for other <- ~w(overview history sessions notes) -- [selected] do
+        assert has_element?(view, "#ticket-#{other}-panel[hidden]")
+      end
+    end
+  end
+
+  test "tab patches retain ticket and all filters, close clears sheet params", %{conn: conn} do
+    {:ok, view, _} =
+      live(
+        conn,
+        "/?ticket=sample:f&project=sample&type=bug&label=follow-up&status=open&stale=true&q=f"
+      )
+
+    view |> element("#ticket-history-tab") |> render_click()
+    params = URI.decode_query(URI.parse(assert_patch(view)).query)
+
+    assert params == %{
+             "ticket" => "sample:f",
+             "tab" => "history",
+             "project" => "sample",
+             "type" => "bug",
+             "label" => "follow-up",
+             "status" => "open",
+             "stale" => "true",
+             "q" => "f"
+           }
+
+    assert has_element?(view, "#ticket-history-panel:not([hidden])")
+    view |> element("#ticket-close") |> render_click()
+    closed = URI.decode_query(URI.parse(assert_patch(view)).query)
+    assert closed == Map.drop(params, ["ticket", "tab"])
+  end
+
+  test "hidden streams update before switching tabs", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/?ticket=sample:f")
+    Board.Overlay.apply_event({"sample", "f"}, {:dispatch, %{window: "tab-worker"}})
+
+    Board.Overlay.apply_event(
+      {"sample", "f"},
+      {:report, %{body: "Fresh tab report", path: "docs/report.md"}}
+    )
+
+    send(view.pid, {:notification, :board_events, "sample/f"})
+    assert has_element?(view, "#ticket-history-panel[hidden] #ticket-history", "dispatch")
+    assert has_element?(view, "#ticket-sessions-panel[hidden] #ticket-sessions", "tab-worker")
+    assert has_element?(view, "#ticket-notes-panel[hidden] #ticket-notes", "Fresh tab report")
+
+    for {tab, content} <- [
+          {"history", "dispatch"},
+          {"sessions", "tab-worker"},
+          {"notes", "Fresh tab report"}
+        ] do
+      view |> element("#ticket-#{tab}-tab") |> render_click()
+      assert_patch(view)
+      assert has_element?(view, "#ticket-#{tab}-panel:not([hidden])", content)
+    end
+  end
+
   test "ticket rows open a URL sheet and closing retains filters and expansion", %{conn: conn} do
     {:ok, view, _} = live(conn, "/?project=sample&type=bug")
     view |> element("[data-bead=e] button") |> render_click()

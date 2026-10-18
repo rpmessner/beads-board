@@ -1,7 +1,7 @@
 defmodule BoardWeb.TicketDetail do
   use BoardWeb, :html
   import Phoenix.LiveView, only: [stream: 4, push_patch: 2]
-  alias Fluxon.Components.{Sheet, Badge}
+  alias Fluxon.Components.{Sheet, Badge, Tabs}
 
   def load(socket, params, uri) do
     key = Board.TicketSheet.key(params["ticket"])
@@ -19,6 +19,7 @@ defmodule BoardWeb.TicketDetail do
       ticket: ticket && Map.drop(ticket, [:history, :sessions, :notes]),
       ticket_key: key,
       sheet_state: state,
+      ticket_tab: Board.TicketSheet.tab(params["tab"]),
       page_uri: uri,
       sheet_return: Board.TicketSheet.path(uri)
     )
@@ -44,6 +45,8 @@ defmodule BoardWeb.TicketDetail do
   attr :state, :atom, required: true
   attr :return_to, :string, required: true
   attr :streams, :map, required: true
+  attr :tab, :string, required: true
+  attr :uri, :string, required: true
 
   def sheet(assigns) do
     ~H"""
@@ -51,7 +54,7 @@ defmodule BoardWeb.TicketDetail do
       id="ticket-sheet"
       open={@state == :open}
       placement="right"
-      class="w-[min(760px,100vw)] space-y-6"
+      class="w-[min(760px,100vw)] space-y-6 [scrollbar-gutter:stable]"
       hide_close_button
       on_close={
         JS.push("close-ticket",
@@ -99,150 +102,171 @@ defmodule BoardWeb.TicketDetail do
             </code>
           </div>
         </header>
-        <nav
-          aria-label="Ticket sections"
-          class="flex flex-wrap gap-4 border-b border-base pb-3 text-xs"
-        >
-          <a href="#ticket-overview">Overview</a><a href="#ticket-history-section">Stage history</a>
-          <a href="#ticket-sessions-section">Sessions</a><a href="#ticket-notes-section">Agent notes</a>
-        </nav>
-        <section id="ticket-overview" class="space-y-5">
-          <div
-            :for={
-              {key, title} <- [
-                {"description", "Description"},
-                {"acceptance_criteria", "Acceptance"},
-                {"design", "Design"},
-                {"notes", "Beads notes"}
-              ]
-            }
-            :if={@ticket.raw[key] not in [nil, ""]}
+        <Tabs.tabs id="ticket-tabs">
+          <Tabs.tabs_list
+            active_tab={"ticket-" <> @tab}
+            size="xs"
+            class="max-w-full gap-x-4 overflow-x-auto"
           >
-            <h3 class="bb-label mb-2">{title}</h3>
-            <p class="whitespace-pre-wrap break-words text-sm leading-6">{@ticket.raw[key]}</p>
-          </div>
-          <div>
-            <h3 class="bb-label mb-2">Dependencies</h3>
-            <div class="flex flex-wrap gap-2">
-              <span
-                :for={dep <- @ticket.raw["dependencies"] || []}
-                class="rounded border border-base px-2 py-1 text-xs"
-              >
-                {dep["type"]} · {dep["depends_on_id"]}
-              </span>
-            </div>
-          </div>
-          <div :if={@ticket.dependents != []}>
-            <h3 class="bb-label mb-2">Dependents</h3>
-            <div class="flex flex-wrap gap-2">
-              <span
-                :for={dep <- @ticket.dependents}
-                class="rounded border border-base px-2 py-1 text-xs"
-              >
-                {dep.type} · {elem(dep.key, 1)}
-              </span>
-            </div>
-          </div>
-          <div :if={@ticket.attachments != []}>
-            <h3 class="bb-label mb-2">Attached epics</h3>
-            <.link
-              :for={epic <- @ticket.attachments}
-              navigate={~p"/epics/#{epic.repo}/#{epic.id}"}
-              class="mr-2 font-mono text-xs hover:underline"
+            <:tab
+              :for={
+                {key, label} <- [
+                  {"overview", "Overview"},
+                  {"history", "Stage history"},
+                  {"sessions", "Sessions"},
+                  {"notes", "Agent notes"}
+                ]
+              }
+              name={"ticket-" <> key}
+              class="shrink-0 whitespace-nowrap"
+              phx-click={JS.patch(Board.TicketSheet.tab_path(@uri, key))}
             >
-              {epic.repo}:{epic.id}
-            </.link>
-          </div>
-          <div class="rounded-lg border border-base p-4">
-            <h3 class="bb-label mb-3">Allowed next events</h3>
-            <div id="ticket-allowed" class="flex flex-wrap gap-2">
-              <Badge.badge :for={event <- @ticket.allowed}>{event}</Badge.badge>
-            </div>
-          </div>
-          <div>
-            <h3 class="bb-label mb-2">Linked CRs</h3>
-            <div id="ticket-crs" class="flex gap-2">
-              <a
-                :for={cr <- @ticket.change_requests}
-                href={cr["url"]}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="hover:underline"
-                title={cr["title"]}
+              {label}
+            </:tab>
+          </Tabs.tabs_list>
+          <Tabs.tabs_panel name="ticket-overview" active={@tab == "overview"} class="pt-5">
+            <section id="ticket-overview" class="space-y-5">
+              <div
+                :for={
+                  {key, title} <- [
+                    {"description", "Description"},
+                    {"acceptance_criteria", "Acceptance"},
+                    {"design", "Design"},
+                    {"notes", "Beads notes"}
+                  ]
+                }
+                :if={@ticket.raw[key] not in [nil, ""]}
               >
-                <Badge.badge>#{cr["number"]} · {cr["state"]}</Badge.badge>
-              </a>
-            </div>
-          </div>
-          <div>
-            <h3 class="bb-label mb-3">Beads fields</h3>
-            <dl class="grid grid-cols-[120px_minmax(0,1fr)] gap-2 text-xs">
-              <%= for {key, value} <- extra_fields(@ticket.raw) do %>
-                <dt class="text-foreground-softer">{String.replace(key, "_", " ")}</dt>
-                <dd class="whitespace-pre-wrap break-words">{value_text(value)}</dd>
-              <% end %>
-            </dl>
-          </div>
-          <div :if={@ticket.overlay}>
-            <h3 class="bb-label mb-3">Overlay</h3>
-            <dl class="grid grid-cols-[120px_minmax(0,1fr)] gap-2 text-xs">
-              <dt>Stage changed</dt>
-              <dd><.timestamp at={@ticket.overlay.stage_changed_at} /></dd>
-              <dt :if={@ticket.overlay.orphaned_at}>Orphaned</dt>
-              <dd :if={@ticket.overlay.orphaned_at}>
-                <.timestamp at={@ticket.overlay.orphaned_at} />
-              </dd>
-            </dl>
-          </div>
-        </section>
-        <section id="ticket-history-section">
-          <h3 class="bb-label mb-3">Stage history</h3>
-          <div id="ticket-history" phx-update="stream">
-            <.history_row :for={{id, event} <- @streams.ticket_history} id={id} event={event} />
-          </div>
-        </section>
-        <section id="ticket-sessions-section">
-          <h3 class="bb-label mb-3">Sessions</h3>
-          <div id="ticket-sessions" phx-update="stream" class="space-y-3">
-            <article
-              :for={{id, session} <- @streams.ticket_sessions}
-              id={id}
-              class="rounded-lg border border-base p-4"
-            >
-              <h4 class="font-mono font-medium">{session.window}</h4>
-              <dl class="mt-3 grid grid-cols-[100px_minmax(0,1fr)] gap-2 text-xs">
-                <dt>Started</dt>
-                <dd><.timestamp at={session.started_at} /></dd>
-                <dt>Last seen</dt>
-                <dd><.timestamp at={session.last_seen_at} /></dd>
-                <dt>Ended</dt>
-                <dd><.timestamp at={session.ended_at} /></dd>
-                <%= for {key, value} <- Enum.sort(session.details) do %>
-                  <dt class="text-foreground-softer">{key}</dt>
-                  <dd class="break-all">{value_text(value)}</dd>
-                <% end %>
-              </dl>
-            </article>
-          </div>
-        </section>
-        <section id="ticket-notes-section">
-          <h3 class="bb-label mb-3">Agent notes</h3>
-          <div id="ticket-notes" phx-update="stream" class="space-y-3">
-            <article
-              :for={{id, note} <- @streams.ticket_notes}
-              id={id}
-              class="rounded-lg border border-base p-4"
-            >
-              <div class="mb-2 flex flex-wrap gap-2 text-xs">
-                <Badge.badge>{note.kind}</Badge.badge>
-                <span>{note.actor}</span><span class="ml-auto text-foreground-softer"><.timestamp at={
-                  note.inserted_at
-                } /></span>
+                <h3 class="bb-label mb-2">{title}</h3>
+                <p class="whitespace-pre-wrap break-words text-sm leading-6">{@ticket.raw[key]}</p>
               </div>
-              <p class="whitespace-pre-wrap break-words">{note.body}</p>
-            </article>
-          </div>
-        </section>
+              <div>
+                <h3 class="bb-label mb-2">Dependencies</h3>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    :for={dep <- @ticket.raw["dependencies"] || []}
+                    class="rounded border border-base px-2 py-1 text-xs"
+                  >
+                    {dep["type"]} · {dep["depends_on_id"]}
+                  </span>
+                </div>
+              </div>
+              <div :if={@ticket.dependents != []}>
+                <h3 class="bb-label mb-2">Dependents</h3>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    :for={dep <- @ticket.dependents}
+                    class="rounded border border-base px-2 py-1 text-xs"
+                  >
+                    {dep.type} · {elem(dep.key, 1)}
+                  </span>
+                </div>
+              </div>
+              <div :if={@ticket.attachments != []}>
+                <h3 class="bb-label mb-2">Attached epics</h3>
+                <.link
+                  :for={epic <- @ticket.attachments}
+                  navigate={~p"/epics/#{epic.repo}/#{epic.id}"}
+                  class="mr-2 font-mono text-xs hover:underline"
+                >
+                  {epic.repo}:{epic.id}
+                </.link>
+              </div>
+              <div class="rounded-lg border border-base p-4">
+                <h3 class="bb-label mb-3">Allowed next events</h3>
+                <div id="ticket-allowed" class="flex flex-wrap gap-2">
+                  <Badge.badge :for={event <- @ticket.allowed}>{event}</Badge.badge>
+                </div>
+              </div>
+              <div>
+                <h3 class="bb-label mb-2">Linked CRs</h3>
+                <div id="ticket-crs" class="flex gap-2">
+                  <a
+                    :for={cr <- @ticket.change_requests}
+                    href={cr["url"]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:underline"
+                    title={cr["title"]}
+                  >
+                    <Badge.badge>#{cr["number"]} · {cr["state"]}</Badge.badge>
+                  </a>
+                </div>
+              </div>
+              <div :if={extra_fields(@ticket.raw) != []}>
+                <h3 class="bb-label mb-3">Beads fields</h3>
+                <dl class="grid grid-cols-[120px_minmax(0,1fr)] gap-2 text-xs">
+                  <%= for {key, value} <- extra_fields(@ticket.raw) do %>
+                    <dt class="text-foreground-softer">{String.replace(key, "_", " ")}</dt>
+                    <dd class="whitespace-pre-wrap break-words">{value_text(value)}</dd>
+                  <% end %>
+                </dl>
+              </div>
+              <div :if={@ticket.overlay}>
+                <h3 class="bb-label mb-3">Overlay</h3>
+                <dl class="grid grid-cols-[120px_minmax(0,1fr)] gap-2 text-xs">
+                  <dt>Stage changed</dt>
+                  <dd><.timestamp at={@ticket.overlay.stage_changed_at} /></dd>
+                  <dt :if={@ticket.overlay.orphaned_at}>Orphaned</dt>
+                  <dd :if={@ticket.overlay.orphaned_at}>
+                    <.timestamp at={@ticket.overlay.orphaned_at} />
+                  </dd>
+                </dl>
+              </div>
+            </section>
+          </Tabs.tabs_panel>
+          <Tabs.tabs_panel name="ticket-history" active={@tab == "history"} class="pt-5">
+            <section id="ticket-history-section">
+              <div id="ticket-history" phx-update="stream">
+                <.history_row :for={{id, event} <- @streams.ticket_history} id={id} event={event} />
+              </div>
+            </section>
+          </Tabs.tabs_panel>
+          <Tabs.tabs_panel name="ticket-sessions" active={@tab == "sessions"} class="pt-5">
+            <section id="ticket-sessions-section">
+              <div id="ticket-sessions" phx-update="stream" class="space-y-3">
+                <article
+                  :for={{id, session} <- @streams.ticket_sessions}
+                  id={id}
+                  class="rounded-lg border border-base p-4"
+                >
+                  <h4 class="font-mono font-medium">{session.window}</h4>
+                  <dl class="mt-3 grid grid-cols-[100px_minmax(0,1fr)] gap-2 text-xs">
+                    <dt>Started</dt>
+                    <dd><.timestamp at={session.started_at} /></dd>
+                    <dt>Last seen</dt>
+                    <dd><.timestamp at={session.last_seen_at} /></dd>
+                    <dt>Ended</dt>
+                    <dd><.timestamp at={session.ended_at} /></dd>
+                    <%= for {key, value} <- Enum.sort(session.details) do %>
+                      <dt class="text-foreground-softer">{key}</dt>
+                      <dd class="break-all">{value_text(value)}</dd>
+                    <% end %>
+                  </dl>
+                </article>
+              </div>
+            </section>
+          </Tabs.tabs_panel>
+          <Tabs.tabs_panel name="ticket-notes" active={@tab == "notes"} class="pt-5">
+            <section id="ticket-notes-section">
+              <div id="ticket-notes" phx-update="stream" class="space-y-3">
+                <article
+                  :for={{id, note} <- @streams.ticket_notes}
+                  id={id}
+                  class="rounded-lg border border-base p-4"
+                >
+                  <div class="mb-2 flex flex-wrap gap-2 text-xs">
+                    <Badge.badge>{note.kind}</Badge.badge>
+                    <span>{note.actor}</span><span class="ml-auto text-foreground-softer"><.timestamp at={
+                      note.inserted_at
+                    } /></span>
+                  </div>
+                  <p class="whitespace-pre-wrap break-words">{note.body}</p>
+                </article>
+              </div>
+            </section>
+          </Tabs.tabs_panel>
+        </Tabs.tabs>
       <% end %>
     </Sheet.sheet>
     """

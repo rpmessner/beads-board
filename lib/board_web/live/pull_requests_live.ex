@@ -478,6 +478,8 @@ defmodule BoardWeb.PullRequestsLive do
       <BoardWeb.TicketDetail.sheet
         ticket={@ticket}
         state={@sheet_state}
+        tab={@ticket_tab}
+        uri={@page_uri}
         return_to={@sheet_return}
         streams={@streams}
       />
