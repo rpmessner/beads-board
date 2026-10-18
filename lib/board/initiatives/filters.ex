@@ -6,7 +6,7 @@ defmodule Board.Initiatives.Filters do
       "project" => Enum.map(options.repos, & &1["key"]),
       "type" => options.types,
       "label" => options.labels,
-      "status" => ~w(open closed in_progress blocked deferred),
+      "status" => ~w(all open closed in_progress blocked deferred),
       "stale" => ["true", "false"]
     }
 
@@ -15,9 +15,62 @@ defmodule Board.Initiatives.Filters do
       {key, if(value in allowed, do: value, else: "")}
     end)
     |> Map.put("q", if(is_binary(params["q"]), do: params["q"], else: ""))
+    |> Map.put("view", view_key(params, Map.get(options, :views, [])))
   end
 
   def normalize(_, options), do: normalize(%{}, options)
+
+  defp view_key(params, views) do
+    cond do
+      params["view"] == "" ->
+        ""
+
+      Enum.any?(views, &(&1["key"] == params["view"])) ->
+        params["view"]
+
+      not Map.has_key?(params, "view") and map_size(params) > 0 ->
+        ""
+
+      true ->
+        case views do
+          [first | _] -> first["key"]
+          [] -> ""
+        end
+    end
+  end
+
+  def effective(filters, views) do
+    key = if Map.has_key?(filters, "view"), do: view_key(filters, views), else: ""
+    preset = Enum.find(views, %{}, &(&1["key"] == key))
+
+    filters
+    |> Map.put(
+      "statuses",
+      if(filters["status"] in [nil, ""], do: preset["statuses"] || [], else: [])
+    )
+    |> Map.put("stages", preset["stages"] || [])
+    |> Map.put(
+      "stale",
+      if(filters["stale"] in [nil, ""],
+        do: to_string(preset["stale"] || false),
+        else: filters["stale"]
+      )
+    )
+  end
+
+  def advanced_count(filters, views) do
+    preset = Enum.find(views, %{}, &(&1["key"] == filters["view"]))
+    count = Enum.count(~w(type label), &(filters[&1] not in [nil, ""]))
+
+    status_override? =
+      filters["status"] not in [nil, "", "all"] or
+        (filters["status"] == "all" and preset["statuses"] not in [nil, []])
+
+    stale_override? =
+      filters["stale"] == "true" or (filters["stale"] == "false" and preset["stale"] == true)
+
+    count + Enum.count([status_override?, stale_override?], & &1)
+  end
 
   def path(filters), do: "/?" <> URI.encode_query(Enum.sort(filters))
 

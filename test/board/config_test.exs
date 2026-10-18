@@ -1,6 +1,43 @@
 defmodule Board.ConfigTest do
   use ExUnit.Case, async: true
 
+  test "shipped views are ordered with Open first" do
+    assert {:ok, config} = parse("")
+    assert Enum.map(config["views"] || [], & &1["key"]) == ~w(open in-flight stale all)
+    assert hd(config["views"])["statuses"] == ~w(open in_progress blocked deferred)
+  end
+
+  test "curated views replace defaults in order and rejected reloads retain the last good set" do
+    assert {:ok, config} =
+             parse("""
+             [[views]]
+             key = "review"
+             title = "Review"
+             stages = ["reported", "in_review"]
+             statuses = ["open", "in_progress"]
+             stale = false
+             """)
+
+    assert Enum.map(config["views"], & &1["key"]) == ["review"]
+
+    for text <- [
+          "views = []",
+          "[[views]]\nkey = \"oops\"",
+          "[[views]]\ntitle = \"Oops\"",
+          "[[views]]\nkey = \"oops\"\ntitle = \"Oops\"\nstages = [\"speccing\"]",
+          "[[views]]\nkey = \"oops\"\ntitle = \"Oops\"\nstatuses = [\"invented\"]",
+          "[[views]]\nkey = \"oops\"\ntitle = \"Oops\"\nstale = \"yes\"",
+          "[[views]]\nkey = \"same\"\ntitle = \"One\"\n[[views]]\nkey = \"same\"\ntitle = \"Two\""
+        ] do
+      assert {:error, error} = rejected = parse(text)
+      assert error =~ "views"
+      {loading, _} = config |> Board.Config.Reload.new() |> Board.Config.Reload.request()
+      {retained, _} = Board.Config.Reload.complete(loading, loading.generation, rejected)
+      assert retained.config == config
+      assert retained.error == error
+    end
+  end
+
   test "unknown stages are rejected with the source and field" do
     assert {:error, error} = parse("[[columns]]\ntitle = \"Oops\"\nstages = [\"speccing\"]")
     assert error =~ "board.toml"

@@ -9,10 +9,19 @@ export const rememberedFilters = () => {
   }
 }
 
+const disclosureKey = "board:initiative-filters-open:v1"
+
+export const rememberedFiltersOpen = () => {
+  try { return localStorage.getItem(disclosureKey) === "true" } catch { return false }
+}
+
 export const InitiativeFilters = {
   mounted() { this.remember() },
   updated() { this.remember() },
   remember() {
-    try { localStorage.setItem(key, this.el.dataset.filters) } catch { /* Storage may be disabled. */ }
+    try {
+      localStorage.setItem(key, this.el.dataset.filters)
+      localStorage.setItem(disclosureKey, this.el.dataset.filtersOpen)
+    } catch { /* Storage may be disabled. */ }
   },
 }
