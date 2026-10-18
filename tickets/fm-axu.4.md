@@ -27,3 +27,6 @@ Consumes: the CLI ticket commands (ticket 1).
 - [ ] board ready across repos lists the same tickets bd ready did for the same state (check 6)
 - [ ] A real dispatch close-out and a /to-tickets run work end to end on ticket files with no bd on PATH (check 7)
 - [ ] skills check.py green
+
+## Notes
+- 2026-10-18 user: Merged skills 0fa47da: tracker detection in to-tickets/dispatch/wayfinder/flow/foreman, ready-repos.py. Open: a live dispatch close-out and /to-tickets run on ticket files with no bd on PATH (check 7), and the house AGENTS.md tickets section (awaiting user approval).
