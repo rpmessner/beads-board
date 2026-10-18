@@ -91,7 +91,15 @@ defmodule ForemanWeb.TicketDetail do
             <span id="ticket-stage">
               <Badge.badge color="info">{@ticket.stage}</Badge.badge>
             </span>
-            <Badge.badge>bd: {@ticket.raw["status"] || "unavailable"}</Badge.badge>
+            <Badge.badge>
+              {if !@ticket.raw["acceptance_progress"], do: "bd: "}{@ticket.raw["status"] ||
+                "unavailable"}
+            </Badge.badge>
+            <Badge.badge :if={@ticket.raw["acceptance_progress"]} id="ticket-acceptance-progress">
+              Acceptance {@ticket.raw["acceptance_progress"]["checked"]}/{@ticket.raw[
+                "acceptance_progress"
+              ]["total"]}
+            </Badge.badge>
             <Badge.badge>{@ticket.raw["issue_type"] || "ticket"}</Badge.badge>
             <Badge.badge :if={@ticket.raw["priority"] != nil}>P{@ticket.raw["priority"]}</Badge.badge>
           </div>
@@ -158,7 +166,7 @@ defmodule ForemanWeb.TicketDetail do
                 <h3 class="bb-label mb-2">{title}</h3>
                 <p class="whitespace-pre-wrap break-words text-sm leading-6">{@ticket.raw[key]}</p>
               </div>
-              <div>
+              <div :if={@ticket.raw["dependencies"] not in [nil, []]}>
                 <h3 class="bb-label mb-2">Dependencies</h3>
                 <div class="flex flex-wrap gap-2">
                   <span
@@ -196,7 +204,7 @@ defmodule ForemanWeb.TicketDetail do
                   <Badge.badge :for={event <- @ticket.allowed}>{event}</Badge.badge>
                 </div>
               </div>
-              <div>
+              <div :if={@ticket.change_requests != []}>
                 <h3 class="bb-label mb-2">Linked CRs</h3>
                 <div id="ticket-crs" class="flex gap-2">
                   <a
@@ -212,11 +220,19 @@ defmodule ForemanWeb.TicketDetail do
                 </div>
               </div>
               <div :if={extra_fields(@ticket.raw) != []}>
-                <h3 class="bb-label mb-3">Beads fields</h3>
+                <h3 class="bb-label mb-3">
+                  {if @ticket.raw["acceptance_progress"], do: "Ticket fields", else: "Beads fields"}
+                </h3>
                 <dl class="grid grid-cols-[120px_minmax(0,1fr)] gap-2 text-xs">
                   <%= for {key, value} <- extra_fields(@ticket.raw) do %>
                     <dt class="text-foreground-softer">{String.replace(key, "_", " ")}</dt>
-                    <dd class="whitespace-pre-wrap break-words">{value_text(value)}</dd>
+                    <dd class="break-words">
+                      <%= if @ticket.raw["acceptance_progress"] && key in ~w(created_at closed_at) do %>
+                        <.timestamp at={value} />
+                      <% else %>
+                        <span class="whitespace-pre-wrap">{value_text(value)}</span>
+                      <% end %>
+                    </dd>
                   <% end %>
                 </dl>
               </div>
@@ -323,9 +339,20 @@ defmodule ForemanWeb.TicketDetail do
   def timestamp(assigns) do
     time =
       case assigns.at do
-        %NaiveDateTime{} = time -> DateTime.from_naive!(time, "Etc/UTC")
-        %DateTime{} = time -> time
-        nil -> nil
+        %NaiveDateTime{} = time ->
+          DateTime.from_naive!(time, "Etc/UTC")
+
+        %DateTime{} = time ->
+          time
+
+        text when is_binary(text) ->
+          case DateTime.from_iso8601(text) do
+            {:ok, time, _} -> time
+            _ -> nil
+          end
+
+        nil ->
+          nil
       end
 
     assigns =
@@ -365,8 +392,9 @@ defmodule ForemanWeb.TicketDetail do
     do:
       raw
       |> Map.drop(
-        ~w(id title status issue_type priority description acceptance_criteria design notes dependencies)
+        ~w(id title status issue_type priority description acceptance_criteria acceptance_progress design notes dependencies)
       )
+      |> Enum.reject(fn {_key, value} -> value in [nil, [], ""] end)
       |> Enum.sort()
 
   defp value_text(v) when is_binary(v), do: v

@@ -20,7 +20,20 @@ defmodule ForemanWeb.SettingsLiveTest do
       }
     ])
 
+    Foreman.RuntimeState.record(
+      "sample",
+      {:warning, ["tickets/demo-abc.md: malformed frontmatter"]}
+    )
+
     {:ok, view, _} = live(conn, "/settings")
+    assert has_element?(view, "#repo-sample", "tickets/demo-abc.md: malformed frontmatter")
+    assert has_element?(view, "#repo-sample [data-health=warning]", "1 file error")
+    refute has_element?(view, "#sidebar-project-sample", "down")
+    Foreman.RuntimeState.record("sample", {:error, "tickets: directory unavailable"})
+    send(view.pid, :reconcile)
+    assert has_element?(view, "#repo-sample [data-health=unreachable]", "unreachable")
+    assert has_element?(view, "#repo-sample", "tickets: directory unavailable")
+    assert has_element?(view, "#sidebar-project-sample", "down")
     assert has_element?(view, "a.bb-nav-active[aria-current=page]", "Settings")
     refute has_element?(view, "p", "The board never writes")
     assert has_element?(view, "#repo-sample")

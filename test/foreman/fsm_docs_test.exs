@@ -40,7 +40,8 @@ defmodule Foreman.FsmDocsTest do
         {"action", Foreman.Merge.Action},
         {"schedule_machine", Foreman.Beads.ScheduleMachine},
         {"sync_machine", Foreman.Beads.SyncMachine},
-        {"watch_machine", Foreman.Config.WatchMachine}
+        {"watch_machine", Foreman.Config.WatchMachine},
+        {"reader_machine", Foreman.TicketFiles.ReaderMachine}
       ] do
     test "#{name} documentation matches the committed golden" do
       module = unquote(module)
