@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pull requests</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.fx{--bg:oklch(100% 0 0);--sunken:oklch(96.7% .001 286.375);--surface:#fff;--border:oklch(92% .004 286.32);--fg:oklch(37% .013 285.805);--fg-strong:oklch(21% .006 285.885);--fg-soft:oklch(44.2% .017 285.786);--fg-softer:oklch(55.2% .016 285.938);--primary:oklch(27.4% .006 286.033);--on-primary:#fff;--accent:oklch(96.7% .001 286.375);--danger:oklch(57.7% .245 27.325);--success:oklch(62.7% .194 149.214);--warning:oklch(82.8% .189 84.429);--info:oklch(54.6% .245 262.881);--mix:10%;--fgmix:black 15%;--wfgmix:black 45%;--shadow:0 1px 2px 0 #0000000d;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--fg);background:var(--bg);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+.fx.dark{--bg:oklch(21% .006 285.885);--sunken:oklch(19.1% .006 285.885);--surface:oklch(28.6% .006 285.885);--border:#ffffff1f;--fg:oklch(92% .004 286.32);--fg-strong:#fff;--fg-soft:oklch(87.1% .006 286.286);--fg-softer:oklch(70.5% .015 286.067);--primary:#fff;--on-primary:oklch(27.4% .006 286.033);--accent:oklch(37% .013 285.805);--mix:20%;--fgmix:white 60%;--wfgmix:white 30%;--shadow:0 1px 2px 0 #0000004d}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--fg-soft)}
+.b-neutral{background:var(--sunken)}
+.b-info{background:color-mix(in oklab,var(--info) var(--mix),var(--bg));color:color-mix(in oklab,var(--info),var(--fgmix));border-color:color-mix(in oklab,var(--info) 30%,var(--bg))}
+.b-success{background:color-mix(in oklab,var(--success) var(--mix),var(--bg));color:color-mix(in oklab,var(--success),var(--fgmix));border-color:color-mix(in oklab,var(--success) 30%,var(--bg))}
+.b-warning{background:color-mix(in oklab,var(--warning) var(--mix),var(--bg));color:color-mix(in oklab,var(--warning),var(--wfgmix));border-color:color-mix(in oklab,var(--warning) 50%,var(--bg))}
+.b-danger{background:color-mix(in oklab,var(--danger) var(--mix),var(--bg));color:color-mix(in oklab,var(--danger),var(--fgmix));border-color:color-mix(in oklab,var(--danger) 30%,var(--bg))}
+.b-solid{background:oklch(55% .17 300);color:#fff;border-color:transparent}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg-strong);font:500 14px/20px Inter,system-ui,sans-serif;box-shadow:var(--shadow);cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--accent)}
+.btn-primary{background:var(--primary);color:var(--on-primary);border-color:transparent}
+.btn-primary:hover{background:color-mix(in oklab,var(--primary),var(--bg) 15%)}
+.btn-off{opacity:.55}
+.tabs{display:flex;gap:20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tabs button{height:40px;border:0;background:transparent;padding:0 2px;color:var(--fg-softer);font:500 14px Inter,system-ui,sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.tabs button.on{color:var(--fg-strong);border-bottom-color:var(--primary)}
+.muted{color:var(--fg-softer);font-size:12px;line-height:16px}
+.sec{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-softer)}
+.pr{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);box-shadow:var(--shadow)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:14px;height:14px;border-radius:99px;border:2px solid currentColor;border-right-color:transparent;animation:spin .8s linear infinite}
+</style>
+</helmet>
+<div class="{{rootClass}}" style="min-height: 100vh; position: relative; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 20px; background: var(--bg)">
+
+<header style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 2px; margin-right: auto">
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; color: var(--fg-strong)">Pull requests</h1>
+<div class="muted" style="font-size: 13px">Open PRs per project in stack order. Merges use merge commits, bottom of the stack first, and only after you confirm.</div>
+</div>
+<span class="muted">GitHub synced 40 s ago</span>
+<button class="btn" onClick="{{reset}}">Reset demo</button>
+</header>
+
+<div class="tabs" role="tablist">
+<button class="on" role="tab">form-engine <span class="badge" style="height: 20px">2</span></button>
+<button role="tab">ui-o-matic <span class="badge" style="height: 20px">0</span></button>
+<button role="tab">skills <span class="badge" style="height: 20px">0</span></button>
+<button role="tab">dotfiles <span class="badge" style="height: 20px">0</span></button>
+<button role="tab">we_go_next_dev <span class="badge" style="height: 20px">0</span></button>
+<button role="tab" title="No git remote">cooldown-o-matic <span class="badge" style="height: 20px">no remote</span></button>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 8px; border: 1px solid color-mix(in oklab, var(--warning) 50%, var(--bg)); background: color-mix(in oklab, var(--warning) var(--mix), var(--bg)); color: color-mix(in oklab, var(--warning), var(--wfgmix))">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 2 21h20L12 3z"></path><path d="M12 10v5M12 18h.01"></path></svg>
+<span>{{toast}}</span>
+</div>
+</sc-if>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<div class="sec">Stack on main</div>
+<div style="display: flex; align-items: center; gap: 8px; padding-left: 4px"><span class="badge b-neutral mono">main</span><span class="muted">default branch · 460b13a</span></div>
+
+<div style="display: flex; gap: 12px; padding-left: 20px">
+<div aria-hidden="true" style="width: 14px; flex: none; border-left: 2px solid var(--border); border-bottom: 2px solid var(--border); border-bottom-left-radius: 8px; height: 40px"></div>
+<div class="pr" style="flex: 1; min-width: 0">
+<div style="flex: 999 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><span class="mono" style="color: var(--fg-soft)">#4</span><span style="font-weight: 600; color: var(--fg-strong)">Time model: meters as beat groups; form field --meter (fe-813.2)</span></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
+<span class="badge mono">pr/time-model → main</span>
+<span class="badge mono">62c242d</span>
+<span class="badge">6 commits</span>
+<span class="badge">checks: none</span>
+<span class="badge b-info">bead fe-813.2 (title)</span>
+</div>
+</div>
+<div style="display: flex; gap: 8px; align-items: center">
+<span class="{{p4.cls}}"><span class="dot"></span>{{p4.label}}</span>
+<sc-if value="{{p4.canMerge}}" hint-placeholder-val="{{ true }}"><button class="btn btn-primary" onClick="{{request4}}">Merge #4</button></sc-if>
+<sc-if value="{{p4.busy}}" hint-placeholder-val="{{ false }}"><span class="btn" style="color: var(--fg-soft)"><span class="spin"></span>{{p4.busyLabel}}</span></sc-if>
+</div>
+</div>
+</div>
+
+<div style="display: flex; gap: 12px; padding-left: {{p5.indent}}">
+<div aria-hidden="true" style="width: 14px; flex: none; border-left: 2px solid var(--border); border-bottom: 2px solid var(--border); border-bottom-left-radius: 8px; height: 40px"></div>
+<div class="pr" style="flex: 1; min-width: 0">
+<div style="flex: 999 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><span class="mono" style="color: var(--fg-soft)">#5</span><span style="font-weight: 600; color: var(--fg-strong)">File replay sends from an output-clock scheduler thread (fe-813.3)</span></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
+<span class="badge mono">pr/scheduler → {{p5.base}}</span>
+<span class="badge mono">357a083</span>
+<span class="badge">4 commits</span>
+<span class="badge">checks: none</span>
+<span class="badge b-info">bead fe-813.3 (title)</span>
+</div>
+</div>
+<div style="display: flex; gap: 8px; align-items: center">
+<span class="{{p5.cls}}"><span class="dot"></span>{{p5.label}}</span>
+<button class="{{p5.btnCls}}" onClick="{{request5}}" aria-describedby="why5">Merge #5</button>
+</div>
+</div>
+</div>
+<div id="why5" class="muted" style="padding-left: 66px">{{p5.why}}</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px">
+<div class="sec">Merge action machine · Board.Merge.Action</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+<sc-for list="{{chain}}" as="s" hint-placeholder-count="6">
+<span class="{{s.cls}}">{{s.name}}</span>
+</sc-for>
+</div>
+<div class="mono" style="color: var(--fg-soft)">last step: {{lastStep}}</div>
+<div class="muted">Illustrative: PRs #4 and #5 do not exist yet; they show the local branches pr/time-model and pr/scheduler as the next stack.</div>
+</section>
+
+<sc-if value="{{confirming}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: oklch(21% .006 285.885 / .45); display: flex; align-items: flex-start; justify-content: center; padding: 120px 16px 16px">
+<div role="dialog" aria-modal="true" aria-labelledby="mt" style="width: min(520px, 100%); box-sizing: border-box; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 16px 48px -12px #00000040; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<h2 id="mt" style="margin: 0; font-size: 18px; line-height: 26px; font-weight: 600; color: var(--fg-strong)">Merge #4 into main?</h2>
+<dl style="margin: 0; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px 12px; font-size: 13px">
+<dt class="muted" style="font-size: 13px">Method</dt><dd style="margin: 0; color: var(--fg-strong)">Merge commit</dd>
+<dt class="muted" style="font-size: 13px">Head</dt><dd style="margin: 0" class="mono">pr/time-model @ 62c242d</dd>
+<dt class="muted" style="font-size: 13px">Beads</dt><dd style="margin: 0" class="mono">fe-813.2 (closed)</dd>
+<dt class="muted" style="font-size: 13px">Then</dt><dd style="margin: 0; color: var(--fg-strong)">Retarget #5 from pr/time-model onto main</dd>
+</dl>
+<div class="muted" style="font-size: 13px; line-height: 18px">GitHub refuses the merge if the head moved after this dialog opened. No branches are deleted and no local git runs.</div>
+<div style="display: flex; justify-content: flex-end; gap: 8px">
+<button class="btn" onClick="{{cancel}}">Cancel</button>
+<button class="btn btn-primary" onClick="{{confirm}}">Merge pull request</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"failMerge":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { m: 'idle', toast: '', last: 'start: idle', timers: [] }; }
+  componentWillUnmount() { (this.state.timers || []).forEach((t) => clearTimeout(t)); }
+  later(ms, fn) { const t = setTimeout(fn, ms); this.setState({ timers: this.state.timers.concat([t]) }); }
+  renderVals() {
+    const m = this.state.m;
+    const done = m === 'merged';
+    const go = (to, last, extra) => this.setState(Object.assign({ m: to, last: last }, extra || {}));
+    const request4 = () => {
+      if (m === 'idle' || m === 'failed') go('confirming', 'idle + request [mergeable_now?] -> confirming', { toast: '' });
+    };
+    const request5 = () => {
+      if (!done) go(m, 'idle + request [mergeable_now? fails] -> idle / toast', { toast: 'Merge #4 first: #5 is based on pr/time-model, not main.' });
+      else this.setState({ toast: 'In the real app #5 now opens the same confirmation.' });
+    };
+    const cancel = () => go('idle', 'confirming + cancel -> idle');
+    const confirm = () => {
+      go('merging', 'confirming + confirm [head_unchanged?] -> merging / enqueue MergeJob(sha 62c242d)');
+      this.later(1400, () => {
+        if (this.props.failMerge) { go('failed', 'merging + merge_failed -> failed / toast', { toast: 'GitHub: Head branch was modified. Review and try the merge again.' }); return; }
+        go('retargeting', 'merging + merge_ok [has_child?] -> retargeting / enqueue RetargetJob(#5 -> main)');
+        this.later(1100, () => go('merged', 'retargeting + retarget_ok -> merged / emit(pr_merged)'));
+      });
+    };
+    const reset = () => { (this.state.timers || []).forEach((t) => clearTimeout(t)); this.setState({ m: 'idle', toast: '', last: 'start: idle', timers: [] }); };
+    const p4 = {
+      cls: done ? 'badge b-solid' : (m === 'failed' ? 'badge b-danger' : 'badge b-success'),
+      label: done ? 'merged' : (m === 'failed' ? 'merge failed' : 'mergeable'),
+      canMerge: m === 'idle' || m === 'confirming' || m === 'failed',
+      busy: m === 'merging' || m === 'retargeting',
+      busyLabel: m === 'merging' ? 'Merging' : 'Retargeting #5'
+    };
+    const p5 = done
+      ? { base: 'main', cls: 'badge b-success', label: 'mergeable', btnCls: 'btn btn-primary', why: 'Retargeted onto main after #4 merged. Bottom of the stack now.', indent: '20px' }
+      : { base: 'pr/time-model', cls: 'badge b-neutral', label: 'waiting on #4', btnCls: 'btn btn-off', why: 'Merge #4 first. #5 merges only once its base is main.', indent: '54px' };
+    const states = ['idle', 'confirming', 'merging', 'retargeting', 'merged', 'failed'];
+    const chain = states.map((s) => ({ name: s, cls: s === m ? (s === 'failed' ? 'badge b-danger' : 'badge b-info') : 'badge' }));
+    return {
+      rootClass: this.props.dark ? 'fx dark' : 'fx',
+      p4, p5, chain, toast: this.state.toast, lastStep: this.state.last,
+      confirming: m === 'confirming',
+      request4, request5, cancel, confirm, reset
+    };
+  }
+}
+</script>
+</body>
+</html>

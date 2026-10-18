@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Board, all projects</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.fx{--bg:oklch(100% 0 0);--sunken:oklch(96.7% .001 286.375);--surface:#fff;--border:oklch(92% .004 286.32);--fg:oklch(37% .013 285.805);--fg-strong:oklch(21% .006 285.885);--fg-soft:oklch(44.2% .017 285.786);--fg-softer:oklch(55.2% .016 285.938);--primary:oklch(27.4% .006 286.033);--on-primary:#fff;--accent:oklch(96.7% .001 286.375);--danger:oklch(57.7% .245 27.325);--success:oklch(62.7% .194 149.214);--warning:oklch(82.8% .189 84.429);--info:oklch(54.6% .245 262.881);--mix:10%;--fgmix:black 15%;--wfgmix:black 45%;--shadow:0 1px 2px 0 #0000000d;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--fg);background:var(--bg);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+.fx.dark{--bg:oklch(21% .006 285.885);--sunken:oklch(19.1% .006 285.885);--surface:oklch(28.6% .006 285.885);--border:#ffffff1f;--fg:oklch(92% .004 286.32);--fg-strong:#fff;--fg-soft:oklch(87.1% .006 286.286);--fg-softer:oklch(70.5% .015 286.067);--primary:#fff;--on-primary:oklch(27.4% .006 286.033);--accent:oklch(37% .013 285.805);--mix:20%;--fgmix:white 60%;--wfgmix:white 30%;--shadow:0 1px 2px 0 #0000004d}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--fg-soft)}
+.b-neutral{background:var(--sunken);color:var(--fg-soft);border-color:var(--border)}
+.b-info{background:color-mix(in oklab,var(--info) var(--mix),var(--bg));color:color-mix(in oklab,var(--info),var(--fgmix));border-color:color-mix(in oklab,var(--info) 30%,var(--bg))}
+.b-warning{background:color-mix(in oklab,var(--warning) var(--mix),var(--bg));color:color-mix(in oklab,var(--warning),var(--wfgmix));border-color:color-mix(in oklab,var(--warning) 50%,var(--bg))}
+.b-success{background:color-mix(in oklab,var(--success) var(--mix),var(--bg));color:color-mix(in oklab,var(--success),var(--fgmix));border-color:color-mix(in oklab,var(--success) 30%,var(--bg))}
+.b-danger{background:color-mix(in oklab,var(--danger) var(--mix),var(--bg));color:color-mix(in oklab,var(--danger),var(--fgmix));border-color:color-mix(in oklab,var(--danger) 30%,var(--bg))}
+.b-solid{background:var(--success);color:#fff;border-color:transparent}
+.b-dashed{border-style:dashed;background:transparent}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg-strong);font:500 14px/20px Inter,system-ui,sans-serif;box-shadow:var(--shadow);cursor:pointer}
+.btn:hover{background:var(--accent)}
+.btn-primary{background:var(--primary);color:var(--on-primary);border-color:transparent}
+.btn-primary:hover{background:color-mix(in oklab,var(--primary),var(--bg) 15%)}
+.seg{display:inline-flex;padding:3px;gap:2px;background:var(--sunken);border:1px solid var(--border);border-radius:8px}
+.seg button{height:28px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--fg-soft);font:500 13px/20px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.seg button.on{background:var(--surface);color:var(--fg-strong);box-shadow:var(--shadow)}
+.nav a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--fg-soft);text-decoration:none;font-weight:500}
+.nav a:hover{background:var(--accent);color:var(--fg-strong)}
+.nav a.on{background:var(--accent);color:var(--fg-strong)}
+.tcard{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);text-decoration:none;color:var(--fg)}
+.tcard:hover{border-color:color-mix(in oklab,var(--fg-softer) 50%,var(--border))}
+.ttl{color:var(--fg-strong);font-weight:500;font-size:13px;line-height:18px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.muted{color:var(--fg-softer);font-size:12px;line-height:16px}
+input.search{height:36px;padding:0 12px 0 34px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg-strong);font:400 14px Inter,system-ui,sans-serif;width:240px;box-sizing:border-box}
+</style>
+</helmet>
+<div class="{{rootClass}}" style="min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg)">
+
+<aside style="flex: 1 1 240px; max-width: 260px; min-width: 220px; box-sizing: border-box; padding: 16px 12px; border-right: 1px solid var(--border); background: var(--sunken); display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="color: var(--fg-strong)"><circle cx="5" cy="12" r="2.5"></circle><circle cx="12" cy="12" r="2.5"></circle><circle cx="19" cy="12" r="2.5"></circle><path d="M7.5 12h2M14.5 12h2"></path></svg>
+<span style="font-weight: 600; color: var(--fg-strong); font-size: 15px">beads-board</span>
+</div>
+<nav class="nav" aria-label="Main" style="display: flex; flex-direction: column; gap: 2px">
+<a class="on" href="Main.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"></rect><rect x="10" y="4" width="5" height="10" rx="1"></rect><rect x="17" y="4" width="4" height="13" rx="1"></rect></svg>Board</a>
+<a href="Epic.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h6"></path></svg>Epics</a>
+<a href="PRs.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="5" r="2"></circle><circle cx="6" cy="19" r="2"></circle><circle cx="18" cy="19" r="2"></circle><path d="M6 7v10M18 17V9a3 3 0 0 0-3-3h-3"></path></svg>Pull requests<span class="badge b-neutral" style="margin-left: auto; height: 20px">2</span></a>
+<a href="Settings.dc.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"></path></svg>Settings</a>
+</nav>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div class="muted" style="padding: 0 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; font-size: 11px">Projects</div>
+<sc-for list="{{repos}}" as="r" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px; font-size: 13px">
+<span style="width: 8px; height: 8px; border-radius: 3px; background: {{r.color}}; flex: none"></span>
+<span style="color: var(--fg-strong); font-weight: 500">{{r.name}}</span>
+<span class="muted" style="margin-left: auto">{{r.sync}}</span>
+</div>
+</sc-for>
+</div>
+<div style="margin-top: auto; padding: 0 10px" class="muted">Synced via <span class="mono">bd export</span>, 4 s ago</div>
+</aside>
+
+<main style="flex: 999 1 640px; min-width: 0; box-sizing: border-box; padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 20px">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px">
+<div style="display: flex; flex-direction: column; gap: 2px; margin-right: auto">
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; color: var(--fg-strong)">Board</h1>
+<div class="muted" style="font-size: 13px">Process stage per ticket, across 6 beads repos. Stage is the board's overlay; beads status is shown on each card.</div>
+</div>
+<div style="position: relative">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="position: absolute; left: 11px; top: 10px; color: var(--fg-softer)"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+<label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search tickets</label>
+<input id="q" class="search" type="search" placeholder="Search id, title, label">
+</div>
+<div class="seg" role="group" aria-label="Swimlanes">
+<button class="{{laneProjectCls}}" onClick="{{lanesProject}}">By project</button>
+<button class="{{laneNoneCls}}" onClick="{{lanesNone}}">No lanes</button>
+</div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span class="muted" style="margin-right: 4px">Project</span>
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="7">
+<button class="{{f.cls}}" onClick="{{f.pick}}" style="cursor: pointer; height: 28px; font-family: Inter, system-ui, sans-serif"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{f.color}}"></span>{{f.name}}<span style="color: var(--fg-softer)">{{f.count}}</span></button>
+</sc-for>
+<span style="flex: 1"></span>
+<span class="badge b-neutral">Epic: any</span>
+<span class="badge b-neutral">Type: any</span>
+<span class="badge b-dashed">+ Label</span>
+</div>
+
+<sc-if value="{{showWeBanner}}" hint-placeholder-val="{{ true }}">
+<div role="status" style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 8px; border: 1px solid color-mix(in oklab, var(--warning) 50%, var(--bg)); background: color-mix(in oklab, var(--warning) var(--mix), var(--bg)); color: color-mix(in oklab, var(--warning), var(--wfgmix))">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M12 3 2 21h20L12 3z"></path><path d="M12 10v5M12 18h.01"></path></svg>
+<div><b>we_go_next_dev is unreachable.</b> Its beads store runs in Dolt server mode and nothing is listening on 127.0.0.1:14401. The board never starts servers; run <span class="mono">bd dolt start</span> in that repo, or migrate it to embedded.</div>
+</div>
+</sc-if>
+
+<div style="overflow-x: auto; padding-bottom: 4px">
+<div style="min-width: 1080px; display: flex; flex-direction: column; gap: 0">
+<div style="display: grid; grid-template-columns: 150px repeat(5, minmax(0, 1fr)); gap: 12px; padding: 0 0 10px; border-bottom: 1px solid var(--border)">
+<span></span>
+<sc-for list="{{cols}}" as="c" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-weight: 600; color: var(--fg-strong)">{{c.title}}</span>
+<span class="badge b-neutral" style="height: 20px; padding: 0 6px">{{c.count}}</span>
+<span class="muted" style="margin-left: auto">{{c.stages}}</span>
+</div>
+</sc-for>
+</div>
+<sc-for list="{{lanes}}" as="lane" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 150px repeat(5, minmax(0, 1fr)); gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border)">
+<div style="display: flex; flex-direction: column; gap: 4px; padding-top: 4px">
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{lane.color}}"></span><span style="font-weight: 600; color: var(--fg-strong); font-size: 13px">{{lane.name}}</span></div>
+<span class="muted">{{lane.sub}}</span>
+</div>
+<sc-for list="{{lane.cells}}" as="cell" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 8px; min-height: 40px; padding: 6px; border-radius: 10px; background: var(--sunken)">
+<sc-for list="{{cell.cards}}" as="t" hint-placeholder-count="2">
+<a class="tcard" href="Ticket.dc.html">
+<div style="display: flex; align-items: center; gap: 6px"><span class="mono" style="color: var(--fg-soft)">{{t.id}}</span><span class="muted" style="margin-left: auto">{{t.type}} · P{{t.prio}}</span></div>
+<div class="ttl">{{t.title}}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+<span class="{{t.stageCls}}"><span class="dot"></span>{{t.stage}}</span>
+<span class="badge b-dashed" title="beads status">bd: {{t.bd}}</span>
+</div>
+<sc-if value="{{t.meta}}" hint-placeholder-val="{{ true }}"><div class="muted mono" style="font-size: 11px">{{t.meta}}</div></sc-if>
+<sc-if value="{{t.flag}}" hint-placeholder-val="{{ false }}"><span class="badge b-warning" style="align-self: flex-start">{{t.flag}}</span></sc-if>
+</a>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+<div class="muted">Beads fields are real (bd export, 2026-10-17). Stages, sessions and PR #4/#5 are illustrative: the overlay does not exist yet.</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { project: 'all', lanes: 'project' }; }
+  renderVals() {
+    const repos = [
+      { key: 'fe', name: 'form-engine', color: 'oklch(58% .2 295)', sync: '30' },
+      { key: 'cdo', name: 'cooldown-o-matic', color: 'oklch(72% .16 70)', sync: '47' },
+      { key: 'wow', name: 'ui-o-matic', color: 'oklch(58% .17 245)', sync: '417' },
+      { key: 'sk', name: 'skills', color: 'oklch(62% .12 175)', sync: '15' },
+      { key: 'dot', name: 'dotfiles', color: 'oklch(55% .01 286)', sync: '3' },
+      { key: 'we', name: 'we_go_next_dev', color: 'oklch(60% .2 27)', sync: 'down' }
+    ];
+    const S = {
+      queued: ['queued', 'badge b-neutral', 0], dispatched: ['dispatched', 'badge b-info b-dashed', 1], building: ['building', 'badge b-info', 1],
+      reported: ['reported', 'badge b-warning', 2], in_review: ['in review', 'badge b-warning', 2], committed: ['committed', 'badge b-success b-dashed', 3],
+      pr_open: ['PR open', 'badge b-success', 3], merged: ['merged', 'badge b-solid', 3], done: ['done', 'badge b-neutral', 4]
+    };
+    const T = [
+      ['fe', 'fe-813.4', 'One-track loop end to end: voice pick, count-in, record, loop, stop/play', 'task', 2, 'building', 'open', 'fe-loop · pi · note 9m ago', ''],
+      ['fe', 'fe-813.5', 'Overdub, multitrack and the standard voice set', 'task', 2, 'queued', 'open', 'blocked by fe-813.4', ''],
+      ['fe', 'fe-lwp.11', 'Fixtures from real_book_ex charts: lines cooked over real changes', 'task', 2, 'queued', 'open', 'ready', ''],
+      ['fe', 'fe-lwp.3', 'MIDI probe exe: list ports, print timestamped input, log take', 'task', 1, 'building', 'in_progress', 'fe-probe · pi · note 14m ago', ''],
+      ['fe', 'fe-813.2', 'Time model: meters as beat groups, subdivisions, per-track cycles', 'task', 2, 'done', 'closed', 'pr/time-model', 'closed, PR #4 still open'],
+      ['fe', 'fe-813.3', 'Output-clock scheduling (replaces frame-clocked echo, fe-lwp.15)', 'task', 2, 'done', 'closed', 'pr/scheduler', 'closed, PR #5 still open'],
+      ['cdo', 'cdo-4m3.1', 'Probe trait-config APIs on live client', 'task', 1, 'queued', 'open', 'ready · needs you in game', ''],
+      ['cdo', 'cdo-uha.2.4.1', 'Import v119 spellbook-known fallback', 'task', 1, 'building', 'in_progress', 'cdo-v119 · pi · note 6m ago', ''],
+      ['cdo', 'cdo-uha.2.4.2', 'Import v119 duplicate-aura LayoutNext support', 'task', 1, 'building', 'in_progress', 'cdo-v119 · pi · note 6m ago', ''],
+      ['cdo', 'cdo-uha.2.4.5', 'Import v119 cooldown usability-state refresh', 'task', 1, 'reported', 'in_progress', 'report: drafts/sessions/cdo-v119.md', ''],
+      ['wow', 'wow-v0f2', 'Port Coolinator 126–127 changes into cooldown-o-matic', 'task', 1, 'queued', 'in_progress', 'bd says in_progress; no session on record', ''],
+      ['wow', 'wow-k0j4', 'UnitFrames: target aura rows overlap in the middle on overflow (buffs grow-right)', 'bug', 2, 'dispatched', 'in_progress', 'uf-auras · claude · no heartbeat yet', ''],
+      ['wow', 'wow-7vb3', 'cdo Next lane: SetAlpha on forbidden engine aura buttons during restriction', 'bug', 1, 'in_review', 'in_progress', 'review by coordinator', ''],
+      ['sk', 'sk-81s.8', 'Optional: weekly scheduled report-only skills-sync agent', 'task', 3, 'queued', 'open', 'ready', ''],
+      ['dot', 'dot-4at', 'Decide zsh formatting: shfmt corrupts zsh, so dprint no longer formats .zsh', 'task', 3, 'queued', 'open', 'ready', ''],
+      ['dot', 'dot-vcx', 'Remove or wire committed.toml (commit-msg hook uses cog)', 'chore', 4, 'queued', 'open', 'ready', '']
+    ];
+    const proj = this.state.project;
+    const cards = T.filter((t) => proj === 'all' || t[0] === proj).map((t) => ({
+      repo: t[0], id: t[1], title: t[2], type: t[3], prio: t[4], stage: S[t[5]][0], stageCls: S[t[5]][1], col: S[t[5]][2], bd: t[6], meta: t[7], flag: t[8]
+    }));
+    const colDefs = [['Queued', 'queued'], ['In flight', 'dispatched · building'], ['Review', 'reported · in review'], ['Shipping', 'committed · PR · merged'], ['Done', 'done']];
+    const cols = colDefs.map((c, i) => ({ title: c[0], stages: c[1], count: cards.filter((x) => x.col === i).length }));
+    const cellsFor = (list) => colDefs.map((c, i) => ({ cards: list.filter((x) => x.col === i) }));
+    let lanes;
+    if (this.state.lanes === 'project') {
+      lanes = repos.filter((r) => r.key !== 'we' && (proj === 'all' || r.key === proj)).map((r) => {
+        const list = cards.filter((x) => x.repo === r.key);
+        return { name: r.name, color: r.color, sub: list.length + ' on board', cells: cellsFor(list) };
+      }).filter((l) => l.cells.some((c) => c.cards.length));
+    } else {
+      lanes = [{ name: 'All projects', color: 'var(--fg-softer)', sub: cards.length + ' tickets', cells: cellsFor(cards) }];
+    }
+    const counts = { all: T.length };
+    T.forEach((t) => { counts[t[0]] = (counts[t[0]] || 0) + 1; });
+    const filters = [{ key: 'all', name: 'All', color: 'var(--fg-softer)' }].concat(repos).map((r) => ({
+      name: r.name, color: r.color, count: r.key === 'we' ? '–' : String(counts[r.key] || 0),
+      cls: proj === r.key ? 'badge b-info' : 'badge',
+      pick: () => this.setState({ project: r.key })
+    }));
+    return {
+      rootClass: this.props.dark ? 'fx dark' : 'fx',
+      repos, filters, cols, lanes,
+      showWeBanner: proj === 'all' || proj === 'we',
+      laneProjectCls: this.state.lanes === 'project' ? 'on' : '',
+      laneNoneCls: this.state.lanes === 'none' ? 'on' : '',
+      lanesProject: () => this.setState({ lanes: 'project' }),
+      lanesNone: () => this.setState({ lanes: 'none' })
+    };
+  }
+}
+</script>
+</body>
+</html>

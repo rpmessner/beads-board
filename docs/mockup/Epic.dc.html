@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Epic fe-813</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.fx{--bg:oklch(100% 0 0);--sunken:oklch(96.7% .001 286.375);--surface:#fff;--border:oklch(92% .004 286.32);--fg:oklch(37% .013 285.805);--fg-strong:oklch(21% .006 285.885);--fg-soft:oklch(44.2% .017 285.786);--fg-softer:oklch(55.2% .016 285.938);--primary:oklch(27.4% .006 286.033);--on-primary:#fff;--accent:oklch(96.7% .001 286.375);--danger:oklch(57.7% .245 27.325);--success:oklch(62.7% .194 149.214);--warning:oklch(82.8% .189 84.429);--info:oklch(54.6% .245 262.881);--mix:10%;--fgmix:black 15%;--wfgmix:black 45%;--shadow:0 1px 2px 0 #0000000d;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--fg);background:var(--bg);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--fg-soft)}
+.b-neutral{background:var(--sunken)}
+.b-info{background:color-mix(in oklab,var(--info) var(--mix),var(--bg));color:color-mix(in oklab,var(--info),var(--fgmix));border-color:color-mix(in oklab,var(--info) 30%,var(--bg))}
+.b-success{background:color-mix(in oklab,var(--success) var(--mix),var(--bg));color:color-mix(in oklab,var(--success),var(--fgmix));border-color:color-mix(in oklab,var(--success) 30%,var(--bg))}
+.b-warning{background:color-mix(in oklab,var(--warning) var(--mix),var(--bg));color:color-mix(in oklab,var(--warning),var(--wfgmix));border-color:color-mix(in oklab,var(--warning) 50%,var(--bg))}
+.b-dashed{border-style:dashed;background:transparent}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.sec{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-softer)}
+.muted{color:var(--fg-softer);font-size:12px;line-height:16px}
+.gcard{position:absolute;width:160px;height:64px;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);display:flex;align-items:center;font-size:12px;line-height:16px;color:var(--fg-strong)}
+.g-done{background:color-mix(in oklab,var(--success) 8%,var(--bg));border-color:color-mix(in oklab,var(--success) 30%,var(--bg))}
+.g-live{background:color-mix(in oklab,var(--info) 10%,var(--bg));border-color:color-mix(in oklab,var(--info) 45%,var(--bg))}
+.g-ext{border-style:dashed;background:transparent;box-shadow:none}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-weight:500;color:var(--fg-softer);font-size:12px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--sunken)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong);vertical-align:top}
+</style>
+</helmet>
+<div class="fx" style="min-height: 100vh; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px; background: var(--bg)">
+
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+<a href="Main.dc.html" style="color: var(--fg-soft); font-size: 13px">Board</a><span class="muted">/</span>
+<span style="width: 8px; height: 8px; border-radius: 3px; background: oklch(58% .2 295)"></span><span class="muted" style="font-size: 13px">form-engine</span><span class="muted">/</span>
+<span class="mono" style="color: var(--fg-strong)">fe-813</span>
+</div>
+
+<header style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end">
+<div style="flex: 999 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; gap: 6px"><span class="badge">epic</span><span class="badge">P2</span><span class="badge b-dashed">bd: open</span></div>
+<h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; color: var(--fg-strong)">Doodler step 1: Record mode looper</h1>
+<div class="muted" style="font-size: 13px">9 children · blocking edges from <span class="mono">bd export</span> · one outside blocker (<span class="mono">fe-lwp.7</span>, hardware bring-up)</div>
+</div>
+<div style="flex: 1 1 340px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: var(--fg-strong); font-weight: 500">3 of 9 closed</span><span class="muted">33%</span></div>
+<div role="img" aria-label="Stages: 3 done, 1 building, 5 queued" style="display: flex; height: 10px; border-radius: 99px; overflow: hidden; gap: 2px; background: var(--sunken)">
+<div style="flex: 3; background: var(--success)"></div>
+<div style="flex: 1; background: var(--info)"></div>
+<div style="flex: 5; background: oklch(87.1% .006 286.286)"></div>
+</div>
+<div style="display: flex; gap: 14px; flex-wrap: wrap" class="muted">
+<span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--success)"></span>done 3</span>
+<span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: var(--info)"></span>building 1</span>
+<span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 2px; background: oklch(87.1% .006 286.286)"></span>queued 5 (1 ready, 4 blocked)</span>
+</div>
+</div>
+</header>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<div class="sec">Blocking graph · arrows point from blocker to blocked</div>
+<div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--sunken)">
+<div style="position: relative; width: 1272px; height: 320px">
+<svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 176px; top: 68px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
+<svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 176px; top: 168px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
+<svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 176px; top: 268px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
+<svg width="8" height="200" viewBox="0 0 8 200" preserveAspectRatio="none" style="position: absolute; left: 200px; top: 72px; width: 8px; height: 200px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 200"></path></svg>
+<svg width="27" height="8" viewBox="0 0 27 8" preserveAspectRatio="none" style="position: absolute; left: 204px; top: 168px; width: 27px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-1" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 23 4" marker-end="url(#dc-arrow-head-filled-1)"></path></svg>
+<svg width="55" height="8" viewBox="0 0 55 8" preserveAspectRatio="none" style="position: absolute; left: 392px; top: 168px; width: 55px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-2" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 51 4" marker-end="url(#dc-arrow-head-filled-2)"></path></svg>
+<svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 608px; top: 168px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
+<svg width="8" height="120" viewBox="0 0 8 120" preserveAspectRatio="none" style="position: absolute; left: 632px; top: 112px; width: 8px; height: 120px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 120"></path></svg>
+<svg width="27" height="8" viewBox="0 0 27 8" preserveAspectRatio="none" style="position: absolute; left: 636px; top: 108px; width: 27px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-3" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 23 4" marker-end="url(#dc-arrow-head-filled-3)"></path></svg>
+<svg width="27" height="8" viewBox="0 0 27 8" preserveAspectRatio="none" style="position: absolute; left: 636px; top: 228px; width: 27px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-4" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 23 4" marker-end="url(#dc-arrow-head-filled-4)"></path></svg>
+<svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 824px; top: 108px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
+<svg width="28" height="8" viewBox="0 0 28 8" preserveAspectRatio="none" style="position: absolute; left: 824px; top: 228px; width: 28px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 28 4"></path></svg>
+<svg width="8" height="120" viewBox="0 0 8 120" preserveAspectRatio="none" style="position: absolute; left: 848px; top: 112px; width: 8px; height: 120px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 120"></path></svg>
+<svg width="27" height="8" viewBox="0 0 27 8" preserveAspectRatio="none" style="position: absolute; left: 852px; top: 168px; width: 27px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-5" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 23 4" marker-end="url(#dc-arrow-head-filled-5)"></path></svg>
+<svg width="55" height="8" viewBox="0 0 55 8" preserveAspectRatio="none" style="position: absolute; left: 1040px; top: 168px; width: 55px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-6" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 51 4" marker-end="url(#dc-arrow-head-filled-6)"></path></svg>
+<svg width="8" height="51" viewBox="0 0 8 51" preserveAspectRatio="none" style="position: absolute; left: 1172px; top: 88px; width: 8px; height: 51px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 5 5"><defs><marker id="dc-arrow-head-filled-7" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 47" marker-end="url(#dc-arrow-head-filled-7)"></path></svg>
+
+<div class="gcard g-done" style="left: 16px; top: 40px"><span><span class="mono">fe-813.1</span> done<br>Zig state-machine kit</span></div>
+<div class="gcard g-done" style="left: 16px; top: 140px"><span><span class="mono">fe-813.2</span> done<br>Time model: meters</span></div>
+<div class="gcard g-done" style="left: 16px; top: 240px"><span><span class="mono">fe-813.3</span> done<br>Output-clock scheduling</span></div>
+<div class="gcard g-live" style="left: 232px; top: 140px"><span><span class="mono">fe-813.4</span> building<br>One-track loop end to end</span></div>
+<div class="gcard" style="left: 448px; top: 140px"><span><span class="mono">fe-813.5</span> queued<br>Overdub, multitrack</span></div>
+<div class="gcard" style="left: 664px; top: 80px"><span><span class="mono">fe-813.6</span> queued<br>Per-track length</span></div>
+<div class="gcard" style="left: 664px; top: 200px"><span><span class="mono">fe-813.7</span> queued<br>Quantise and undo</span></div>
+<div class="gcard" style="left: 880px; top: 140px"><span><span class="mono">fe-813.8</span> queued<br>Keep and load</span></div>
+<div class="gcard" style="left: 1096px; top: 140px"><span><span class="mono">fe-813.9</span> queued<br>First Launchkey session</span></div>
+<div class="gcard g-ext" style="left: 1096px; top: 24px"><span><span class="mono">fe-lwp.7</span> other epic<br>Hardware bring-up day</span></div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<div class="sec">Children</div>
+<div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 10px">
+<table>
+<thead><tr><th>Bead</th><th>Title</th><th>Stage</th><th>bd status</th><th>Blocked by</th><th>Session · PR</th></tr></thead>
+<tbody>
+<tr><td class="mono">fe-813.1</td><td>Zig state-machine kit; migrate the form-listen transport onto it</td><td><span class="badge b-success"><span class="dot"></span>done</span></td><td>closed</td><td></td><td class="muted">fe-kit · PR #3 merged</td></tr>
+<tr><td class="mono">fe-813.2</td><td>Time model: meters as beat groups, subdivisions, per-track cycles</td><td><span class="badge b-success"><span class="dot"></span>done</span> <span class="badge b-warning">PR #4 open</span></td><td>closed</td><td></td><td class="muted">fe-time · PR #4</td></tr>
+<tr><td class="mono">fe-813.3</td><td>Output-clock scheduling (replaces frame-clocked echo, fe-lwp.15)</td><td><span class="badge b-success"><span class="dot"></span>done</span> <span class="badge b-warning">PR #5 open</span></td><td>closed</td><td></td><td class="muted">fe-sched · PR #5</td></tr>
+<tr><td class="mono">fe-813.4</td><td>One-track loop end to end: voice pick, count-in, record, loop, stop/play</td><td><span class="badge b-info"><span class="dot"></span>building</span></td><td>open</td><td class="muted">.1 .2 .3 (closed)</td><td class="muted">fe-loop · pi</td></tr>
+<tr><td class="mono">fe-813.5</td><td>Overdub, multitrack and the standard voice set</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.4</td><td></td></tr>
+<tr><td class="mono">fe-813.6</td><td>Per-track length and polyrhythm</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.5</td><td></td></tr>
+<tr><td class="mono">fe-813.7</td><td>Quantise on/off and undo history</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.5</td><td></td></tr>
+<tr><td class="mono">fe-813.8</td><td>Keep and load: sketch-mode document subset</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.6, fe-813.7</td><td></td></tr>
+<tr><td class="mono">fe-813.9</td><td>First Launchkey session: map the looper, write it up, measure speed</td><td><span class="badge b-neutral"><span class="dot"></span>queued</span></td><td>open</td><td class="mono">fe-813.8, fe-lwp.7</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<div class="muted">Titles, statuses and edges are fe-813's real beads data. Stages, sessions and PRs #4/#5 are illustrative.</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

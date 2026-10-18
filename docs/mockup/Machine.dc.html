@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stage machine diagram</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.st{position:absolute;width:180px;height:64px;box-sizing:border-box;padding:8px 12px;border-radius:8px;border:1px solid oklch(92% .004 286.32);background:#fff;box-shadow:0 1px 2px 0 #0000000d;display:flex;align-items:center;font-size:12px;line-height:16px;color:oklch(55.2% .016 285.938)}
+.st b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;color:oklch(21% .006 285.885);font-weight:600}
+.lb{position:absolute;font-size:13px;line-height:16px;text-align:center;color:oklch(44.2% .017 285.786);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 1120px; background: oklch(98.5% 0 0); font-family: Inter, system-ui, sans-serif; color: oklch(37% .013 285.805)">
+
+<svg width="95" height="8" viewBox="0 0 95 8" preserveAspectRatio="none" style="position: absolute; left: 244px; top: 228px; width: 95px; height: 8px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-1" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#71717a" stroke="none" style="stroke: none; fill: #71717a; fill: context-stroke"/></marker></defs><path d="M 0 4 L 91 4" marker-end="url(#dc-arrow-head-filled-1)"></path></svg>
+<svg width="95" height="8" viewBox="0 0 95 8" preserveAspectRatio="none" style="position: absolute; left: 520px; top: 228px; width: 95px; height: 8px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-2" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#71717a" stroke="none" style="stroke: none; fill: #71717a; fill: context-stroke"/></marker></defs><path d="M 0 4 L 91 4" marker-end="url(#dc-arrow-head-filled-2)"></path></svg>
+<svg width="95" height="8" viewBox="0 0 95 8" preserveAspectRatio="none" style="position: absolute; left: 796px; top: 228px; width: 95px; height: 8px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-3" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#71717a" stroke="none" style="stroke: none; fill: #71717a; fill: context-stroke"/></marker></defs><path d="M 0 4 L 91 4" marker-end="url(#dc-arrow-head-filled-3)"></path></svg>
+<svg width="95" height="8" viewBox="0 0 95 8" preserveAspectRatio="none" style="position: absolute; left: 1072px; top: 228px; width: 95px; height: 8px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-4" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#71717a" stroke="none" style="stroke: none; fill: #71717a; fill: context-stroke"/></marker></defs><path d="M 0 4 L 91 4" marker-end="url(#dc-arrow-head-filled-4)"></path></svg>
+
+<svg width="8" height="64" viewBox="0 0 8 64" preserveAspectRatio="none" style="position: absolute; left: 1254px; top: 136px; width: 8px; height: 64px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 64"></path></svg>
+<svg width="552" height="8" viewBox="0 0 552 8" preserveAspectRatio="none" style="position: absolute; left: 706px; top: 132px; width: 552px; height: 8px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 552 4"></path></svg>
+<svg width="8" height="63" viewBox="0 0 8 63" preserveAspectRatio="none" style="position: absolute; left: 702px; top: 136px; width: 8px; height: 63px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-5" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#71717a" stroke="none" style="stroke: none; fill: #71717a; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 59" marker-end="url(#dc-arrow-head-filled-5)"></path></svg>
+
+<svg width="8" height="48" viewBox="0 0 8 48" preserveAspectRatio="none" style="position: absolute; left: 702px; top: 264px; width: 8px; height: 48px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 48"></path></svg>
+<svg width="276" height="8" viewBox="0 0 276 8" preserveAspectRatio="none" style="position: absolute; left: 430px; top: 308px; width: 276px; height: 8px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 276 4"></path></svg>
+<svg width="8" height="47" viewBox="0 0 8 47" preserveAspectRatio="none" style="position: absolute; left: 426px; top: 265px; width: 8px; height: 47px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-6" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#71717a" stroke="none" style="stroke: none; fill: #71717a; fill: context-stroke"/></marker></defs><path d="M 4 47 L 4 4" marker-end="url(#dc-arrow-head-filled-6)"></path></svg>
+
+<svg width="8" height="255" viewBox="0 0 8 255" preserveAspectRatio="none" style="position: absolute; left: 1254px; top: 264px; width: 8px; height: 255px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-7" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#71717a" stroke="none" style="stroke: none; fill: #71717a; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 251" marker-end="url(#dc-arrow-head-filled-7)"></path></svg>
+
+<svg width="95" height="8" viewBox="0 0 95 8" preserveAspectRatio="none" style="position: absolute; left: 1072px; top: 548px; width: 95px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><defs><marker id="dc-arrow-head-filled-8" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 0 4 L 91 4" marker-end="url(#dc-arrow-head-filled-8)"></path></svg>
+<svg width="95" height="8" viewBox="0 0 95 8" preserveAspectRatio="none" style="position: absolute; left: 797px; top: 548px; width: 95px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><defs><marker id="dc-arrow-head-filled-9" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 95 4 L 4 4" marker-end="url(#dc-arrow-head-filled-9)"></path></svg>
+
+<svg width="8" height="80" viewBox="0 0 8 80" preserveAspectRatio="none" style="position: absolute; left: 978px; top: 440px; width: 8px; height: 80px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><path d="M 4 0 L 4 80"></path></svg>
+<svg width="552" height="8" viewBox="0 0 552 8" preserveAspectRatio="none" style="position: absolute; left: 430px; top: 436px; width: 552px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><path d="M 0 4 L 552 4"></path></svg>
+<svg width="8" height="79" viewBox="0 0 8 79" preserveAspectRatio="none" style="position: absolute; left: 426px; top: 440px; width: 8px; height: 79px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><defs><marker id="dc-arrow-head-filled-10" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 75" marker-end="url(#dc-arrow-head-filled-10)"></path></svg>
+
+<svg width="156" height="8" viewBox="0 0 156 8" preserveAspectRatio="none" style="position: absolute; left: 184px; top: 548px; width: 156px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><path d="M 0 4 L 156 4"></path></svg>
+<svg width="8" height="287" viewBox="0 0 8 287" preserveAspectRatio="none" style="position: absolute; left: 180px; top: 265px; width: 8px; height: 287px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><defs><marker id="dc-arrow-head-filled-11" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 4 287 L 4 4" marker-end="url(#dc-arrow-head-filled-11)"></path></svg>
+
+<svg width="8" height="535" viewBox="0 0 8 535" preserveAspectRatio="none" style="position: absolute; left: 120px; top: 265px; width: 8px; height: 535px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-12" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#71717a" stroke="none" style="stroke: none; fill: #71717a; fill: context-stroke"/></marker></defs><path d="M 4 535 L 4 4" marker-end="url(#dc-arrow-head-filled-12)"></path></svg>
+
+<svg width="371" height="8" viewBox="0 0 371 8" preserveAspectRatio="none" style="position: absolute; left: 245px; top: 828px; width: 371px; height: 8px; overflow: visible; fill: none; stroke: #71717a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-13" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#71717a" stroke="none" style="stroke: none; fill: #71717a; fill: context-stroke"/></marker></defs><path d="M 371 4 L 4 4" marker-end="url(#dc-arrow-head-filled-13)"></path></svg>
+
+<svg width="8" height="100" viewBox="0 0 8 100" preserveAspectRatio="none" style="position: absolute; left: 702px; top: 700px; width: 8px; height: 100px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><path d="M 4 0 L 4 100"></path></svg>
+<svg width="246" height="8" viewBox="0 0 246 8" preserveAspectRatio="none" style="position: absolute; left: 460px; top: 696px; width: 246px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><path d="M 0 4 L 246 4"></path></svg>
+<svg width="8" height="115" viewBox="0 0 8 115" preserveAspectRatio="none" style="position: absolute; left: 456px; top: 585px; width: 8px; height: 115px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><defs><marker id="dc-arrow-head-filled-14" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 4 115 L 4 4" marker-end="url(#dc-arrow-head-filled-14)"></path></svg>
+
+<svg width="186" height="8" viewBox="0 0 186 8" preserveAspectRatio="none" style="position: absolute; left: 982px; top: 828px; width: 186px; height: 8px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><path d="M 0 4 L 186 4"></path></svg>
+<svg width="8" height="247" viewBox="0 0 8 247" preserveAspectRatio="none" style="position: absolute; left: 978px; top: 585px; width: 8px; height: 247px; overflow: visible; fill: none; stroke: #a1a1aa; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><defs><marker id="dc-arrow-head-filled-15" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#a1a1aa" stroke="none" style="stroke: none; fill: #a1a1aa; fill: context-stroke"/></marker></defs><path d="M 4 247 L 4 4" marker-end="url(#dc-arrow-head-filled-15)"></path></svg>
+
+<div style="position: absolute; left: 64px; top: 56px; font-size: 22px; line-height: 28px; font-weight: 600; color: oklch(21% .006 285.885)">Board.Stage, rendered from its rows</div>
+<div style="position: absolute; left: 64px; top: 90px; width: 760px; font-size: 13px; line-height: 18px; color: oklch(55.2% .016 285.938)">Generated by <span style="font-family: 'JetBrains Mono', monospace">mix board.fsm.docs</span>: 10 states, 13 events, 21 rows. Solid arrows are claimed events (agents, UI); dashed are observed facts (GitHub, beads).</div>
+<div style="position: absolute; left: 64px; top: 176px; font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: oklch(55.2% .016 285.938)">initial</div>
+
+<div class="st" style="left: 64px; top: 200px"><span><b>queued</b><br>known, not started</span></div>
+<div class="st" style="left: 340px; top: 200px; background: oklch(97.5% .02 262); border-color: oklch(84% .08 262)"><span><b>dispatched</b><br>brief and window, no heartbeat</span></div>
+<div class="st" style="left: 616px; top: 200px; background: oklch(97.5% .02 262); border-color: oklch(84% .08 262)"><span><b>building</b><br>agent reports progress</span></div>
+<div class="st" style="left: 892px; top: 200px; background: oklch(98% .03 85); border-color: oklch(88% .1 85)"><span><b>reported</b><br>report written, marker printed</span></div>
+<div class="st" style="left: 1168px; top: 200px; background: oklch(98% .03 85); border-color: oklch(88% .1 85)"><span><b>in_review</b><br>coordinator verifies</span></div>
+<div class="st" style="left: 1168px; top: 520px; background: oklch(97.5% .02 149); border-color: oklch(85% .08 149)"><span><b>committed</b><br>slice committed</span></div>
+<div class="st" style="left: 892px; top: 520px; background: oklch(97.5% .02 149); border-color: oklch(85% .08 149)"><span><b>pr_open</b><br>linked PR open</span></div>
+<div class="st" style="left: 616px; top: 520px; background: oklch(97.5% .02 149); border-color: oklch(85% .08 149)"><span><b>merged</b><br>enter: suggest(close_bead)</span></div>
+<div class="st" style="left: 340px; top: 520px; background: oklch(96.7% .001 286.375)"><span><b>done</b><br>bead closed</span></div>
+<div class="st" style="left: 64px; top: 800px; background: oklch(97.5% .015 27); border-color: oklch(86% .06 27)"><span><b>abandoned</b><br>dropped on purpose</span></div>
+<div class="st" style="left: 616px; top: 800px; background: transparent; border-style: dashed; box-shadow: none"><span><b>live</b><br>group: any of the first 8</span></div>
+<div class="st" style="left: 1168px; top: 800px; background: transparent; border-style: dashed; box-shadow: none"><span><b>pre_pr</b><br>group: queued to committed</span></div>
+
+<div class="lb" style="left: 260px; top: 204px; width: 64px">dispatch</div>
+<div class="lb" style="left: 536px; top: 204px; width: 64px">progress</div>
+<div class="lb" style="left: 818px; top: 204px; width: 52px">report</div>
+<div class="lb" style="left: 1094px; top: 204px; width: 52px">review</div>
+<div class="lb" style="left: 922px; top: 108px; width: 120px">request_changes</div>
+<div class="lb" style="left: 483px; top: 324px; width: 170px">dispatch [new_session?]</div>
+<div class="lb" style="left: 1270px; top: 383px; width: 52px">commit</div>
+<div class="lb" style="left: 1084px; top: 524px; width: 72px">pr_closed</div>
+<div class="lb" style="left: 806px; top: 524px; width: 76px">pr_merged</div>
+<div class="lb" style="left: 551px; top: 412px; width: 310px">bead_closed / flag(closed_with_open_pr)</div>
+<div class="lb" style="left: 196px; top: 400px; width: 104px">bead_reopened</div>
+<div class="lb" style="left: 136px; top: 680px; width: 52px">revive</div>
+<div class="lb" style="left: 400px; top: 804px; width: 60px">abandon</div>
+<div class="lb" style="left: 538px; top: 672px; width: 90px">bead_closed</div>
+<div class="lb" style="left: 994px; top: 700px; width: 76px">pr_opened</div>
+
+<div style="position: absolute; left: 64px; top: 912px; width: 640px; height: 144px; box-sizing: border-box; padding: 14px 16px; border: 1px solid oklch(92% .004 286.32); border-radius: 10px; background: #fff; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; line-height: 18px">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: oklch(55.2% .016 285.938)">In the matrix, not drawn as arrows</div>
+<div><b>Stay rows:</b> progress in reported to merged · commit in committed · pr_opened in pr_open, merged · pr_closed [other_open_pr?] in pr_open</div>
+<div><b>Ignored:</b> every other observed event (facts that change nothing)</div>
+<div><b>Invalid:</b> every other claimed event, answered 409 with the allowed list</div>
+</div>
+<div style="position: absolute; left: 736px; top: 912px; width: 640px; height: 144px; box-sizing: border-box; padding: 14px 16px; border: 1px solid oklch(92% .004 286.32); border-radius: 10px; background: #fff; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; line-height: 18px">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: oklch(55.2% .016 285.938)">Compile-time checks, this machine</div>
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 18px; color: oklch(37% .013 285.805); white-space: pre-line">130 pairs covered · 0 gaps · 0 all-guarded pairs
+0 duplicate rows · 0 dead rows · 10 of 10 states reachable
+observed events never invalid · 7 effects all handled
+docs/machines/stage.md matches a fresh render</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

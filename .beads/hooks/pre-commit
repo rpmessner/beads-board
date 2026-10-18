@@ -31,3 +31,12 @@ if command -v bd >/dev/null 2>&1; then
   if [ $_bd_exit -ne 0 ]; then exit $_bd_exit; fi
 fi
 # --- END BEADS INTEGRATION v1.1.0 ---
+# --- BEGIN HOUSE BEADS EXPORT ---
+# House rule (~/dev/AGENTS.md): beads is local and flat-file; .beads/issues.jsonl travels with the code.
+# bd's auto-export lags behind writes, so export and stage it on every commit.
+if command -v bd >/dev/null 2>&1; then
+  _house_root=$(git rev-parse --show-toplevel)
+  bd export -o "$_house_root/.beads/issues.jsonl" >/dev/null || exit 1
+  git add "$_house_root/.beads/issues.jsonl" || exit 1
+fi
+# --- END HOUSE BEADS EXPORT ---

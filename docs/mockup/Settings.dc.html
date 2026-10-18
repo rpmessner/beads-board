@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.fx{--bg:oklch(100% 0 0);--sunken:oklch(96.7% .001 286.375);--surface:#fff;--border:oklch(92% .004 286.32);--fg:oklch(37% .013 285.805);--fg-strong:oklch(21% .006 285.885);--fg-soft:oklch(44.2% .017 285.786);--fg-softer:oklch(55.2% .016 285.938);--primary:oklch(27.4% .006 286.033);--on-primary:#fff;--accent:oklch(96.7% .001 286.375);--danger:oklch(57.7% .245 27.325);--success:oklch(62.7% .194 149.214);--warning:oklch(82.8% .189 84.429);--info:oklch(54.6% .245 262.881);--mix:10%;--fgmix:black 15%;--wfgmix:black 45%;--shadow:0 1px 2px 0 #0000000d;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--fg);background:var(--bg);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+.fx.dark{--bg:oklch(21% .006 285.885);--sunken:oklch(19.1% .006 285.885);--surface:oklch(28.6% .006 285.885);--border:#ffffff1f;--fg:oklch(92% .004 286.32);--fg-strong:#fff;--fg-soft:oklch(87.1% .006 286.286);--fg-softer:oklch(70.5% .015 286.067);--primary:#fff;--on-primary:oklch(27.4% .006 286.033);--accent:oklch(37% .013 285.805);--mix:20%;--fgmix:white 60%;--wfgmix:white 30%;--shadow:0 1px 2px 0 #0000004d}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--fg-soft)}
+.b-neutral{background:var(--sunken)}
+.b-success{background:color-mix(in oklab,var(--success) var(--mix),var(--bg));color:color-mix(in oklab,var(--success),var(--fgmix));border-color:color-mix(in oklab,var(--success) 30%,var(--bg))}
+.b-warning{background:color-mix(in oklab,var(--warning) var(--mix),var(--bg));color:color-mix(in oklab,var(--warning),var(--wfgmix));border-color:color-mix(in oklab,var(--warning) 50%,var(--bg))}
+.b-danger{background:color-mix(in oklab,var(--danger) var(--mix),var(--bg));color:color-mix(in oklab,var(--danger),var(--fgmix));border-color:color-mix(in oklab,var(--danger) 30%,var(--bg))}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg-strong);font:500 14px/20px Inter,system-ui,sans-serif;box-shadow:var(--shadow);cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--accent)}
+.muted{color:var(--fg-softer);font-size:12px;line-height:16px}
+.sec{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-softer)}
+.panel{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-weight:500;color:var(--fg-softer);font-size:12px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--sunken)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--fg-strong);vertical-align:middle}
+.sw{position:relative;display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--fg-strong)}
+.sw input{width:36px;height:20px;margin:0;appearance:none;-webkit-appearance:none;border-radius:99px;background:color-mix(in oklab,var(--bg),black 10%);position:relative;cursor:pointer;transition:background .15s}
+.sw input::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:99px;background:#fff;box-shadow:0 1px 2px #0003;transition:left .15s}
+.sw input:checked{background:var(--primary)}
+.sw input:checked::after{left:18px}
+</style>
+</helmet>
+<div class="{{rootClass}}" style="min-height: 100vh; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 20px; background: var(--bg)">
+
+<header style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 2px; margin-right: auto">
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; color: var(--fg-strong)">Settings</h1>
+<div class="muted" style="font-size: 13px">Read from a TOML file you edit by hand. The board never writes it. Live state (stages, sessions, notes) lives in Postgres.</div>
+</div>
+<label class="sw"><input type="checkbox" checked="{{bad}}" onChange="{{toggleBad}}">Demo: save a bad edit</label>
+<button class="btn" onClick="{{reload}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"></path></svg>Reload</button>
+</header>
+
+<div class="panel" style="flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 999 1 360px; min-width: 0">
+<span class="sec">Config sources, merged in order</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+<span class="badge mono">priv/board.defaults.toml</span><span class="muted">then</span>
+<span class="badge mono">~/.config/beads-board/board.toml</span><span class="muted">then</span>
+<span class="badge mono">board.local.toml (untracked)</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 240px">
+<span class="sec">Status</span>
+<span class="{{statusCls}}" style="align-self: flex-start"><span class="dot"></span>{{statusLabel}}</span>
+<span class="muted">{{statusSub}}</span>
+</div>
+</div>
+
+<sc-if value="{{bad}}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 8px; border: 1px solid color-mix(in oklab, var(--danger) 30%, var(--bg)); background: color-mix(in oklab, var(--danger) var(--mix), var(--bg)); color: color-mix(in oklab, var(--danger), var(--fgmix))">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 4px"><b>board.toml line 15: columns[2].stages names an unknown stage "reviewing".</b><span>Known stages come from Board.Stage: queued, dispatched, building, reported, in_review, committed, pr_open, merged, done, abandoned. The last good config stays in use.</span></div>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<section style="display: flex; flex-direction: column; gap: 10px">
+<div class="sec">Repos</div>
+<div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 10px">
+<table>
+<thead><tr><th>Key</th><th>Path</th><th>GitHub</th><th>bd store</th><th>Read</th><th>Enabled</th></tr></thead>
+<tbody>
+<tr><td>form-engine</td><td class="mono">~/dev/music/form-engine</td><td class="mono">rpmessner/form-engine</td><td>embedded</td><td><span class="badge b-success">30 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="form-engine enabled"></label></td></tr>
+<tr><td>skills</td><td class="mono">~/dev/utils/skills</td><td class="mono">rpmessner/skills</td><td>embedded</td><td><span class="badge b-success">15 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="skills enabled"></label></td></tr>
+<tr><td>dotfiles</td><td class="mono">~/dev/dotfiles</td><td class="mono">rpmessner/dotfiles</td><td>embedded</td><td><span class="badge b-success">3 · 4 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="dotfiles enabled"></label></td></tr>
+<tr><td>ui-o-matic</td><td class="mono">~/dev/games/wow-addons/ui-o-matic</td><td class="mono">rpmessner/ui-o-matic</td><td>embedded</td><td><span class="badge b-success">417 · 5 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="ui-o-matic enabled"></label></td></tr>
+<tr><td>cooldown-o-matic</td><td class="mono">~/dev/games/wow-addons/cooldown-o-matic</td><td class="muted">no remote</td><td>embedded</td><td><span class="badge b-success">47 · 5 s ago</span></td><td><label class="sw"><input type="checkbox" checked aria-label="cooldown-o-matic enabled"></label></td></tr>
+<tr><td>we_go_next_dev</td><td class="mono">~/dev/games/wow-addons/we_go_next_dev</td><td class="mono">rpmessner/we_go_next_dev</td><td><span class="badge b-warning">server mode</span></td><td><span class="badge b-danger">unreachable</span></td><td><label class="sw"><input type="checkbox" checked aria-label="we_go_next_dev enabled"></label></td></tr>
+</tbody>
+</table>
+</div>
+<div class="muted">Toggles here are a preview of the file's <span class="mono">enabled</span> flag. To change one, edit the file; the board reloads it.</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<div class="sec">Board columns · from [[columns]]</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 10px">
+<div class="panel" style="padding: 12px; gap: 8px"><b style="color: var(--fg-strong)">Queued</b><div style="display: flex; flex-wrap: wrap; gap: 4px"><span class="badge mono">queued</span></div></div>
+<div class="panel" style="padding: 12px; gap: 8px"><b style="color: var(--fg-strong)">In flight</b><div style="display: flex; flex-wrap: wrap; gap: 4px"><span class="badge mono">dispatched</span><span class="badge mono">building</span></div></div>
+<div class="panel" style="padding: 12px; gap: 8px"><b style="color: var(--fg-strong)">Review</b><div style="display: flex; flex-wrap: wrap; gap: 4px"><span class="badge mono">reported</span><span class="{{reviewChip}}">{{reviewName}}</span></div></div>
+<div class="panel" style="padding: 12px; gap: 8px"><b style="color: var(--fg-strong)">Shipping</b><div style="display: flex; flex-wrap: wrap; gap: 4px"><span class="badge mono">committed</span><span class="badge mono">pr_open</span><span class="badge mono">merged</span></div></div>
+<div class="panel" style="padding: 12px; gap: 8px"><b style="color: var(--fg-strong)">Done</b><div style="display: flex; flex-wrap: wrap; gap: 4px"><span class="badge mono">done</span><span class="muted">collapsed</span></div></div>
+</div>
+<div class="muted">Config can name and group stages, never invent them. Abandoned tickets are hidden unless filtered for.</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<div class="sec">Found under ~/dev, not in config</div>
+<div class="panel" style="padding: 12px 16px"><span class="muted" style="font-size: 13px">None. All 6 .beads directories are configured.</span></div>
+</section>
+</div>
+
+<aside style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+<div class="sec">board.toml · read-only view</div>
+<pre class="mono" style="margin: 0; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--sunken); color: var(--fg-strong); font-size: 12px; line-height: 19px; white-space: pre; overflow-x: auto">{{toml}}</pre>
+</aside>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { bad: false, loadedAt: '21:44:02' }; }
+  renderVals() {
+    const bad = this.state.bad;
+    const stage = bad ? 'reviewing' : 'in_review';
+    const toml = [
+      '[board]',
+      'swimlanes = "project"',
+      'stale_session_after = "2h"',
+      '',
+      '[[columns]]',
+      'title  = "Queued"',
+      'stages = ["queued"]',
+      '',
+      '[[columns]]',
+      'title  = "In flight"',
+      'stages = ["dispatched", "building"]',
+      '',
+      '[[columns]]',
+      'title  = "Review"',
+      'stages = ["reported", "' + stage + '"]',
+      '',
+      '[[repos]]',
+      'key    = "form-engine"',
+      'path   = "~/dev/music/form-engine"',
+      'github = "rpmessner/form-engine"',
+      'color  = "violet"',
+      '',
+      '[[repos]]',
+      'key     = "we_go_next_dev"',
+      'path    = "~/dev/games/wow-addons/we_go_next_dev"',
+      'github  = "rpmessner/we_go_next_dev"',
+      '',
+      '[epics."fe-813"]',
+      'pin = true'
+    ].join('\n');
+    return {
+      rootClass: this.props.dark ? 'fx dark' : 'fx',
+      bad, toml,
+      statusCls: bad ? 'badge b-danger' : 'badge b-success',
+      statusLabel: bad ? 'Invalid edit, last good config in use' : 'Valid · watching for changes',
+      statusSub: bad ? 'Edit saved 21:51:30, rejected. Loaded config from ' + this.state.loadedAt + '.' : 'Loaded ' + this.state.loadedAt + ' · inotify on ~/.config/beads-board/',
+      reviewChip: bad ? 'badge b-danger mono' : 'badge mono',
+      reviewName: bad ? 'reviewing ?' : 'in_review',
+      toggleBad: () => this.setState({ bad: !this.state.bad }),
+      reload: () => this.setState({ loadedAt: bad ? this.state.loadedAt : '21:52:10' })
+    };
+  }
+}
+</script>
+</body>
+</html>

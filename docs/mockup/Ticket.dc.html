@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ticket detail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.fx{--bg:oklch(100% 0 0);--sunken:oklch(96.7% .001 286.375);--surface:#fff;--border:oklch(92% .004 286.32);--fg:oklch(37% .013 285.805);--fg-strong:oklch(21% .006 285.885);--fg-soft:oklch(44.2% .017 285.786);--fg-softer:oklch(55.2% .016 285.938);--primary:oklch(27.4% .006 286.033);--on-primary:#fff;--accent:oklch(96.7% .001 286.375);--danger:oklch(57.7% .245 27.325);--success:oklch(62.7% .194 149.214);--warning:oklch(82.8% .189 84.429);--info:oklch(54.6% .245 262.881);--mix:10%;--fgmix:black 15%;--wfgmix:black 45%;--shadow:0 1px 2px 0 #0000000d;font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--fg);background:var(--bg);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+.fx.dark{--bg:oklch(21% .006 285.885);--sunken:oklch(19.1% .006 285.885);--surface:oklch(28.6% .006 285.885);--border:#ffffff1f;--fg:oklch(92% .004 286.32);--fg-strong:#fff;--fg-soft:oklch(87.1% .006 286.286);--fg-softer:oklch(70.5% .015 286.067);--primary:#fff;--on-primary:oklch(27.4% .006 286.033);--accent:oklch(37% .013 285.805);--mix:20%;--fgmix:white 60%;--wfgmix:white 30%;--shadow:0 1px 2px 0 #0000004d}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--fg-soft)}
+.b-neutral{background:var(--sunken)}
+.b-info{background:color-mix(in oklab,var(--info) var(--mix),var(--bg));color:color-mix(in oklab,var(--info),var(--fgmix));border-color:color-mix(in oklab,var(--info) 30%,var(--bg))}
+.b-warning{background:color-mix(in oklab,var(--warning) var(--mix),var(--bg));color:color-mix(in oklab,var(--warning),var(--wfgmix));border-color:color-mix(in oklab,var(--warning) 50%,var(--bg))}
+.b-success{background:color-mix(in oklab,var(--success) var(--mix),var(--bg));color:color-mix(in oklab,var(--success),var(--fgmix));border-color:color-mix(in oklab,var(--success) 30%,var(--bg))}
+.b-dashed{border-style:dashed;background:transparent}
+.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--fg-strong);font:500 14px/20px Inter,system-ui,sans-serif;box-shadow:var(--shadow);cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--accent)}
+.tabs{display:flex;gap:20px;border-bottom:1px solid var(--border)}
+.tabs button{height:40px;border:0;background:transparent;padding:0 2px;color:var(--fg-softer);font:500 14px Inter,system-ui,sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+.tabs button.on{color:var(--fg-strong);border-bottom-color:var(--primary)}
+.kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px 16px;font-size:13px}
+.kv dt{color:var(--fg-softer)}
+.kv dd{margin:0;color:var(--fg-strong);min-width:0;overflow-wrap:anywhere}
+.sec{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-softer)}
+.muted{color:var(--fg-softer);font-size:12px;line-height:16px}
+.panel{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:12px}
+.ghost{background:var(--sunken);border-radius:8px}
+</style>
+</helmet>
+<div class="{{rootClass}}" style="min-height: 100vh; position: relative; overflow: hidden; background: var(--bg)">
+
+<div aria-hidden="true" style="position: absolute; inset: 0; display: flex; gap: 16px; padding: 24px; box-sizing: border-box">
+<div class="ghost" style="width: 220px"></div>
+<div style="flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-content: start; padding-top: 88px">
+<div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div>
+<div class="ghost" style="height: 120px"></div><div class="ghost" style="height: 120px"></div><div></div><div class="ghost" style="height: 120px"></div><div></div>
+</div>
+</div>
+<div aria-hidden="true" style="position: absolute; inset: 0; background: oklch(21% .006 285.885 / .35)"></div>
+
+<section role="dialog" aria-label="Ticket fe-813.4" style="position: relative; margin-left: auto; width: min(760px, 100%); min-height: 100vh; box-sizing: border-box; background: var(--bg); border-left: 1px solid var(--border); box-shadow: -12px 0 32px -8px #0000002e; padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+<span style="width: 8px; height: 8px; border-radius: 3px; background: oklch(58% .2 295)"></span>
+<span class="muted" style="font-size: 13px">form-engine</span>
+<span class="muted">/</span>
+<a href="Epic.dc.html" class="mono" style="color: var(--fg-soft)">fe-813</a>
+<span class="muted">/</span>
+<span class="mono" style="color: var(--fg-strong)">fe-813.4</span>
+<a class="btn" href="Main.dc.html" aria-label="Close" style="margin-left: auto; width: 36px; padding: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; color: var(--fg-strong); text-wrap: pretty">One-track loop end to end: voice pick, count-in, record, loop, stop/play</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span class="badge b-info"><span class="dot"></span>Stage: building</span>
+<span class="badge b-dashed">bd: open</span>
+<span class="badge">task</span>
+<span class="badge">P2</span>
+<span class="badge b-success">ready: 3 blockers closed</span>
+</div>
+</div>
+
+<div class="tabs" role="tablist">
+<sc-for list="{{tabs}}" as="tb" hint-placeholder-count="3">
+<button role="tab" class="{{tb.cls}}" onClick="{{tb.pick}}">{{tb.label}}</button>
+</sc-for>
+</div>
+
+<sc-if value="{{isOverview}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<div style="flex: 999 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="sec">Description · from beads</div>
+<div style="color: var(--fg-strong); font-size: 13px; line-height: 20px">The first playable slice of Record mode: one track, one voice, recorded against a click and looping, in the calm window. Input from keys, live MIDI, or a file played in for scripted tests. Introduces the looper and doodler-mode machines (on the kit) and the input map as data, so the Launchkey layout later is a table edit.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="sec">Acceptance · from beads</div>
+<ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--fg-strong)">
+<li>Pick a voice type, press record: one-bar count-in with click, record while hearing yourself; press again: the take loops</li>
+<li>Stop and play work; one lane with a playhead, a status line (meter, tempo, state) and the mode</li>
+<li>Looper and doodler-mode machines written with the kit; input map as a data table</li>
+<li>Queued actions take effect at the next beat via boundary events, not extra states</li>
+<li>Tap tempo or encoder sets tempo before the first take (default 100 bpm)</li>
+<li>A scripted run produces a screenshot of the lane and a loop log; verify closeout passes</li>
+</ul>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="sec">Dependencies · from beads</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span class="badge b-success"><span class="mono">fe-813.1</span> kit · closed</span>
+<span class="badge b-success"><span class="mono">fe-813.2</span> time model · closed</span>
+<span class="badge b-success"><span class="mono">fe-813.3</span> scheduler · closed</span>
+<span class="badge b-neutral">blocks <span class="mono">fe-813.5</span></span>
+</div>
+</div>
+</div>
+
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div class="panel">
+<div class="sec">Overlay · board-owned</div>
+<dl class="kv" style="margin: 0">
+<dt>Session</dt><dd><span class="mono">fe-loop</span> · pi · gpt-6-astra</dd>
+<dt>Last seen</dt><dd>9 min ago</dd>
+<dt>Workdir</dt><dd class="mono">~/dev/music/form-engine</dd>
+<dt>Branch</dt><dd class="mono">pr/looper</dd>
+<dt>Base</dt><dd class="mono">460b13a</dd>
+<dt>Brief</dt><dd class="mono">docs/briefs/fe-loop.md</dd>
+<dt>Report</dt><dd class="mono" style="color: var(--fg-softer)">docs/sessions/fe-loop.md (not yet)</dd>
+<dt>PR</dt><dd style="color: var(--fg-softer)">none linked</dd>
+</dl>
+</div>
+<div class="panel">
+<div class="sec">Next events allowed in building</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span class="badge">progress</span><span class="badge">report</span><span class="badge">dispatch [new_session?]</span><span class="badge">abandon</span>
+</div>
+<div class="muted">Other claims get 409 from the API, with this list. Observed facts (PR opened, bead closed) always apply.</div>
+<pre class="mono" style="margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--sunken); color: var(--fg-strong); white-space: pre-wrap; font-size: 11.5px; line-height: 18px">board report fe-813.4 --path docs/sessions/fe-loop.md</pre>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isHistory}}" hint-placeholder-val="{{ false }}">
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0">
+<sc-for list="{{history}}" as="h" hint-placeholder-count="5">
+<li style="display: grid; grid-template-columns: 110px 18px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span class="muted mono" style="font-size: 11px; padding-top: 2px">{{h.at}}</span>
+<span style="width: 10px; height: 10px; border-radius: 99px; margin-top: 4px; background: {{h.color}}"></span>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center"><span class="mono" style="color: var(--fg-strong)">{{h.event}}</span><span class="muted">{{h.move}}</span><span class="badge" style="height: 20px">{{h.source}}</span></div>
+<span class="muted">{{h.detail}}</span>
+</div>
+</li>
+</sc-for>
+</ol>
+</sc-if>
+
+<sc-if value="{{isNotes}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{notes}}" as="n" hint-placeholder-count="3">
+<div class="panel" style="padding: 12px 14px; gap: 6px">
+<div style="display: flex; gap: 8px; align-items: center"><span class="{{n.cls}}">{{n.kind}}</span><span class="mono" style="color: var(--fg-soft)">{{n.who}}</span><span class="muted" style="margin-left: auto">{{n.at}}</span></div>
+<div style="font-size: 13px; color: var(--fg-strong)">{{n.body}}</div>
+</div>
+</sc-for>
+<div class="muted">Agent notes live in the board's Postgres, not in beads. Durable facts still go to <span class="mono">bd note</span>.</div>
+</div>
+</sc-if>
+
+<div class="muted" style="margin-top: auto">Beads fields are fe-813.4's real content. Overlay values are illustrative.</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 'overview' }; }
+  renderVals() {
+    const tab = this.state.tab;
+    const tabs = [['overview', 'Overview'], ['history', 'Stage history · 4'], ['notes', 'Agent notes · 3']].map((t) => ({
+      label: t[1], cls: tab === t[0] ? 'on' : '', pick: () => this.setState({ tab: t[0] })
+    }));
+    const info = 'oklch(54.6% .245 262.881)', neutral = 'oklch(70.5% .015 286.067)';
+    const history = [
+      { at: '10-18 14:52', event: 'progress', move: 'building → building', source: 'claimed · pi', detail: 'append(progress)', color: info },
+      { at: '10-18 14:20', event: 'progress', move: 'dispatched → building', source: 'claimed · pi', detail: 'append(progress)', color: info },
+      { at: '10-18 14:02', event: 'dispatch', move: 'queued → dispatched', source: 'claimed · claude', detail: 'record(session: fe-loop, branch pr/looper, base 460b13a), emit(stage)', color: info },
+      { at: '10-18 13:40', event: 'review', move: 'queued, refused', source: 'claimed · pi', detail: 'invalid: queued accepts dispatch, abandon. Logged, API answered 409', color: 'oklch(57.7% .245 27.325)' },
+      { at: '10-17 21:46', event: 'backfill', move: '→ queued', source: 'backfill', detail: 'first sight; bead open', color: neutral }
+    ];
+    const notes = [
+      { kind: 'progress', cls: 'badge b-info', who: 'fe-loop · pi', at: '9 min ago', body: 'Count-in and record work against the click; loop wrap at the bar boundary next. Looper machine compiles on the kit, 14 rows.' },
+      { kind: 'progress', cls: 'badge b-info', who: 'fe-loop · pi', at: '41 min ago', body: 'Claimed fe-813.4. Read ADR 0002 and docs/sessions/fe-kit.md. Starting with the input map table.' },
+      { kind: 'note', cls: 'badge', who: 'coordinator · claude', at: '50 min ago', body: 'Dispatched with tdd seams: looper step, input map routing. Two writers never share this tree.' }
+    ];
+    return {
+      rootClass: this.props.dark ? 'fx dark' : 'fx', tabs, history, notes,
+      isOverview: tab === 'overview', isHistory: tab === 'history', isNotes: tab === 'notes'
+    };
+  }
+}
+</script>
+</body>
+</html>
