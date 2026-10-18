@@ -2,7 +2,7 @@ defmodule Board.RuntimeConfigTest do
   use ExUnit.Case, async: false
 
   setup do
-    keys = ["BOARD_ROLE", "DATABASE_URL", "SECRET_KEY_BASE"]
+    keys = ["BOARD_ROLE", "DATABASE_URL", "SECRET_KEY_BASE", "PORT", "PHX_SERVER"]
     previous = Map.new(keys, &{&1, System.get_env(&1)})
     Enum.each(keys, &System.delete_env/1)
     System.put_env("DATABASE_URL", "ecto://localhost/beads_board_test")
@@ -26,6 +26,34 @@ defmodule Board.RuntimeConfigTest do
     System.put_env("BOARD_ROLE", "web")
 
     assert_raise RuntimeError, ~r/SECRET_KEY_BASE is missing/, fn ->
+      Config.Reader.read!("config/runtime.exs", env: :prod, target: :host)
+    end
+  end
+
+  test "web uses its production secret and serves only the configured loopback port" do
+    System.put_env("BOARD_ROLE", "web")
+    System.put_env("SECRET_KEY_BASE", String.duplicate("test-only", 8))
+    System.put_env("PORT", "4871")
+    System.put_env("PHX_SERVER", "true")
+    config = Config.Reader.read!("config/runtime.exs", env: :prod, target: :host)
+    endpoint = config[:board][BoardWeb.Endpoint]
+    assert endpoint[:secret_key_base] == String.duplicate("test-only", 8)
+    assert endpoint[:server]
+    assert endpoint[:http][:ip] == {127, 0, 0, 1}
+    assert endpoint[:http][:port] == 4871
+  end
+
+  test "all requires the endpoint secret in production" do
+    assert_raise RuntimeError, ~r/SECRET_KEY_BASE is missing/, fn ->
+      Config.Reader.read!("config/runtime.exs", env: :prod, target: :host)
+    end
+  end
+
+  test "worker still requires the production database" do
+    System.put_env("BOARD_ROLE", "worker")
+    System.delete_env("DATABASE_URL")
+
+    assert_raise RuntimeError, ~r/DATABASE_URL is missing/, fn ->
       Config.Reader.read!("config/runtime.exs", env: :prod, target: :host)
     end
   end
