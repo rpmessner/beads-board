@@ -2,7 +2,7 @@
 id: fm-zgd.4
 title: "Open-PR requests"
 type: feature
-status: in_progress
+status: closed
 priority: 2
 parent: fm-zgd
 blocked_by: ["fm-zgd.1"]
@@ -10,8 +10,8 @@ related: []
 discovered_from: null
 labels: []
 created: 2026-10-18
-closed: null
-close_reason: null
+closed: 2026-10-18
+close_reason: "Merged b8b91ee: open-PR requests, live scratch PR #4."
 ---
 
 ## What to build
