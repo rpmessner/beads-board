@@ -32,6 +32,7 @@ defmodule BoardWeb.ConnCase do
   end
 
   setup tags do
+    unless tags[:production_token_clock], do: BoardWeb.LiveViewClock.install()
     if Application.get_env(:board, :start_repo, true), do: Board.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end

@@ -8,6 +8,7 @@ Spec: `docs/spec.md` (authoritative); design pass: `docs/design.md`; approved mo
 - **Times use the shared human format** (just now, 2 min ago, full time on hover), never raw seconds or ISO strings.
 - **Stateful features sit on declared `Board.Fsm` machines** (workflows, sync and job lifecycles, external conversations, stateful UI); the house code-review baseline treats ad hoc status fields as Important findings.
 - Beads is read-only; the repos gain no board files; storage is Postgres only.
+- LiveView self-redirects on WSL clock rollback: see `docs/known-issues.md` for the test-only signing allowance and production reload behavior.
 
 This is a web application written using the Phoenix web framework.
 

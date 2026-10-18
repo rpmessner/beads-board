@@ -1,0 +1,7 @@
+Repository hygiene: no license material or operator paths detected
+Running ExUnit with seed: 301599, max_cases: 16
+
+.................................................................................................................................................................................................Generated escript board with MIX_ENV=test
+......................................................................................
+Finished in 23.9 seconds (2.5s async, 21.4s sync)
+4 properties, 275 tests, 0 failures
