@@ -11,6 +11,7 @@ defmodule ForemanWeb.RequestCount do
 
     {:cont,
      socket
+     |> ForemanWeb.RequestDrawer.mount()
      |> refresh()
      |> attach_hook(:request_count_params, :handle_params, fn _, _, socket ->
        {:cont, refresh(socket)}
@@ -35,6 +36,7 @@ defmodule ForemanWeb.RequestCount do
       page_title: if(count > 0, do: "(#{count}) foreman", else: "foreman")
     )
     |> push_event("notification_snapshot", %{requests: notification_requests(pending)})
+    |> ForemanWeb.RequestDrawer.refresh(pending)
   end
 
   defp notification_requests(pending) do

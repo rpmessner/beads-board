@@ -1,0 +1,4 @@
+PASS four pages × two widths × two themes; unchanged URL, focus trap, Escape, focus return
+PASS shared cards; simultaneous page/drawer IDs; incoming request preserves draft; answer, decline and empty reopening
+PASS main badge geometry/nav spacing; heading focus without control ring; open-PR approve/decline; merge card/decline
+PASS zero browser errors

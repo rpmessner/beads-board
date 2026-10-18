@@ -61,7 +61,15 @@ defmodule ForemanWeb.DocumentsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} active={:documents} repos={@repos} pending_count={@pending_count}>
+    <Layouts.app
+      drawer_state={@drawer_state}
+      drawer_error={@drawer_error}
+      streams={@streams}
+      flash={@flash}
+      active={:documents}
+      repos={@repos}
+      pending_count={@pending_count}
+    >
       <header class="flex flex-wrap items-center gap-3">
         <h1 class="text-xl font-semibold">Documents</h1>
         <span class="text-foreground-softer">{@repo_key}</span>

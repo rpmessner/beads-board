@@ -1,0 +1,53 @@
+Compiling 2 files (.ex)
+Generated foreman app
+Running ExUnit with seed: 948103, max_cases: 16
+
+
+
+  1) test drawer answer uses the page resolution and stale page decline cannot overwrite it (ForemanWeb.RequestDrawerTest)
+     test/foreman_web/live/request_drawer_test.exs:21
+     Expected false or nil, got true
+     code: refute has_element?(drawer, "#drawer-request-#{request.id}")
+     arguments:
+
+         # 1
+         #Phoenix.LiveViewTest.View<
+           id: "phx-GN_BonSCzIOCzRJB",
+           module: ForemanWeb.SettingsLive,
+           pid: #PID<0.439.0>,
+           endpoint: ForemanWeb.Endpoint,
+           ...
+         >
+
+         # 2
+         "#drawer-request-d3855419-9150-49ee-9d27-d8abcee5415a"
+
+     stacktrace:
+       test/foreman_web/live/request_drawer_test.exs:45: (test)
+
+..
+
+  2) test open drawer reconciles only pending requests (ForemanWeb.RequestDrawerTest)
+     test/foreman_web/live/request_drawer_test.exs:69
+     Expected truthy, got false
+     code: assert has_element?(view, "#drawer-request-#{other.id}")
+     arguments:
+
+         # 1
+         #Phoenix.LiveViewTest.View<
+           id: "phx-GN_BooTvv3CdfRXB",
+           module: ForemanWeb.InitiativesLive,
+           pid: #PID<0.471.0>,
+           endpoint: ForemanWeb.Endpoint,
+           ...
+         >
+
+         # 2
+         "#drawer-request-b7d771b5-cdf7-47ce-ab34-c93ef7e8629d"
+
+     stacktrace:
+       test/foreman_web/live/request_drawer_test.exs:81: (test)
+
+
+Finished in 0.5 seconds (0.00s async, 0.5s sync)
+4 tests, 2 failures

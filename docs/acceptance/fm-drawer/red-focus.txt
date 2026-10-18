@@ -1,0 +1,14 @@
+AssertionError [ERR_ASSERTION]: initial focus is the drawer heading
++ actual - expected
+
++ ''
+- 'request-drawer-title'
+
+    at tools/drawer-acceptance.cjs:58:18 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '',
+  expected: 'request-drawer-title',
+  operator: 'strictEqual',
+  diff: 'simple'
+}

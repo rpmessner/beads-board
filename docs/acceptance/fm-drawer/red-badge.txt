@@ -1,0 +1,27 @@
+AssertionError [ERR_ASSERTION]: badge geometry and style match main
++ actual - expected
+
+  [
++   40,
++   40,
+-   26.359375,
+-   22,
+    'oklch(1 0 0)',
+    'oklch(0.92 0.004 286.32)',
+    '1px',
+    '3.35544e+07px',
+    '12px',
+    '600',
++   '0px',
+-   '2px',
+    '8px'
+  ]
+
+    at tools/drawer-acceptance.cjs:44:18 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [Array],
+  expected: [Array],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}

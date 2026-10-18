@@ -1,0 +1,90 @@
+Compiling 1 file (.ex)
+    warning: the following clause will never match:
+
+        {:ok, _}
+
+    because it attempts to match on the result of:
+
+        if params do
+          {:error, :mutation}
+        else
+          nil
+        end
+
+    which has type:
+
+        dynamic(nil or {:error, :mutation})
+
+    typing violation found at:
+    │
+ 48 │         {:ok, _} -> socket
+    │         ~~~~~~~~~~~~~~~~~~
+    │
+    └─ lib/foreman_web/live/request_drawer.ex:48: ForemanWeb.RequestDrawer.handle_event/3
+
+Generated foreman app
+Running ExUnit with seed: 850290, max_cases: 16
+
+
+
+  1) test drawer answer uses the page resolution and stale page decline cannot overwrite it (ForemanWeb.RequestDrawerTest)
+     test/foreman_web/live/request_drawer_test.exs:21
+     match (=) failed
+     code:  assert %{state: "answered", note: "Keep shortcuts", outcome: %{"answer" => "Compact"}} =
+              Requests.get(request.id)
+     left:  %{state: "answered", note: "Keep shortcuts", outcome: %{"answer" => "Compact"}}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "ac5b8ac0-6867-4db7-ac20-a41fe491d8ed",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "decision",
+              actor: "pi",
+              session: nil,
+              facts: %{
+                "options" => ["Wide", "Compact"],
+                "question" => "Which layout?"
+              },
+              state: "pending",
+              outcome: %{},
+              note: nil,
+              inserted_at: ~U[2026-10-18 22:54:01.072125Z],
+              updated_at: ~U[2026-10-18 22:54:01.072125Z]
+            }
+     stacktrace:
+       test/foreman_web/live/request_drawer_test.exs:35: (test)
+
+.
+
+  2) test page and drawer approval enqueue only one push job (ForemanWeb.RequestDrawerTest)
+     test/foreman_web/live/request_drawer_test.exs:49
+     match (=) failed
+     code:  assert %{state: "approved", note: "Publish"} = Requests.get(request.id)
+     left:  %{state: "approved", note: "Publish"}
+     right: %Foreman.Requests.Request{
+              __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+              id: "42d13f14-b57b-4c90-b377-9b27585180c6",
+              repo_key: "sample",
+              bead_id: "s-1",
+              kind: "push",
+              actor: "pi",
+              session: nil,
+              facts: %{
+                "expected_sha" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "local_branch" => "main",
+                "remote" => "owner/repo",
+                "remote_branch" => "feature",
+                "worktree" => "/tmp/drawer-refs-1283"
+              },
+              state: "pending",
+              outcome: %{},
+              note: nil,
+              inserted_at: ~U[2026-10-18 22:54:01.314360Z],
+              updated_at: ~U[2026-10-18 22:54:01.314360Z]
+            }
+     stacktrace:
+       test/foreman_web/live/request_drawer_test.exs:63: (test)
+
+.
+Finished in 0.5 seconds (0.00s async, 0.5s sync)
+4 tests, 2 failures

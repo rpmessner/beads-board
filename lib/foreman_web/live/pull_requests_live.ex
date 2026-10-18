@@ -333,7 +333,15 @@ defmodule ForemanWeb.PullRequestsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} pending_count={@pending_count} active={:pull_requests} repos={@repos}>
+    <Layouts.app
+      drawer_state={@drawer_state}
+      drawer_error={@drawer_error}
+      streams={@streams}
+      flash={@flash}
+      pending_count={@pending_count}
+      active={:pull_requests}
+      repos={@repos}
+    >
       <header class="flex flex-wrap items-center gap-3">
         <div class="mr-auto space-y-1">
           <h1 class="text-[22px] leading-7 font-semibold">Pull requests</h1>

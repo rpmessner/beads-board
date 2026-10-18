@@ -1,0 +1,31 @@
+Running ExUnit with seed: 301711, max_cases: 16
+
+....
+
+  1) test invalid drawer answer shows an error inside the sheet and retains the request (ForemanWeb.RequestDrawerTest)
+     test/foreman_web/live/request_drawer_test.exs:49
+     Expected truthy, got false
+     code: assert has_element?(view, "#request-drawer #drawer-error[role=alert]", "Request not updated")
+     arguments:
+
+         # 1
+         #Phoenix.LiveViewTest.View<
+           id: "phx-GN_ByUskXWekhBmh",
+           module: ForemanWeb.SettingsLive,
+           pid: #PID<0.457.0>,
+           endpoint: ForemanWeb.Endpoint,
+           ...
+         >
+
+         # 2
+         "#request-drawer #drawer-error[role=alert]"
+
+         # 3
+         "Request not updated"
+
+     stacktrace:
+       test/foreman_web/live/request_drawer_test.exs:53: (test)
+
+
+Finished in 0.7 seconds (0.00s async, 0.7s sync)
+5 tests, 1 failure

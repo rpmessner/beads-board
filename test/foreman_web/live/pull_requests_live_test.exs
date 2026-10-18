@@ -61,42 +61,51 @@ defmodule ForemanWeb.PullRequestsLiveTest do
     :ok
   end
 
-  test "inbox approval opens existing confirmation without enqueueing; cancel keeps ask pending",
-       %{conn: conn} do
-    stored = Foreman.Forge.Store.get("sample")
+  for entry <- [:page, :drawer] do
+    test "#{entry} approval opens existing confirmation without enqueueing; cancel keeps ask pending",
+         %{conn: conn} do
+      stored = Foreman.Forge.Store.get("sample")
 
-    snapshot =
-      put_in(stored.snapshot, ["change_requests", Access.at(0), "mergeable"], "mergeable")
+      snapshot =
+        put_in(stored.snapshot, ["change_requests", Access.at(0), "mergeable"], "mergeable")
 
-    Foreman.Forge.Store.replace("sample", stored.remote, snapshot)
+      Foreman.Forge.Store.replace("sample", stored.remote, snapshot)
 
-    {:ok, request} =
-      Foreman.Requests.ask({"sample", "fe-813.3"}, "merge", %{
-        "facts" => %{"number" => 5, "expected_sha" => hd(snapshot["change_requests"])["head_sha"]}
-      })
+      {:ok, request} =
+        Foreman.Requests.ask({"sample", "fe-813.3"}, "merge", %{
+          "facts" => %{
+            "number" => 5,
+            "expected_sha" => hd(snapshot["change_requests"])["head_sha"]
+          }
+        })
 
-    {:ok, inbox, _} = live(conn, "/needs-you")
-    assert has_element?(inbox, "#request-#{request.id}", stored.remote)
+      {:ok, inbox, _} =
+        live(conn, if(unquote(entry) == :drawer, do: "/settings", else: "/needs-you"))
 
-    inbox
-    |> form("#merge-#{request.id}", decision: %{note: "Ready"})
-    |> render_submit(%{"action" => "approve"})
+      prefix = if unquote(entry) == :drawer, do: "drawer-", else: ""
+      if unquote(entry) == :drawer, do: render_click(inbox, "open-request-drawer")
+      assert has_element?(inbox, "##{prefix}request-#{request.id}", stored.remote)
 
-    {path, _} = assert_redirect(inbox)
-    refute URI.decode_query(URI.parse(path).query) |> Map.has_key?("note")
-    {:ok, view, _} = live(conn, path)
-    assert has_element?(view, "#merge-confirm[data-open=true]", "Retarget #6")
-    assert Foreman.Requests.get(request.id).state == "pending"
-    assert Foreman.Repo.aggregate(Oban.Job, :count) == 0
-    view |> element("#merge-confirm-cancel") |> render_click()
-    assert_patch(view, "/pull-requests?project=sample")
-    assert Foreman.Requests.get(request.id).state == "pending"
-    {:ok, view, _} = live(conn, path)
-    view |> element("#merge-confirm-submit") |> render_click()
-    assert Foreman.Requests.get(request.id).state == "executing"
-    assert Foreman.Requests.get(request.id).note == "Ready"
-    assert_patch(view, "/pull-requests?project=sample")
-    assert Foreman.Repo.aggregate(Oban.Job, :count) == 1
+      inbox
+      |> form("##{prefix}merge-#{request.id}", decision: %{note: "Ready"})
+      |> render_submit(%{"action" => "approve"})
+
+      {path, _} = assert_redirect(inbox)
+      refute URI.decode_query(URI.parse(path).query) |> Map.has_key?("note")
+      {:ok, view, _} = live(conn, path)
+      assert has_element?(view, "#merge-confirm[data-open=true]", "Retarget #6")
+      assert Foreman.Requests.get(request.id).state == "pending"
+      assert Foreman.Repo.aggregate(Oban.Job, :count) == 0
+      view |> element("#merge-confirm-cancel") |> render_click()
+      assert_patch(view, "/pull-requests?project=sample")
+      assert Foreman.Requests.get(request.id).state == "pending"
+      {:ok, view, _} = live(conn, path)
+      view |> element("#merge-confirm-submit") |> render_click()
+      assert Foreman.Requests.get(request.id).state == "executing"
+      assert Foreman.Requests.get(request.id).note == "Ready"
+      assert_patch(view, "/pull-requests?project=sample")
+      assert Foreman.Repo.aggregate(Oban.Job, :count) == 1
+    end
   end
 
   test "sheet tabs preserve the PR page URL and refresh hidden streams", %{conn: conn} do

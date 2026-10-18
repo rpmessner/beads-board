@@ -7,6 +7,9 @@ defmodule ForemanWeb.Layouts do
   attr :repos, :list, default: []
   attr :filters, :map, default: %{}
   attr :pending_count, :integer, default: 0
+  attr :drawer_state, :atom, default: :closed
+  attr :drawer_error, :string, default: nil
+  attr :streams, :map, default: %{}
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -17,21 +20,29 @@ defmodule ForemanWeb.Layouts do
           <.icon name="hero-ellipsis-horizontal-circle" class="size-6" /> foreman
         </a>
         <nav aria-label="Main" class="space-y-1">
-          <.link
-            id="needs-you-link"
-            navigate={~p"/needs-you"}
-            class={["bb-nav", @active == :needs_you && "bb-nav-active"]}
-            aria-current={@active == :needs_you && "page"}
-          >
-            <.icon name="hero-inbox" class="size-4" /> Needs you
-            <span
-              :if={@pending_count > 0}
-              id="needs-you-count"
-              class="ml-auto rounded-full border border-base bg-base px-2 py-0.5 text-xs font-semibold text-foreground"
+          <div class="relative">
+            <.link
+              id="needs-you-link"
+              navigate={~p"/needs-you"}
+              class={["bb-nav", @active == :needs_you && "bb-nav-active"]}
+              aria-current={@active == :needs_you && "page"}
             >
-              {@pending_count}
-            </span>
-          </.link>
+              <.icon name="hero-inbox" class="size-4" /> Needs you
+            </.link>
+            <button
+              id="needs-you-badge"
+              type="button"
+              phx-click="open-request-drawer"
+              aria-label={"Needs you: #{@pending_count} pending requests"}
+              aria-haspopup="dialog"
+              aria-controls="request-drawer"
+              aria-expanded={to_string(@drawer_state == :open)}
+              class="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer rounded-full border border-base bg-base px-2 py-0.5 text-xs font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              <span :if={@pending_count > 0} id="needs-you-count">{@pending_count}</span>
+              <span :if={@pending_count == 0}>0</span>
+            </button>
+          </div>
           <.link
             navigate={~p"/"}
             class={["bb-nav", @active in [:initiatives, :epic] && "bb-nav-active"]}
@@ -127,6 +138,12 @@ defmodule ForemanWeb.Layouts do
         {render_slot(@inner_block)}
       </main>
     </div>
+    <ForemanWeb.RequestDrawer.drawer
+      :if={Map.has_key?(@streams, :drawer_requests)}
+      state={@drawer_state}
+      error={@drawer_error}
+      streams={@streams}
+    />
     <.flash_group flash={@flash} />
     """
   end

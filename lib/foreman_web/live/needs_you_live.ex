@@ -17,36 +17,33 @@ defmodule ForemanWeb.NeedsYouLive do
   def handle_params(params, uri, socket),
     do: {:noreply, ForemanWeb.TicketDetail.load(socket, params, uri)}
 
-  def handle_event("resolve", %{"id" => id, "decision" => params, "action" => "approve"}, socket) do
-    case Requests.resolve(id, :approve, %{"note" => params["note"]}) do
-      {:error, :confirmation_required} ->
-        request = Requests.get(id)
-
-        query =
-          URI.encode_query(%{
-            "project" => request.repo_key,
-            "request" => id
-          })
-
-        {:noreply, push_navigate(socket, to: "/pull-requests?" <> query)}
-
-      outcome ->
-        {:noreply, result(socket, outcome)}
-    end
-  end
-
-  def handle_event("resolve", %{"id" => id, "decision" => params, "action" => "answer"}, socket) do
-    answer = if params["choice"] in [nil, ""], do: params["note"], else: params["choice"]
-    result = Requests.resolve(id, :answer, %{"answer" => answer, "note" => params["note"]})
-    {:noreply, result(socket, result)}
-  end
-
-  def handle_event("resolve", %{"id" => id, "decision" => params, "action" => "decline"}, socket) do
-    {:noreply, result(socket, Requests.resolve(id, :decline, %{"note" => params["note"]}))}
-  end
+  def handle_event("resolve", params, socket), do: {:noreply, result(socket, resolve(params))}
 
   def handle_event("close-ticket", params, socket),
     do: {:noreply, ForemanWeb.TicketDetail.close(socket, params)}
+
+  @doc "Resolves a shared request form, regardless of its page or drawer location."
+  def resolve(%{"id" => id, "decision" => params, "action" => "answer"}) do
+    answer = if params["choice"] in [nil, ""], do: params["note"], else: params["choice"]
+    Requests.resolve(id, :answer, %{"answer" => answer, "note" => params["note"]})
+  end
+
+  def resolve(%{"id" => id, "decision" => params, "action" => action})
+      when action in ["approve", "decline"] do
+    event = if action == "approve", do: :approve, else: :decline
+
+    case Requests.resolve(id, event, %{"note" => params["note"]}) do
+      {:error, :confirmation_required} ->
+        request = Requests.get(id)
+        query = URI.encode_query(%{"project" => request.repo_key, "request" => id})
+        {:navigate, "/pull-requests?" <> query}
+
+      outcome ->
+        outcome
+    end
+  end
+
+  def resolve(_), do: {:error, :invalid_action}
 
   def handle_info(:reconcile, socket) do
     Process.send_after(self(), :reconcile, 3_000)
@@ -56,6 +53,7 @@ defmodule ForemanWeb.NeedsYouLive do
   def handle_info({:notification, :foreman_events, _}, socket),
     do: {:noreply, socket |> refresh() |> ForemanWeb.TicketDetail.refresh()}
 
+  defp result(socket, {:navigate, path}), do: push_navigate(socket, to: path)
   defp result(socket, {:ok, _}), do: refresh(socket)
 
   defp result(socket, {:error, _}),
@@ -90,7 +88,14 @@ defmodule ForemanWeb.NeedsYouLive do
 
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} pending_count={@pending_count} active={:needs_you}>
+    <Layouts.app
+      drawer_state={@drawer_state}
+      drawer_error={@drawer_error}
+      streams={@streams}
+      flash={@flash}
+      pending_count={@pending_count}
+      active={:needs_you}
+    >
       <header id="inbox-heading" class="flex items-center gap-3">
         <h1 class="text-xl font-semibold">Needs you</h1>
         <Badge.badge :if={@pending_count > 0}>{@pending_count}</Badge.badge>
@@ -131,6 +136,9 @@ defmodule ForemanWeb.NeedsYouLive do
   attr :id, :string, required: true
   attr :request, :any, required: true
 
+  attr :prefix, :string, default: ""
+  attr :event, :string, default: "resolve"
+
   def request_card(%{request: %{kind: kind}} = assigns) when kind in ["push", "open_pr", "merge"],
     do: action_card(assigns)
 
@@ -149,7 +157,18 @@ defmodule ForemanWeb.NeedsYouLive do
           {%{"push" => "Push", "open_pr" => "Open PR", "merge" => "Merge"}[@request.kind]}
         </Badge.badge>
         <.link
-          patch={"/needs-you?" <> URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})}
+          patch={
+            if @prefix == "",
+              do:
+                "/needs-you?" <>
+                  URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})
+          }
+          navigate={
+            if @prefix != "",
+              do:
+                "/needs-you?" <>
+                  URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})
+          }
           class="font-mono hover:underline"
         >
           {@request.bead_id}
@@ -162,14 +181,14 @@ defmodule ForemanWeb.NeedsYouLive do
       <ForemanWeb.RequestCard.merge_facts :if={@request.kind == "merge"} request={@request} />
       <.form
         for={@form}
-        id={@request.kind <> "-" <> @request.id}
-        phx-submit="resolve"
+        id={@prefix <> @request.kind <> "-" <> @request.id}
+        phx-submit={@event}
         phx-value-id={@request.id}
         class="mt-5 space-y-4"
       >
         <.input
           field={@form[:note]}
-          id={@request.kind <> "-note-" <> @request.id}
+          id={@prefix <> @request.kind <> "-note-" <> @request.id}
           type="textarea"
           label="Note"
           rows="2"
@@ -177,7 +196,7 @@ defmodule ForemanWeb.NeedsYouLive do
         />
         <div class="flex gap-2">
           <Button.button
-            id={"submit-approve-" <> @request.id}
+            id={@prefix <> "submit-approve-" <> @request.id}
             type="submit"
             name="action"
             value="approve"
@@ -187,7 +206,7 @@ defmodule ForemanWeb.NeedsYouLive do
             Approve
           </Button.button>
           <Button.button
-            id={"submit-decline-" <> @request.id}
+            id={@prefix <> "submit-decline-" <> @request.id}
             type="submit"
             name="action"
             value="decline"
@@ -216,7 +235,18 @@ defmodule ForemanWeb.NeedsYouLive do
       <div class="mb-4 flex flex-wrap items-center gap-2 text-xs text-foreground-softer">
         <Badge.badge>Decision</Badge.badge>
         <.link
-          patch={"/needs-you?" <> URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})}
+          patch={
+            if @prefix == "",
+              do:
+                "/needs-you?" <>
+                  URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})
+          }
+          navigate={
+            if @prefix != "",
+              do:
+                "/needs-you?" <>
+                  URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})
+          }
           class="font-mono hover:underline"
         >
           {@request.bead_id}
@@ -232,8 +262,8 @@ defmodule ForemanWeb.NeedsYouLive do
       >{@request.facts["text"]}</p>
       <.form
         for={@form}
-        id={"decision-" <> @request.id}
-        phx-submit="resolve"
+        id={@prefix <> "decision-" <> @request.id}
+        phx-submit={@event}
         phx-value-id={@request.id}
         class="mt-5 space-y-4"
       >
@@ -245,7 +275,7 @@ defmodule ForemanWeb.NeedsYouLive do
             class="flex cursor-pointer items-center gap-3 rounded-lg border border-base px-3 py-3 hover:bg-sunken has-[:checked]:border-primary has-[:checked]:bg-sunken"
           >
             <input
-              id={"option-#{@request.id}-#{index}"}
+              id={"#{@prefix}option-#{@request.id}-#{index}"}
               type="radio"
               name="decision[choice]"
               value={option}
@@ -262,18 +292,18 @@ defmodule ForemanWeb.NeedsYouLive do
         </fieldset>
         <.input
           field={@form[:note]}
-          id={"decision-note-" <> @request.id}
+          id={@prefix <> "decision-note-" <> @request.id}
           type="textarea"
           label="Note"
           rows="2"
           class="mt-2 block w-full rounded-lg border border-base bg-sunken px-3 py-2 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
-        <div id={"decision-actions-" <> @request.id} class="flex gap-3">
+        <div id={@prefix <> "decision-actions-" <> @request.id} class="flex gap-3">
           <Button.button
             type="submit"
             name="action"
             value="answer"
-            id={"submit-answer-" <> @request.id}
+            id={@prefix <> "submit-answer-" <> @request.id}
             variant="solid"
           >
             Answer
@@ -282,7 +312,7 @@ defmodule ForemanWeb.NeedsYouLive do
             type="submit"
             name="action"
             value="decline"
-            id={"submit-decline-" <> @request.id}
+            id={@prefix <> "submit-decline-" <> @request.id}
           >
             Decline
           </Button.button>

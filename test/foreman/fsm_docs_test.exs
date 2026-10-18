@@ -34,6 +34,7 @@ defmodule Foreman.FsmDocsTest do
         {"epic", Foreman.Epic},
         {"disclosure", Foreman.Initiatives.Disclosure},
         {"ticket_sheet", Foreman.TicketSheet},
+        {"request_drawer", Foreman.RequestDrawer},
         {"reload_machine", Foreman.Config.ReloadMachine},
         {"read_machine", Foreman.Beads.ReadMachine},
         {"read_lifecycle", Foreman.Forge.ReadLifecycle},
