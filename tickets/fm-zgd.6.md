@@ -2,7 +2,7 @@
 id: fm-zgd.6
 title: "Workflow wiring: briefs and close-out use board requests"
 type: task
-status: open
+status: in_progress
 priority: 2
 parent: fm-zgd
 blocked_by: ["fm-zgd.1","fm-zgd.3","fm-zgd.4"]

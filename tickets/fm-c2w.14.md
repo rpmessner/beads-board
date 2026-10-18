@@ -2,7 +2,7 @@
 id: fm-c2w.14
 title: "Preview servers from the ticket sheet, tied to the ticket's stage"
 type: task
-status: open
+status: in_progress
 priority: 2
 parent: fm-c2w
 blocked_by: ["fm-c2w.6"]
