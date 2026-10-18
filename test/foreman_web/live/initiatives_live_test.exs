@@ -32,6 +32,31 @@ defmodule ForemanWeb.InitiativesLiveTest do
     :ok
   end
 
+  test "overview omits absent fields and empty relationship sections", %{conn: conn} do
+    raw =
+      b("empty", "task") |> Map.merge(%{close_reason: nil, labels: [], closed_at: nil, notes: ""})
+
+    Foreman.Beads.Projection.replace("sample", Jason.encode!(raw))
+    {:ok, view, _} = live(conn, "/?ticket=sample:empty")
+    refute has_element?(view, "#ticket-overview dt", "close reason")
+    refute has_element?(view, "#ticket-overview dt", "labels")
+    refute has_element?(view, "#ticket-overview dt", "closed at")
+    refute has_element?(view, "#ticket-overview h3", "Dependencies")
+    refute has_element?(view, "#ticket-overview h3", "Linked CRs")
+  end
+
+  test "file ticket acceptance shows checked and total", %{conn: conn} do
+    raw =
+      b("progress", "task")
+      |> Map.put(:acceptance_progress, %{"checked" => 1, "total" => 3})
+      |> Map.put(:created_at, "2026-10-18T00:00:00Z")
+
+    Foreman.Beads.Projection.replace("sample", Jason.encode!(raw))
+    {:ok, view, _} = live(conn, "/?ticket=sample:progress")
+    assert has_element?(view, "#ticket-acceptance-progress", "1/3")
+    assert has_element?(view, "#ticket-overview time[datetime='2026-10-18T00:00:00Z']")
+  end
+
   test "sheet tab is selected from valid, unknown and missing URL params", %{conn: conn} do
     for {query, selected} <- [
           {"", "overview"},

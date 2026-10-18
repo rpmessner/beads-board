@@ -376,6 +376,7 @@ key = "sample"
 path = "~/dev/sample"
 github = "example/sample" # optional
 forge = "github" # github | none; inferred from github if omitted
+tickets = "beads" # beads (default) | files
 color = "violet"
 enabled = true
 
@@ -393,6 +394,14 @@ pin = true
 collapse = false
 color = "violet"
 ```
+
+With `tickets = "files"`, the worker watches the main checkout's `tickets/`
+directory using non-recursive inotify and rescans every 60 seconds. Hand edits and
+CLI rename saves are coalesced into stable snapshots. Malformed files retain their
+last good cached version; Settings names the file and error. File tickets reuse the
+existing repo/id identity, preserving stages, sessions, links and requests.
+A CLI write/recovery lock retains the cache and retries; the reader never removes
+that lock. Replacing the entire directory recovers on the periodic rescan.
 
 Tables merge recursively. A supplied `columns` array replaces all inherited
 columns. Repo entries merge by `key`, preserving order; a local entry can contain

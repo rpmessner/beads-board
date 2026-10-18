@@ -57,6 +57,13 @@ defmodule Foreman.Config.ReloadJob do
     :ok
   end
 
+  defp store(%{"tickets" => "files"} = repo) do
+    case Foreman.TicketFiles.main_checkout(repo["path"]) do
+      {:ok, root} -> %{"identity" => "files:" <> root, "path" => root, "mode" => "files"}
+      _ -> %{"identity" => "unreachable:" <> repo["key"], "mode" => "files"}
+    end
+  end
+
   defp store(repo) do
     case Foreman.Beads.Store.resolve(repo["path"]) do
       {:ok, physical, identity} ->

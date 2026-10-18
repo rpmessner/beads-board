@@ -56,6 +56,11 @@ defmodule ForemanWeb.SettingsLive do
   defp age(nil), do: "never synced"
   defp age(%NaiveDateTime{} = time), do: age(DateTime.from_naive!(time, "Etc/UTC"))
   defp age(time), do: "snapshot · #{ForemanWeb.RelativeTime.format(time)}"
+
+  defp health_label(%{state: "warning", file_error_count: count}),
+    do: "#{count} file #{if count == 1, do: "error", else: "errors"}"
+
+  defp health_label(health), do: health.state
   defp color("synced"), do: "success"
   defp color("unreachable"), do: "danger"
   defp color(_), do: "warning"
@@ -72,7 +77,7 @@ defmodule ForemanWeb.SettingsLive do
 
     repos =
       Enum.map_join(config["repos"], "\n", fn r ->
-        "[[repos]]\nkey = #{quote_toml(r["key"])}\npath = #{quote_toml(home(r["path"]))}\nenabled = #{r["enabled"]}\n"
+        "[[repos]]\nkey = #{quote_toml(r["key"])}\npath = #{quote_toml(home(r["path"]))}\nenabled = #{r["enabled"]}\ntickets = #{quote_toml(r["tickets"] || "beads")}\n"
       end)
 
     columns <> "\n" <> repos
@@ -147,7 +152,7 @@ defmodule ForemanWeb.SettingsLive do
                     <th>Key</th>
                     <th>Path</th>
                     <th>GitHub</th>
-                    <th>bd store</th>
+                    <th>Ticket source</th>
                     <th>Read</th>
                     <th>Enabled</th>
                   </tr>
@@ -167,11 +172,26 @@ defmodule ForemanWeb.SettingsLive do
                     <td class="font-mono text-xs">{repo["github"] || "no remote"}</td>
                     <td class="text-xs">{repo["store_mode"]}</td>
                     <td>
-                      <Badge.badge color={color(repo["health"].state)}>
-                        {if repo["enabled"], do: repo["health"].state, else: "disabled"} · {repo[
+                      <Badge.badge
+                        data-health={repo["health"].state}
+                        color={color(repo["health"].state)}
+                      >
+                        {if repo["enabled"], do: health_label(repo["health"]), else: "disabled"} · {repo[
                           "count"
                         ]}
                       </Badge.badge>
+                      <div
+                        :if={repo["health"].reason}
+                        class={[
+                          "mt-1 w-64 whitespace-normal break-words text-xs",
+                          if(repo["health"].state == "warning",
+                            do: "text-warning",
+                            else: "text-danger"
+                          )
+                        ]}
+                      >
+                        {repo["health"].reason}
+                      </div>
                       <div class="mt-1 text-xs text-foreground-softer">
                         {age(repo["health"].succeeded_at)}
                       </div>

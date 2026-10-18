@@ -103,6 +103,7 @@ defmodule Foreman.Config do
         Enum.map(repos, fn repo ->
           repo
           |> Map.put_new("enabled", true)
+          |> Map.put_new("tickets", "beads")
           |> Map.put_new("forge", if(repo["github"], do: "github", else: "none"))
           |> Map.put_new("color", "zinc")
           |> Map.update!("path", fn

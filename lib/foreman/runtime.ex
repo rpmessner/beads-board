@@ -9,11 +9,14 @@ defmodule Foreman.Runtime do
 
   @impl true
   def init(_) do
+    {:ok, _} =
+      DynamicSupervisor.start_link(strategy: :one_for_one, name: Foreman.TicketFiles.Supervisor)
+
     Foreman.Events.subscribe()
     Foreman.Config.ReloadJob.enqueue()
     send(self(), :tick)
     Process.send_after(self(), :sweep, 300_000)
-    {:ok, %{epoch: Ecto.UUID.generate(), schedules: %{}, jobs: %{}}}
+    {:ok, %{epoch: Ecto.UUID.generate(), schedules: %{}, jobs: %{}, readers: %{}}}
   end
 
   @impl true
@@ -47,6 +50,11 @@ defmodule Foreman.Runtime do
   def handle_info({:notification, :foreman_events, %{"kind" => "config_changed"}}, state),
     do: {:noreply, reconcile(state)}
 
+  def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
+    readers = Map.reject(state.readers, fn {_, {_, reader}} -> reader == pid end)
+    {:noreply, reconcile(%{state | readers: readers})}
+  end
+
   def handle_info(_, state), do: {:noreply, state}
 
   defp reconcile(state, requested \\ :all) do
@@ -61,9 +69,11 @@ defmodule Foreman.Runtime do
       end
     end)
 
+    state = reconcile_readers(state, repos, requested)
+
     groups =
       repos
-      |> Enum.filter(& &1["enabled"])
+      |> Enum.filter(&(&1["enabled"] and &1["tickets"] != "files"))
       |> Enum.group_by(
         fn repo ->
           get_in(config.stores, [repo["key"], "identity"]) || repo["key"]
@@ -93,6 +103,44 @@ defmodule Foreman.Runtime do
       state = apply_effects(state, effects, groups)
       %{state | schedules: Map.put(state.schedules, key, schedule)}
     end)
+  end
+
+  defp reconcile_readers(state, repos, requested) do
+    desired =
+      repos
+      |> Enum.filter(&(&1["enabled"] and &1["tickets"] == "files"))
+      |> Map.new(&{&1["key"], &1})
+
+    readers =
+      Enum.reduce(state.readers, state.readers, fn {key, {repo, pid}}, readers ->
+        if desired[key] != repo do
+          DynamicSupervisor.terminate_child(Foreman.TicketFiles.Supervisor, pid)
+          Map.delete(readers, key)
+        else
+          readers
+        end
+      end)
+
+    readers =
+      Enum.reduce(desired, readers, fn {key, repo}, readers ->
+        case readers[key] do
+          nil ->
+            {:ok, pid} =
+              DynamicSupervisor.start_child(
+                Foreman.TicketFiles.Supervisor,
+                {Foreman.TicketFiles.Reader, repo: repo}
+              )
+
+            Process.monitor(pid)
+            Map.put(readers, key, {repo, pid})
+
+          {_, pid} ->
+            if requested == key, do: Foreman.TicketFiles.Reader.rescan(pid)
+            readers
+        end
+      end)
+
+    %{state | readers: readers}
   end
 
   defp finish_terminal(schedule, key, state) do

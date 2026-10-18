@@ -26,7 +26,7 @@ defmodule Foreman.RuntimeState do
         from s in "repo_sync",
           select: %{key: s.key, state: s.state, reason: s.reason, succeeded_at: s.succeeded_at}
       )
-      |> Map.new(&{&1.key, &1})
+      |> Map.new(&{&1.key, health_display(&1)})
 
     counts =
       Repo.all(from b in "beads", group_by: b.repo_key, select: {b.repo_key, count(b.bead_id)})
@@ -67,8 +67,17 @@ defmodule Foreman.RuntimeState do
     end)
   end
 
+  defp health_display(%{state: "warning", reason: reason} = health) do
+    errors = Jason.decode!(reason)
+    Map.merge(health, %{reason: Enum.join(errors, "; "), file_error_count: length(errors)})
+  end
+
+  defp health_display(health), do: health
+
+  defp health_event({:warning, errors}), do: {:partial, Jason.encode!(errors)}
   defp health_event({:ok, _}), do: {:success, nil}
   defp health_event({:defer, reason}), do: {:defer, to_string(reason)}
+  defp health_event({:error, reason}) when is_binary(reason), do: {:failure, reason}
   defp health_event({:error, reason}) when is_atom(reason), do: {:failure, to_string(reason)}
   defp health_event(_), do: {:failure, "invalid export"}
 end

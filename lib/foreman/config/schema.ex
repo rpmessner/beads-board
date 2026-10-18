@@ -34,6 +34,7 @@ defmodule Foreman.Config.Schema do
             "key" => :key,
             "path" => :path,
             "prefix" => :key,
+            "tickets" => {:one_of, ~w(files beads)},
             "github" => :github,
             "forge" => {:one_of, ~w(github none)},
             "color" => :text,

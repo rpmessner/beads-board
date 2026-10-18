@@ -1,6 +1,16 @@
 defmodule Foreman.ConfigTest do
   use ExUnit.Case, async: true
 
+  test "ticket source defaults to beads and permits a per-repo files override" do
+    base = "[[repos]]\nkey = \"sample\"\npath = \"/tmp/sample\"\n"
+    assert {:ok, config} = parse(base)
+    assert hd(config["repos"])["tickets"] == "beads"
+    assert {:ok, config} = parse(base <> "tickets = \"files\"\n")
+    assert hd(config["repos"])["tickets"] == "files"
+    assert {:error, error} = parse(base <> "tickets = \"other\"\n")
+    assert error =~ "tickets"
+  end
+
   test "shipped views are ordered with Open first" do
     assert {:ok, config} = parse("")
     assert Enum.map(config["views"] || [], & &1["key"]) == ~w(open in-flight stale all)
@@ -130,7 +140,8 @@ defmodule Foreman.ConfigTest do
                "github" => "example/sample",
                "enabled" => false,
                "forge" => "github",
-               "color" => "zinc"
+               "color" => "zinc",
+               "tickets" => "beads"
              }
            ]
   end

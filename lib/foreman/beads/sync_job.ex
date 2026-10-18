@@ -14,12 +14,12 @@ defmodule Foreman.Beads.SyncJob do
     snapshot = Foreman.RuntimeState.config()
     repo = snapshot && Enum.find(snapshot.config["repos"], &(&1["key"] == key and &1["enabled"]))
 
-    if repo do
+    if repo && repo["tickets"] != "files" do
       identity = get_in(snapshot.stores, [key, "identity"])
 
       aliases =
         Enum.filter(snapshot.config["repos"], fn candidate ->
-          candidate["enabled"] and
+          candidate["enabled"] and candidate["tickets"] != "files" and
             (candidate["key"] == key or
                (identity && get_in(snapshot.stores, [candidate["key"], "identity"]) == identity))
         end)
@@ -126,7 +126,8 @@ defmodule Foreman.Beads.SyncJob do
     Enum.filter(aliases, fn repo ->
       Enum.any?(
         active,
-        &(&1["key"] == repo["key"] and &1["path"] == repo["path"] and &1["enabled"])
+        &(&1["key"] == repo["key"] and &1["path"] == repo["path"] and &1["enabled"] and
+            &1["tickets"] != "files")
       )
     end)
   end
