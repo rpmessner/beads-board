@@ -28,6 +28,7 @@ defmodule Board.FsmDocsTest do
         {"stage", Board.Stage},
         {"epic", Board.Epic},
         {"disclosure", Board.Initiatives.Disclosure},
+        {"ticket_sheet", Board.TicketSheet},
         {"reload_machine", Board.Config.ReloadMachine},
         {"read_machine", Board.Beads.ReadMachine},
         {"schedule_machine", Board.Beads.ScheduleMachine},

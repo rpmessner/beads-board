@@ -19,6 +19,7 @@ defmodule BoardWeb.Router do
 
     live "/", InitiativesLive, :index
     live "/settings", SettingsLive, :index
+    live "/epics/:repo/:id", EpicLive, :show
   end
 
   # Other scopes may use custom stacks.

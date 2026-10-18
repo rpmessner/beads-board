@@ -1,0 +1,315 @@
+defmodule BoardWeb.TicketDetail do
+  use BoardWeb, :html
+  import Phoenix.LiveView, only: [stream: 4, push_patch: 2]
+  alias Fluxon.Components.{Sheet, Badge}
+
+  def load(socket, params, uri) do
+    key = Board.TicketSheet.key(params["ticket"])
+    ticket = key && Board.Drilldown.ticket(key)
+
+    {state, []} =
+      Board.TicketSheet.step(
+        Map.get(socket.assigns, :sheet_state, :closed),
+        {:params, %{ticket: ticket}},
+        %{}
+      )
+
+    socket
+    |> assign(
+      ticket: ticket && Map.drop(ticket, [:history, :sessions, :notes]),
+      ticket_key: key,
+      sheet_state: state,
+      page_uri: uri,
+      sheet_return: Board.TicketSheet.path(uri)
+    )
+    |> stream(:ticket_history, if(ticket, do: ticket.history, else: []), reset: true)
+    |> stream(:ticket_sessions, if(ticket, do: ticket.sessions, else: []), reset: true)
+    |> stream(:ticket_notes, if(ticket, do: ticket.notes, else: []), reset: true)
+  end
+
+  def refresh(socket) do
+    uri = socket.assigns.page_uri
+    load(socket, URI.decode_query(URI.parse(uri).query || ""), uri)
+  end
+
+  def close(socket, %{"key" => key}) do
+    current = socket.assigns.ticket_key
+
+    if current && key == elem(current, 0) <> ":" <> elem(current, 1),
+      do: push_patch(socket, to: socket.assigns.sheet_return),
+      else: socket
+  end
+
+  attr :ticket, :any, required: true
+  attr :state, :atom, required: true
+  attr :return_to, :string, required: true
+  attr :streams, :map, required: true
+
+  def sheet(assigns) do
+    ~H"""
+    <Sheet.sheet
+      id="ticket-sheet"
+      open={@state == :open}
+      placement="right"
+      class="w-[min(760px,100vw)] space-y-6"
+      hide_close_button
+      on_close={
+        JS.push("close-ticket",
+          value: %{key: if(@ticket, do: @ticket.repo <> ":" <> @ticket.id, else: "")}
+        )
+      }
+    >
+      <%= if @ticket do %>
+        <header class="space-y-3">
+          <div class="flex items-center gap-3 text-xs text-foreground-softer">
+            <span>{@ticket.repo}</span><span>/</span><span class="font-mono">{@ticket.id}</span>
+            <.link
+              id="ticket-close"
+              patch={@return_to}
+              class="ml-auto rounded p-2 hover:bg-sunken"
+              aria-label="Close ticket"
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </.link>
+          </div>
+          <h2
+            id="ticket-title"
+            class="text-xl font-semibold text-foreground"
+            phx-mounted={
+              JS.set_attribute({"aria-labelledby", "ticket-title"}, to: "#ticket-sheet [role=dialog]")
+            }
+          >
+            {@ticket.raw["title"] || @ticket.id}
+          </h2>
+          <div class="flex flex-wrap gap-2">
+            <span id="ticket-stage">
+              <Badge.badge color="info">{@ticket.stage}</Badge.badge>
+            </span>
+            <Badge.badge>bd: {@ticket.raw["status"] || "unavailable"}</Badge.badge>
+            <Badge.badge>{@ticket.raw["issue_type"] || "ticket"}</Badge.badge>
+            <Badge.badge :if={@ticket.raw["priority"] != nil}>P{@ticket.raw["priority"]}</Badge.badge>
+          </div>
+          <div id="ticket-actions" class="flex flex-wrap gap-2"></div>
+        </header>
+        <nav
+          aria-label="Ticket sections"
+          class="flex flex-wrap gap-4 border-b border-base pb-3 text-xs"
+        >
+          <a href="#ticket-overview">Overview</a><a href="#ticket-history-section">Stage history</a>
+          <a href="#ticket-sessions-section">Sessions</a><a href="#ticket-notes-section">Agent notes</a>
+        </nav>
+        <section id="ticket-overview" class="space-y-5">
+          <div
+            :for={
+              {key, title} <- [
+                {"description", "Description"},
+                {"acceptance_criteria", "Acceptance"},
+                {"design", "Design"},
+                {"notes", "Beads notes"}
+              ]
+            }
+            :if={@ticket.raw[key] not in [nil, ""]}
+          >
+            <h3 class="bb-label mb-2">{title}</h3>
+            <p class="whitespace-pre-wrap break-words text-sm leading-6">{@ticket.raw[key]}</p>
+          </div>
+          <div>
+            <h3 class="bb-label mb-2">Dependencies</h3>
+            <div class="flex flex-wrap gap-2">
+              <span
+                :for={dep <- @ticket.raw["dependencies"] || []}
+                class="rounded border border-base px-2 py-1 text-xs"
+              >
+                {dep["type"]} · {dep["depends_on_id"]}
+              </span>
+            </div>
+          </div>
+          <div :if={@ticket.dependents != []}>
+            <h3 class="bb-label mb-2">Dependents</h3>
+            <div class="flex flex-wrap gap-2">
+              <span
+                :for={dep <- @ticket.dependents}
+                class="rounded border border-base px-2 py-1 text-xs"
+              >
+                {dep.type} · {elem(dep.key, 1)}
+              </span>
+            </div>
+          </div>
+          <div :if={@ticket.attachments != []}>
+            <h3 class="bb-label mb-2">Attached epics</h3>
+            <.link
+              :for={epic <- @ticket.attachments}
+              navigate={~p"/epics/#{epic.repo}/#{epic.id}"}
+              class="mr-2 font-mono text-xs hover:underline"
+            >
+              {epic.repo}:{epic.id}
+            </.link>
+          </div>
+          <div class="rounded-lg border border-base p-4">
+            <h3 class="bb-label mb-3">Allowed next events</h3>
+            <div id="ticket-allowed" class="flex flex-wrap gap-2">
+              <Badge.badge :for={event <- @ticket.allowed}>{event}</Badge.badge>
+            </div>
+          </div>
+          <div>
+            <h3 class="bb-label mb-2">Linked CRs</h3>
+            <div id="ticket-crs" class="flex gap-2">
+              <Badge.badge :for={number <- @ticket.crs}>#{number}</Badge.badge>
+            </div>
+          </div>
+          <div>
+            <h3 class="bb-label mb-3">Beads fields</h3>
+            <dl class="grid grid-cols-[120px_minmax(0,1fr)] gap-2 text-xs">
+              <%= for {key, value} <- extra_fields(@ticket.raw) do %>
+                <dt class="text-foreground-softer">{String.replace(key, "_", " ")}</dt>
+                <dd class="whitespace-pre-wrap break-words">{value_text(value)}</dd>
+              <% end %>
+            </dl>
+          </div>
+          <div :if={@ticket.overlay}>
+            <h3 class="bb-label mb-3">Overlay</h3>
+            <dl class="grid grid-cols-[120px_minmax(0,1fr)] gap-2 text-xs">
+              <dt>Stage changed</dt>
+              <dd><.timestamp at={@ticket.overlay.stage_changed_at} /></dd>
+              <dt :if={@ticket.overlay.orphaned_at}>Orphaned</dt>
+              <dd :if={@ticket.overlay.orphaned_at}>
+                <.timestamp at={@ticket.overlay.orphaned_at} />
+              </dd>
+            </dl>
+          </div>
+        </section>
+        <section id="ticket-history-section">
+          <h3 class="bb-label mb-3">Stage history</h3>
+          <div id="ticket-history" phx-update="stream">
+            <.history_row :for={{id, event} <- @streams.ticket_history} id={id} event={event} />
+          </div>
+        </section>
+        <section id="ticket-sessions-section">
+          <h3 class="bb-label mb-3">Sessions</h3>
+          <div id="ticket-sessions" phx-update="stream" class="space-y-3">
+            <article
+              :for={{id, session} <- @streams.ticket_sessions}
+              id={id}
+              class="rounded-lg border border-base p-4"
+            >
+              <h4 class="font-mono font-medium">{session.window}</h4>
+              <dl class="mt-3 grid grid-cols-[100px_minmax(0,1fr)] gap-2 text-xs">
+                <dt>Started</dt>
+                <dd><.timestamp at={session.started_at} /></dd>
+                <dt>Last seen</dt>
+                <dd><.timestamp at={session.last_seen_at} /></dd>
+                <dt>Ended</dt>
+                <dd><.timestamp at={session.ended_at} /></dd>
+                <%= for {key, value} <- Enum.sort(session.details) do %>
+                  <dt class="text-foreground-softer">{key}</dt>
+                  <dd class="break-all">{value_text(value)}</dd>
+                <% end %>
+              </dl>
+            </article>
+          </div>
+        </section>
+        <section id="ticket-notes-section">
+          <h3 class="bb-label mb-3">Agent notes</h3>
+          <div id="ticket-notes" phx-update="stream" class="space-y-3">
+            <article
+              :for={{id, note} <- @streams.ticket_notes}
+              id={id}
+              class="rounded-lg border border-base p-4"
+            >
+              <div class="mb-2 flex flex-wrap gap-2 text-xs">
+                <Badge.badge>{note.kind}</Badge.badge>
+                <span>{note.actor}</span><span class="ml-auto text-foreground-softer"><.timestamp at={
+                  note.inserted_at
+                } /></span>
+              </div>
+              <p class="whitespace-pre-wrap break-words">{note.body}</p>
+            </article>
+          </div>
+        </section>
+      <% end %>
+    </Sheet.sheet>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :event, :map, required: true
+
+  def history_row(assigns) do
+    assigns = assign(assigns, :payload, history_payload(assigns.event))
+
+    ~H"""
+    <article id={@id} data-outcome={@event.outcome} class="border-b border-base py-3 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="font-mono font-medium">{@event.event}</span>
+        <span>{@event.from_stage || "—"} → {@event.to_stage}</span>
+        <Badge.badge :if={@event.outcome == "invalid"} color="danger" data-history-outcome="refused">
+          Refused
+        </Badge.badge>
+      </div>
+      <div class="mt-1 text-foreground-softer">
+        {@event.actor} · <.timestamp at={@event.inserted_at} />
+      </div>
+      <dl :if={@payload != []} class="mt-2 grid grid-cols-[90px_minmax(0,1fr)] gap-2">
+        <%= for {key, value} <- @payload do %>
+          <dt class="text-foreground-softer">{key}</dt>
+          <dd class="whitespace-pre-wrap break-words">{value_text(value)}</dd>
+        <% end %>
+      </dl>
+    </article>
+    """
+  end
+
+  attr :at, :any, required: true
+
+  def timestamp(assigns) do
+    time =
+      case assigns.at do
+        %NaiveDateTime{} = time -> DateTime.from_naive!(time, "Etc/UTC")
+        %DateTime{} = time -> time
+        nil -> nil
+      end
+
+    assigns =
+      assign(assigns,
+        full: time && DateTime.to_iso8601(time),
+        relative: time && BoardWeb.RelativeTime.format(time)
+      )
+
+    ~H"""
+    <time :if={@full} datetime={@full} title={@full}>{@relative}</time><span :if={is_nil(@full)}>—</span>
+    """
+  end
+
+  defp history_payload(event) do
+    [
+      {"title", "Title"},
+      {"window", "Session"},
+      {"branch", "Branch"},
+      {"brief", "Brief"},
+      {"brief_path", "Brief"},
+      {"report", "Report"},
+      {"report_path", "Report"},
+      {"path", if(event.event == "report", do: "Report", else: "Path")},
+      {"spec_link", "Spec"},
+      {"beads_epic_id", "Epic"},
+      {"body", "Body"}
+    ]
+    |> Enum.flat_map(fn {key, label} ->
+      case event.payload[key] do
+        value when is_binary(value) and value != "" -> [{label, value}]
+        _ -> []
+      end
+    end)
+  end
+
+  defp extra_fields(raw),
+    do:
+      raw
+      |> Map.drop(
+        ~w(id title status issue_type priority description acceptance_criteria design notes dependencies)
+      )
+      |> Enum.sort()
+
+  defp value_text(v) when is_binary(v), do: v
+  defp value_text(v), do: Jason.encode!(v)
+end

@@ -32,6 +32,159 @@ defmodule BoardWeb.InitiativesLiveTest do
     :ok
   end
 
+  test "ticket rows open a URL sheet and closing retains filters and expansion", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/?project=sample&type=bug")
+    view |> element("[data-bead=e] button") |> render_click()
+    view |> element("[data-bead=f] a") |> render_click()
+    path = assert_patch(view)
+    assert URI.decode_query(URI.parse(path).query)["ticket"] == "sample:f"
+    assert has_element?(view, "#ticket-sheet[data-open=true]")
+    assert has_element?(view, "#ticket-title", "f")
+    assert has_element?(view, "#ticket-actions")
+    view |> element("#ticket-close") |> render_click()
+    closed = assert_patch(view)
+    assert URI.decode_query(URI.parse(closed).query)["type"] == "bug"
+    refute has_element?(view, "#ticket-sheet[data-open=true]")
+    assert has_element?(view, "[data-bead=f]")
+  end
+
+  test "direct sheet URLs and live updates retain their underlying page", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/?ticket=sample:f&project=sample")
+    assert has_element?(view, "#ticket-stage", "queued")
+    Board.Overlay.apply_event({"sample", "f"}, :review)
+    Board.Overlay.apply_event({"sample", "f"}, {:dispatch, %{window: "worker"}})
+    send(view.pid, {:notification, :board_events, "sample/f"})
+    assert has_element?(view, "#ticket-stage", "dispatched")
+    assert has_element?(view, "#ticket-history [data-outcome=invalid]", "review")
+    assert has_element?(view, "#ticket-sessions", "worker")
+    render_patch(view, "/?project=sample")
+    refute has_element?(view, "#ticket-sheet[data-open=true]")
+    render_patch(view, "/?ticket=sample:f&project=sample")
+    assert has_element?(view, "#ticket-sheet[data-open=true]")
+  end
+
+  test "epic route shows columns, fallout, history and opens a sheet", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/epics/sample/e?type=bug")
+    assert has_element?(view, "#epic-title", "e")
+    assert has_element?(view, "#epic-history", "backfill")
+    assert has_element?(view, "[data-band=planned] [data-ticket=a]")
+    assert has_element?(view, "[data-band=fallout] [data-ticket=f]")
+    view |> element("[data-band=fallout] [data-ticket=f]") |> render_click()
+    assert_patch(view, "/epics/sample/e?ticket=sample%3Af&type=bug")
+    assert has_element?(view, "#ticket-sheet[data-open=true]")
+    view |> element("#ticket-close") |> render_click()
+    assert_patch(view, "/epics/sample/e?type=bug")
+    Board.Overlay.apply_event({"sample", "f"}, {:dispatch, %{window: "worker"}})
+    send(view.pid, {:notification, :board_events, "sample/f"})
+    assert has_element?(view, "[data-band=fallout] [data-stage=dispatched]")
+  end
+
+  test "epic title navigation carries filters and missing routes stay usable", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/?project=sample&type=bug")
+    view |> element("[data-bead=e] a") |> render_click()
+    assert_redirect(view, "/epics/sample/e?project=sample&type=bug")
+    {:ok, missing, _} = live(conn, "/epics/sample/missing?ticket[]=bad")
+    assert has_element?(missing, "#epic-not-found")
+    refute has_element?(missing, "#ticket-sheet[data-open=true]")
+  end
+
+  test "epic config and own history refresh while a sheet is open", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/epics/sample/e?ticket=sample:f")
+
+    config =
+      Board.RuntimeState.config().config
+      |> Map.put("columns", [%{"title" => "Everything", "stages" => ["queued", "done"]}])
+
+    Board.Repo.query!("UPDATE board_config SET config = $1", [config])
+    Board.Overlay.apply_event({"sample", "e"}, :bead_epic_closed)
+    send(view.pid, {:notification, :board_events, "sample/e"})
+    assert has_element?(view, "#epic-columns h3", "Everything")
+    assert has_element?(view, "#epic-history", "bead_epic_closed")
+    assert has_element?(view, "#ticket-sheet[data-open=true]")
+
+    rows =
+      Board.Beads.Projection.list_raw("sample")
+      |> Enum.map(fn raw ->
+        if raw["id"] == "f", do: Map.put(raw, "title", "Updated fallout"), else: raw
+      end)
+
+    Board.Beads.Projection.replace("sample", Enum.map_join(rows, "\n", &Jason.encode!/1))
+    send(view.pid, {:notification, :board_events, "sample"})
+    assert has_element?(view, "#ticket-title", "Updated fallout")
+    assert has_element?(view, "[data-ticket=f]", "Updated fallout")
+  end
+
+  test "a late close callback cannot dismiss a different selected ticket", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/?ticket=sample:f")
+    render_patch(view, "/?ticket=sample:a")
+    render_click(view, "close-ticket", %{"key" => "sample:f"})
+    assert has_element?(view, "#ticket-title", "Title a")
+    assert has_element?(view, "#ticket-sheet[data-open=true]")
+  end
+
+  test "history uses relative time, human payload fields and only refusal badges", %{conn: conn} do
+    Board.Overlay.apply_event({"sample", "f"}, :review, %{actor: "reviewer"})
+
+    Board.Overlay.apply_event(
+      {"sample", "f"},
+      {:dispatch,
+       %{
+         window: "worker",
+         branch: "feature",
+         brief_path: "docs/brief.md",
+         internal_token: "hidden-detail"
+       }},
+      %{actor: "builder"}
+    )
+
+    Board.Overlay.apply_event(
+      {"sample", "f"},
+      {:report, %{path: "docs/report.md", body: "Verified result"}}
+    )
+
+    Board.Repo.query!(
+      "UPDATE stage_events SET inserted_at = NOW() - INTERVAL '2 hours 5 seconds'"
+    )
+
+    {:ok, view, _} = live(conn, "/epics/sample/e?ticket=sample:f")
+    assert has_element?(view, "#epic-history time[title][datetime]", "2 h ago")
+    assert has_element?(view, "#ticket-history time[title][datetime]", "2 h ago")
+    assert has_element?(view, "#ticket-sessions time[title][datetime]")
+    assert has_element?(view, "#ticket-history [data-outcome=invalid]", "Refused")
+    assert has_element?(view, "#ticket-history [data-outcome=row]", "feature")
+    assert has_element?(view, "#ticket-history [data-outcome=row]", "docs/brief.md")
+    assert has_element?(view, "#ticket-history [data-outcome=row]", "builder")
+    assert has_element?(view, "#ticket-history dt", "Report")
+    assert has_element?(view, "#ticket-history dd", "docs/report.md")
+    assert has_element?(view, "#ticket-history dd", "Verified result")
+    refute has_element?(view, "#ticket-history [data-outcome=row] [data-history-outcome]")
+    refute has_element?(view, "#ticket-history", "hidden-detail")
+    refute has_element?(view, "#ticket-history", "record: session")
+    refute has_element?(view, "#ticket-history", "emit: stage")
+  end
+
+  test "fallout omits empty cells and disappears after the last fallout edge is removed", %{
+    conn: conn
+  } do
+    {:ok, view, _} = live(conn, "/epics/sample/e")
+
+    assert view
+           |> render()
+           |> LazyHTML.from_fragment()
+           |> LazyHTML.query("[data-band=fallout]")
+           |> Enum.count() == 1
+
+    rows =
+      Board.Beads.Projection.list_raw("sample")
+      |> Enum.map(fn raw ->
+        if raw["id"] == "f", do: Map.put(raw, "dependencies", []), else: raw
+      end)
+
+    Board.Beads.Projection.replace("sample", Enum.map_join(rows, "\n", &Jason.encode!/1))
+    send(view.pid, {:notification, :board_events, "sample"})
+    refute has_element?(view, "[data-band=fallout]")
+  end
+
   test "home has derived epic progress, expandable fallout and collapsed per-project orphans", %{
     conn: conn
   } do
