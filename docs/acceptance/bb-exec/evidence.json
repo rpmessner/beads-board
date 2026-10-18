@@ -1,0 +1,69 @@
+{
+  "writer": {
+    "elapsed": 600.4916245889908,
+    "attempts": 855,
+    "failed": 0,
+    "cycles": 171
+  },
+  "counts": {
+    "beads-board": {
+      "bd": 12,
+      "projection": 12
+    },
+    "cooldown-o-matic": {
+      "bd": 47,
+      "projection": 47
+    },
+    "dotfiles": {
+      "bd": 3,
+      "projection": 3
+    },
+    "form-engine": {
+      "bd": 619,
+      "projection": 619
+    },
+    "skills": {
+      "bd": 17,
+      "projection": 17
+    },
+    "ui-o-matic": {
+      "bd": 417,
+      "projection": 417
+    },
+    "we_go_next_dev": "unreachable (server-mode metadata; no server opened)"
+  },
+  "note_visible_seconds": 0.7375426549988333,
+  "created_issues_and_notes_audited": 171,
+  "deletion_and_overlay_orphan_preservation": true,
+  "operations": {
+    "create": 171,
+    "update": 171,
+    "note": 171,
+    "dep": 171,
+    "close": 171
+  },
+  "max_write_seconds": 1.6047262380016036,
+  "writer_commands_sha256": "4cad3e1ddf6b178617d178fcd9dd9eec350ae4455ae5c48567bff03a6ce4aef8",
+  "worker_errors": 0,
+  "worker_endpoint_and_peers_absent": true,
+  "lifecycle_tests": [
+    "success and nonzero exit",
+    "bounded output",
+    "timeout discards partial stdout",
+    "owner death retains admission until reaping",
+    "timeout reaps descendants"
+  ],
+  "browser_checks": [
+    "live valid column reload",
+    "invalid stage retains last-good columns",
+    "light and dark screenshots",
+    "390px mobile width without page overflow"
+  ],
+  "reader_source_sha256": {
+    "lib/board/beads/command.ex": "f0ba9fdd5ce3a437c1012ee8937a6da313a5b10de239e62bccba3c9e4cc847d8",
+    "priv/command_guardian.py": "d50ca9c1f5a67e1e381aac66f6e321f55ae4da2303c883cfe4485adbc2bc4ddf",
+    "lib/board/beads/sync_job.ex": "f80c3e4e916471a566b8f011ed85f54716ef3f978e2627326531b248d39f0e91",
+    "lib/board/beads/store.ex": "97625201c7976477efebcc39698e38f9baa0793026458958bfc71f28f9e23d29",
+    "lib/board/runtime.ex": "033362210860f33248b068f3fa12dde404d131209cf586ded44f340392f19ba2"
+  }
+}
