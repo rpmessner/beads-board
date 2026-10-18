@@ -26,3 +26,6 @@ Consumes: the session record (ticket 1) and the activity signal (ticket 2).
 - [ ] Relaunch on a parked or ended session opens a new window running claude --resume with the stored session id; the conversation continues (check 6)
 - [ ] A window closed by hand moves the session to parked with Relaunch offered (check 7)
 - [ ] Session machine rows idle_timeout and relaunch; tests on a temporary tmux socket; live run with a shortened limit; mix precommit green
+
+## Notes
+- 2026-10-18 user: User 2026-10-18: Relaunch must be available from the epics list rows and the epic detail page as well as the ticket sheet.

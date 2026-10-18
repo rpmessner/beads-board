@@ -2,7 +2,7 @@
 id: fm-3c3.1
 title: "Launch from the board into the board-owned tmux server"
 type: feature
-status: open
+status: in_progress
 priority: 2
 parent: fm-3c3
 blocked_by: ["fm-c2w.17"]
@@ -29,3 +29,6 @@ Produces: the launched-session record (session id, project, ticket, window), the
 - [ ] Session machine rows launch, started, exited and window_gone on Board.Fsm; ticket shows state and a copyable attach command
 - [ ] Restarting both board services leaves launched windows and attached clients untouched (check 3); global Claude settings unchanged (check 8)
 - [ ] Integration tests on a temporary tmux socket; live run on a scratch ticket; mix precommit green
+
+## Notes
+- 2026-10-18 user: User 2026-10-18: Launch must also be available on draft/idea epic rows in the epics list, not only the detail/sheet. Goal: separate planning sessions from the main coordinator session, which has become a bottleneck.
