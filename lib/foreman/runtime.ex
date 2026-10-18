@@ -59,6 +59,7 @@ defmodule Foreman.Runtime do
 
   defp reconcile(state, requested \\ :all) do
     Foreman.Requests.reconcile_pushes()
+    Foreman.Requests.reconcile_open_prs()
     now = System.monotonic_time(:millisecond)
     config = Foreman.RuntimeState.config()
     repos = (config && config.config["repos"]) || []

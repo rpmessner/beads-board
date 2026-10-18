@@ -1,0 +1,38 @@
+Running ExUnit with seed: 859436, max_cases: 16
+
+.
+
+  1) test head movement before approval supersedes without enqueueing (Foreman.OpenPrTest)
+     test/foreman/open_pr_test.exs:63
+     match (=) failed
+     code:  assert {:ok, %{state: "superseded"}} = Requests.resolve(request.id, :approve, %{})
+     left:  {:ok, %{state: "superseded"}}
+     right: {:ok,
+             %Foreman.Requests.Request{
+               __meta__: #Ecto.Schema.Metadata<:loaded, "approval_requests">,
+               id: "03e299c1-085a-4dd8-989e-1c54d22df1a3",
+               repo_key: "sample",
+               bead_id: "s-1",
+               kind: "open_pr",
+               actor: "user",
+               session: nil,
+               facts: %{
+                 "base_branch" => "main",
+                 "body" => "Exact body\n",
+                 "expected_sha" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                 "head_branch" => "feature",
+                 "remote" => "owner/repo",
+                 "title" => "s-1 Exact title"
+               },
+               state: "approved",
+               outcome: %{},
+               note: nil,
+               inserted_at: ~U[2026-10-18 22:25:39.054523Z],
+               updated_at: ~U[2026-10-18 22:25:39.061520Z]
+             }}
+     stacktrace:
+       test/foreman/open_pr_test.exs:67: (test)
+
+...
+Finished in 0.3 seconds (0.00s async, 0.3s sync)
+5 tests, 1 failure

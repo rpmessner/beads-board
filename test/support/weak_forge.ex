@@ -1,6 +1,10 @@
 defmodule Foreman.Test.WeakForge do
   @behaviour Foreman.Forge
-  def capabilities, do: %{write: true, head_guard: false, retarget: false}
+  def capabilities,
+    do: %{write: true, head_guard: false, retarget: false, create_change_request: false}
+
+  defdelegate branch_sha(remote, branch, opts), to: Foreman.Forge.Fake
+  def create_change_request(_, _, _), do: {:error, :unsupported}
 
   def list(remote, opts) do
     send(Keyword.fetch!(opts, :observer), :read)

@@ -1,0 +1,12 @@
+locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByText('PR open', { exact: true }).first() to be visible[22m
+
+    at <checkout>/tools/openpr-acceptance.cjs:71:60 {
+  log: [
+    "  - waiting for getByText('PR open', { exact: true }).first() to be visible"
+  ],
+  name: 'TimeoutError'
+}
+
+PASS read-only completion: corrected exact stage label to pr_open; exact base/title/body/head; observed committed -> pr_open; no further writes. All four pre-approval viewport/theme captures passed in initial run.

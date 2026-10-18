@@ -3,6 +3,7 @@ defmodule Foreman.Requests.Kind do
   @callback validate(map(), map()) :: {:ok, map()} | {:error, atom()}
   @callback enqueue(Foreman.Requests.Request.t()) :: :ok | {:error, atom()}
 
+  def fetch("open_pr"), do: {:ok, Foreman.Requests.OpenPr}
   def fetch("push"), do: {:ok, Foreman.Requests.Push}
   def fetch("decision"), do: {:ok, Foreman.Requests.Decision}
   def fetch(_), do: {:error, :unsupported_kind}

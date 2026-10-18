@@ -1,0 +1,18 @@
+Compiling 2 files (.ex)
+Generated foreman app
+Running ExUnit with seed: 417925, max_cases: 16
+
+.....
+
+  1) test a rate-limited branch continuation retains the snapshot and cooldown classification (Foreman.ForgeGitHubTest)
+     test/foreman/forge_github_test.exs:108
+     match (=) failed
+     code:  assert {:error, :rate_limited} = GitHub.list("owner/repo", token: "test", plug: {Req.Test, __MODULE__})
+     left:  {:error, :rate_limited}
+     right: {:error, :incomplete}
+     stacktrace:
+       test/foreman/forge_github_test.exs:118: (test)
+
+....
+Finished in 0.1 seconds (0.1s async, 0.00s sync)
+10 tests, 1 failure

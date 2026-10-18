@@ -1,0 +1,35 @@
+Compiling 2 files (.ex)
+Generated foreman app
+Running ExUnit with seed: 349388, max_cases: 16
+
+
+
+  1) test open PR card shows exact named facts and approval enqueues (ForemanWeb.NeedsYouLiveTest)
+     test/foreman_web/live/needs_you_live_test.exs:116
+     Expected truthy, got false
+     code: assert has_element?(view, "#request-#{request.id} dd", text)
+     arguments:
+
+         # 1
+         #Phoenix.LiveViewTest.View<
+           id: "phx-GN_AMM_UgvEXDQqB",
+           module: ForemanWeb.NeedsYouLive,
+           pid: #PID<0.435.0>,
+           endpoint: ForemanWeb.Endpoint,
+           ...
+         >
+
+         # 2
+         "#request-7d4b013d-382e-4aff-a621-bf3fb88cffa7 dd"
+
+         # 3
+         "feature"
+
+     stacktrace:
+       test/foreman_web/live/needs_you_live_test.exs:120: anonymous fn/4 in ForemanWeb.NeedsYouLiveTest."test open PR card shows exact named facts and approval enqueues"/1
+       (elixir 1.19.5) lib/enum.ex:2520: Enum."-reduce/3-lists^foldl/2-0-"/3
+       test/foreman_web/live/needs_you_live_test.exs:119: (test)
+
+.....
+Finished in 0.6 seconds (0.00s async, 0.6s sync)
+6 tests, 1 failure

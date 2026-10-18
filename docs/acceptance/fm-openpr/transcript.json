@@ -1,0 +1,62 @@
+[
+  {
+    "args": [
+      "ask",
+      "push",
+      "openpr-2",
+      "--project",
+      "scratch",
+      "--worktree",
+      "/tmp/fm-openpr-scratch",
+      "--branch",
+      "openpr-fixture",
+      "--sha",
+      "2e8aa23947317903351a25bbffe97b9c9e319557",
+      "--remote-branch",
+      "acceptance/fm-openpr-1792363240698"
+    ],
+    "output": "381d5266-3d3b-4962-a351-266a784503c3",
+    "exit": 0
+  },
+  {
+    "args": [
+      "wait",
+      "381d5266-3d3b-4962-a351-266a784503c3",
+      "--timeout",
+      "60"
+    ],
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"openpr-2\",\"facts\":{\"expected_sha\":\"2e8aa23947317903351a25bbffe97b9c9e319557\",\"local_branch\":\"openpr-fixture\",\"remote\":\"rpmessner/beads-board-scratch\",\"remote_branch\":\"acceptance/fm-openpr-1792363240698\",\"worktree\":\"/tmp/fm-openpr-scratch\"},\"id\":\"381d5266-3d3b-4962-a351-266a784503c3\",\"inserted_at\":\"2026-10-18T22:40:41.597135Z\",\"kind\":\"push\",\"note\":\"\",\"outcome\":{\"result\":{\"sha\":\"2e8aa23947317903351a25bbffe97b9c9e319557\"}},\"repo_key\":\"scratch\",\"session\":\"fm-openpr\",\"state\":\"done\",\"updated_at\":\"2026-10-18T22:40:43.699278Z\"}",
+    "exit": 0
+  },
+  {
+    "args": [
+      "ask",
+      "open_pr",
+      "openpr-2",
+      "--project",
+      "scratch",
+      "--head",
+      "acceptance/fm-openpr-1792363240698",
+      "--sha",
+      "2e8aa23947317903351a25bbffe97b9c9e319557",
+      "--base",
+      "main",
+      "--title",
+      "openpr-2: Exact approval title",
+      "--body-file",
+      "/tmp/fm-openpr-body.txt"
+    ],
+    "output": "f8057b23-4c47-47cc-95e6-eae639237337",
+    "exit": 0
+  },
+  {
+    "args": [
+      "wait",
+      "f8057b23-4c47-47cc-95e6-eae639237337",
+      "--timeout",
+      "60"
+    ],
+    "output": "{\"actor\":\"pi\",\"bead_id\":\"openpr-2\",\"facts\":{\"base_branch\":\"main\",\"body\":\"Open PR acceptance.\\n\\nExact body, including trailing newline.\\n\",\"expected_sha\":\"2e8aa23947317903351a25bbffe97b9c9e319557\",\"head_branch\":\"acceptance/fm-openpr-1792363240698\",\"remote\":\"rpmessner/beads-board-scratch\",\"title\":\"openpr-2: Exact approval title\"},\"id\":\"f8057b23-4c47-47cc-95e6-eae639237337\",\"inserted_at\":\"2026-10-18T22:40:44.581105Z\",\"kind\":\"open_pr\",\"note\":\"\",\"outcome\":{\"result\":{\"number\":4,\"url\":\"https://github.com/rpmessner/beads-board-scratch/pull/4\"}},\"repo_key\":\"scratch\",\"session\":\"fm-openpr\",\"state\":\"done\",\"updated_at\":\"2026-10-18T22:40:47.100104Z\"}",
+    "exit": 0
+  }
+]

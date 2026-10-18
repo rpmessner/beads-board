@@ -19,6 +19,8 @@ defmodule Foreman.CLI do
     "revive" => "revive"
   }
   @switches [
+    head: :string,
+    body_file: :string,
     worktree: :string,
     remote_branch: :string,
     question: :string,
@@ -147,6 +149,16 @@ defmodule Foreman.CLI do
       "session" => opts[:session] || defaults[:session] || System.get_env("FOREMAN_SESSION"),
       "project" => opts[:project] || opts[:repo],
       "cwd" => defaults[:cwd] || File.cwd!()
+    }
+  end
+
+  defp ask_facts("open_pr", opts) do
+    %{
+      "head_branch" => opts[:head],
+      "expected_sha" => opts[:sha],
+      "base_branch" => opts[:base],
+      "title" => opts[:title],
+      "body" => File.read!(opts[:body_file])
     }
   end
 

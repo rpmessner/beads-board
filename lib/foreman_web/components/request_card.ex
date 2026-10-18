@@ -14,6 +14,7 @@ defmodule ForemanWeb.RequestCard do
         <span class="ml-auto"><ForemanWeb.TicketDetail.timestamp at={@request.updated_at} /></span>
       </div>
       <.push_facts :if={@request.kind == "push"} request={@request} />
+      <.open_pr_facts :if={@request.kind == "open_pr"} request={@request} />
       <p :if={@request.kind == "decision"} class="break-words font-medium">
         {@request.facts["question"]}
       </p>
@@ -27,6 +28,31 @@ defmodule ForemanWeb.RequestCard do
         {String.replace(@request.outcome["reason"], "_", " ")}
       </p>
     </article>
+    """
+  end
+
+  attr :request, :any, required: true
+
+  def open_pr_facts(assigns) do
+    ~H"""
+    <dl class="grid min-w-0 grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+      <div
+        :for={
+          {label, key} <- [
+            {"Repository", "remote"},
+            {"Head branch", "head_branch"},
+            {"SHA", "expected_sha"},
+            {"Base branch", "base_branch"},
+            {"Title", "title"},
+            {"Body", "body"}
+          ]
+        }
+        class="contents"
+      >
+        <dt class="mt-2 text-foreground-softer sm:mt-0">{label}</dt>
+        <dd class="min-w-0 whitespace-pre-wrap break-words [overflow-wrap:anywhere]" phx-no-format>{@request.facts[key]}</dd>
+      </div>
+    </dl>
     """
   end
 

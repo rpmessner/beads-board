@@ -1,0 +1,135 @@
+{
+  "status": 200,
+  "request": {
+    "query": "query($owner:String!,$name:String!) { repository(owner:$owner,name:$name) { defaultBranchRef { name } refs(refPrefix:\"refs/heads/\",first:100) { pageInfo { hasNextPage } nodes { name target { oid } } } pullRequests(first:100,states:OPEN,orderBy:{field:CREATED_AT,direction:ASC}) { pageInfo { hasNextPage } nodes { number title body headRefName baseRefName headRefOid isDraft mergeable mergeStateStatus url state commits(last:1) { nodes { commit { statusCheckRollup { state } } } } } } pr2: pullRequest(number:2) { number title body headRefName baseRefName headRefOid isDraft mergeable mergeStateStatus url state commits(last:1) { nodes { commit { statusCheckRollup { state } } } } } } }",
+    "variables": {
+      "name": "beads-board-scratch",
+      "owner": "rpmessner"
+    }
+  },
+  "response": {
+    "data": {
+      "repository": {
+        "defaultBranchRef": {
+          "name": "main"
+        },
+        "pr2": {
+          "baseRefName": "main",
+          "body": "Disposable stacked child fixture.",
+          "commits": {
+            "nodes": [
+              {
+                "commit": {
+                  "statusCheckRollup": null
+                }
+              }
+            ]
+          },
+          "headRefName": "pr/acceptance-child",
+          "headRefOid": "2e8aa23947317903351a25bbffe97b9c9e319557",
+          "isDraft": false,
+          "mergeStateStatus": "CLEAN",
+          "mergeable": "MERGEABLE",
+          "number": 2,
+          "state": "OPEN",
+          "title": "Retarget acceptance child",
+          "url": "https://github.com/rpmessner/beads-board-scratch/pull/2"
+        },
+        "pullRequests": {
+          "nodes": [
+            {
+              "baseRefName": "main",
+              "body": "Disposable stacked child fixture.",
+              "commits": {
+                "nodes": [
+                  {
+                    "commit": {
+                      "statusCheckRollup": null
+                    }
+                  }
+                ]
+              },
+              "headRefName": "pr/acceptance-child",
+              "headRefOid": "2e8aa23947317903351a25bbffe97b9c9e319557",
+              "isDraft": false,
+              "mergeStateStatus": "CLEAN",
+              "mergeable": "MERGEABLE",
+              "number": 2,
+              "state": "OPEN",
+              "title": "Retarget acceptance child",
+              "url": "https://github.com/rpmessner/beads-board-scratch/pull/2"
+            },
+            {
+              "baseRefName": "main",
+              "body": "Open PR acceptance.\n\nExact body, including trailing newline.\n",
+              "commits": {
+                "nodes": [
+                  {
+                    "commit": {
+                      "statusCheckRollup": null
+                    }
+                  }
+                ]
+              },
+              "headRefName": "acceptance/fm-openpr-1792362740214",
+              "headRefOid": "2e8aa23947317903351a25bbffe97b9c9e319557",
+              "isDraft": false,
+              "mergeStateStatus": "UNKNOWN",
+              "mergeable": "UNKNOWN",
+              "number": 3,
+              "state": "OPEN",
+              "title": "openpr-1: Exact approval title",
+              "url": "https://github.com/rpmessner/beads-board-scratch/pull/3"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        },
+        "refs": {
+          "nodes": [
+            {
+              "name": "acceptance/fm-openpr-1792362740214",
+              "target": {
+                "oid": "2e8aa23947317903351a25bbffe97b9c9e319557"
+              }
+            },
+            {
+              "name": "acceptance/fm-push-1792353043551",
+              "target": {
+                "oid": "7a3061c6bdd5159978d7bc74039cfc0a4529df2f"
+              }
+            },
+            {
+              "name": "acceptance/fm-push-1792353529431",
+              "target": {
+                "oid": "7a3061c6bdd5159978d7bc74039cfc0a4529df2f"
+              }
+            },
+            {
+              "name": "main",
+              "target": {
+                "oid": "797e13046f22f41dc6b471a2ea80b0a674a7a698"
+              }
+            },
+            {
+              "name": "pr/acceptance-bottom",
+              "target": {
+                "oid": "82e2f6f913d62d96b1d99bc6c50967d5d4a1500b"
+              }
+            },
+            {
+              "name": "pr/acceptance-child",
+              "target": {
+                "oid": "2e8aa23947317903351a25bbffe97b9c9e319557"
+              }
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      }
+    }
+  }
+}

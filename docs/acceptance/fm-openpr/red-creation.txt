@@ -1,0 +1,41 @@
+Compiling 3 files (.ex)
+Generated foreman app
+Running ExUnit with seed: 677229, max_cases: 16
+
+    warning: function committed/0 is unused
+    │
+ 22 │   defp committed, do: Repo.update_all("tickets", set: [stage: "committed"])
+    │        ~
+    │
+    └─ test/foreman/open_pr_test.exs:22:8: Foreman.OpenPrTest (module)
+
+
+
+  1) test creation refuses uncommitted tickets (Foreman.OpenPrTest)
+     test/foreman/open_pr_test.exs:24
+     match (=) failed
+     code:  assert {:error, :not_committed} = ask(facts)
+     left:  {:error, :not_committed}
+     right: {:error, :unsupported_kind}
+     stacktrace:
+       test/foreman/open_pr_test.exs:25: (test)
+
+
+Finished in 0.05 seconds (0.00s async, 0.05s sync)
+1 test, 1 failure
+Running ExUnit with seed: 438308, max_cases: 16
+
+.
+
+  1) test creation binds remote and exact facts, refusing forge none (Foreman.OpenPrTest)
+     test/foreman/open_pr_test.exs:24
+     match (=) failed
+     code:  assert {:ok, request} = ask(facts)
+     left:  {:ok, request}
+     right: {:error, :todo}
+     stacktrace:
+       test/foreman/open_pr_test.exs:26: (test)
+
+
+Finished in 0.08 seconds (0.00s async, 0.08s sync)
+2 tests, 1 failure
