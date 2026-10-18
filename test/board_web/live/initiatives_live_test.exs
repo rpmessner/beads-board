@@ -219,6 +219,108 @@ defmodule BoardWeb.InitiativesLiveTest do
     assert [%{"dependencies" => []}] = Board.Beads.Projection.list_raw("other")
   end
 
+  test "URL filters populate controls and changes patch a shareable URL", %{conn: conn} do
+    {:ok, view, _} =
+      live(conn, "/?project=sample&type=bug&label=follow-up&status=open&q=Title&stale=false")
+
+    assert has_element?(view, "#filters_type option[value=bug][selected]")
+    assert has_element?(view, "#filters_project option[value=sample][selected]")
+    assert has_element?(view, "#filters_q[value=Title]")
+    view |> form("#initiative-filters", filters: %{q: "a & b"}) |> render_change()
+    path = assert_patch(view)
+    assert URI.decode_query(URI.parse(path).query)["q"] == "a & b"
+    assert URI.decode_query(URI.parse(path).query)["type"] == "bug"
+  end
+
+  test "returning from Settings restores this browser's filters", %{conn: conn} do
+    remembered = %{
+      "project" => "sample",
+      "type" => "bug",
+      "label" => "follow-up",
+      "status" => "open",
+      "q" => "Title",
+      "stale" => "false"
+    }
+
+    {:ok, settings, _} = live(conn, "/settings")
+
+    assert {:error, {:live_redirect, %{to: "/"}}} =
+             settings |> element("a", "Initiatives") |> render_click()
+
+    {:ok, view, _} = live(put_connect_params(conn, %{"initiative_filters" => remembered}), "/")
+    assert has_element?(view, "#filters_type option[value=bug][selected]")
+
+    for {key, value} <- Map.drop(remembered, ["q", "stale"]) do
+      assert has_element?(view, "#filters_#{key} option[value='#{value}'][selected]")
+    end
+
+    assert has_element?(view, "#initiative-filter-memory[data-filters]")
+    render_patch(view, "/")
+    assert has_element?(view, "#filters_project option[value=''][selected]")
+    assert has_element?(view, "#filters_type option[value=''][selected]")
+  end
+
+  test "explicit URLs override remembered filters, including an explicit clear", %{conn: conn} do
+    conn =
+      put_connect_params(conn, %{
+        "initiative_filters" => %{"project" => "sample", "type" => "bug"}
+      })
+
+    {:ok, view, _} = live(conn, "/?project=")
+    assert has_element?(view, "#filters_project option[value=''][selected]")
+    assert has_element?(view, "#filters_type option[value=''][selected]")
+  end
+
+  test "malformed and unknown URL values fall back to defaults", %{conn: conn} do
+    {:ok, view, _} =
+      live(conn, "/?project[]=sample&type=invalid&label[bad]=x&status=no&stale=yes&q[]=bad")
+
+    for key <- ~w(project type label status) do
+      assert has_element?(view, "#filters_#{key} option[value=''][selected]")
+    end
+
+    assert has_element?(view, "#filters_q[value='']")
+    refute has_element?(view, "#filters_stale[checked]")
+    assert has_element?(view, "[data-bead=e]")
+  end
+
+  test "sidebar project patches and toggles without losing other filters or counts", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/?type=bug")
+    assert has_element?(view, "#sidebar-project-sample", "4")
+    view |> element("#sidebar-project-sample") |> render_click()
+    assert URI.decode_query(URI.parse(assert_patch(view)).query)["project"] == "sample"
+    assert has_element?(view, "#sidebar-project-sample.bb-nav-active[aria-current=true]")
+    assert has_element?(view, "#filters_type option[value=bug][selected]")
+    assert has_element?(view, "#sidebar-project-sample", "4")
+    view |> element("#sidebar-project-sample") |> render_click()
+    assert URI.decode_query(URI.parse(assert_patch(view)).query)["project"] == ""
+    refute has_element?(view, "#sidebar-project-sample.bb-nav-active")
+    assert has_element?(view, "#filters_type option[value=bug][selected]")
+  end
+
+  test "Settings sidebar navigates to an explicit project filter", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/settings")
+    assert has_element?(view, "#sidebar-project-sample", "4")
+
+    assert {:error, {:live_redirect, %{to: path}}} =
+             view |> element("#sidebar-project-sample") |> render_click()
+
+    assert URI.decode_query(URI.parse(path).query)["project"] == "sample"
+    {:ok, initiatives, _} = live(conn, path)
+    assert has_element?(initiatives, "#sidebar-project-sample.bb-nav-active")
+  end
+
+  test "initial URL filters exclude nonmatching streamed rows", %{conn: conn} do
+    Board.Beads.Projection.replace(
+      "sample",
+      Enum.map_join([b("e", "epic"), b("excluded", "epic")], "\n", &Jason.encode!/1)
+    )
+
+    {:ok, filtered, _} = live(conn, "/?q=Title+excluded")
+    assert has_element?(filtered, "#epics [data-bead=excluded]")
+    refute has_element?(filtered, "#epics [data-bead=e]")
+  end
+
   defp ids(view, selector),
     do:
       view

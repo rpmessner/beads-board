@@ -1,7 +1,7 @@
 defmodule BoardWeb.InitiativesLive do
   use BoardWeb, :live_view
   alias Fluxon.Components.Badge
-  alias Board.Initiatives.Disclosure
+  alias Board.Initiatives.{Disclosure, Filters, FilterRestore}
 
   @impl true
   def mount(_, _, socket) do
@@ -10,12 +10,41 @@ defmodule BoardWeb.InitiativesLive do
       Process.send_after(self(), :reconcile, 3_000)
     end
 
-    {:ok, socket |> assign(page_title: "Initiatives", filters: %{}, expanded: %{}) |> refresh()}
+    remembered = (get_connect_params(socket) || %{})["initiative_filters"]
+    options = Map.take(Board.Initiatives.snapshot(), [:repos, :types, :labels])
+
+    {:ok,
+     socket
+     |> assign(
+       page_title: "Initiatives",
+       filters: %{},
+       remembered_filters: remembered,
+       filter_restore: FilterRestore.__fsm__(:initial),
+       expanded: %{}
+     )
+     |> assign(options)}
   end
 
   @impl true
-  def handle_event("filter", %{"filters" => filters}, socket),
-    do: {:noreply, socket |> assign(:filters, filters) |> refresh()}
+  def handle_params(params, _uri, socket) do
+    remembered = socket.assigns.remembered_filters
+
+    {state, effects} =
+      FilterRestore.step(socket.assigns.filter_restore, {:params, params}, remembered)
+
+    restore? = Keyword.has_key?(effects, :restore)
+    filters = Filters.normalize(if(restore?, do: remembered, else: params), socket.assigns)
+    socket = socket |> assign(filters: filters, filter_restore: state) |> refresh()
+
+    {:noreply,
+     if(restore?, do: push_patch(socket, to: Filters.path(filters), replace: true), else: socket)}
+  end
+
+  @impl true
+  def handle_event("filter", %{"filters" => filters}, socket) do
+    filters = Filters.normalize(Map.merge(socket.assigns.filters, filters), socket.assigns)
+    {:noreply, push_patch(socket, to: Filters.path(filters))}
+  end
 
   def handle_event("toggle", %{"id" => id}, socket) do
     {state, []} = Disclosure.step(Map.get(socket.assigns.expanded, id, :collapsed), :toggle, %{})
@@ -182,7 +211,14 @@ defmodule BoardWeb.InitiativesLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} active={:initiatives} repos={@repos}>
+    <Layouts.app flash={@flash} active={:initiatives} repos={@repos} filters={@filters}>
+      <div
+        id="initiative-filter-memory"
+        phx-hook="InitiativeFilters"
+        data-filters={Jason.encode!(@filters)}
+        hidden
+      >
+      </div>
       <header class="flex items-center justify-between gap-4">
         <h1 class="text-[22px] font-semibold text-foreground">Initiatives</h1>
         <span class="text-xs text-foreground-softer">
