@@ -500,7 +500,7 @@ defmodule ForemanWeb.PullRequestsLive do
             <dd class="break-all font-mono text-xs">{@merge_facts["pr"]["head_sha"]}</dd>
             <dt class="text-foreground-softer">Method</dt>
             <dd>Merge commit</dd>
-            <dt class="text-foreground-softer">Beads</dt>
+            <dt class="text-foreground-softer">Tickets</dt>
             <dd class="flex flex-wrap gap-1">
               <Badge.badge :for={link <- @merge_facts["pr"]["links"] || []}>
                 {link["bead_id"]}

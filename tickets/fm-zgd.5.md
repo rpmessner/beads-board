@@ -2,7 +2,7 @@
 id: fm-zgd.5
 title: "Merge requests through the existing confirm flow"
 type: feature
-status: in_progress
+status: closed
 priority: 2
 parent: fm-zgd
 blocked_by: ["fm-zgd.1"]
@@ -10,8 +10,8 @@ related: []
 discovered_from: null
 labels: []
 created: 2026-10-18
-closed: null
-close_reason: null
+closed: 2026-10-18
+close_reason: "Merged 12b0b97: merge requests through the existing confirm flow; 483 tests."
 ---
 
 ## What to build
