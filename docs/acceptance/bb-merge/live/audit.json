@@ -1,0 +1,6 @@
+[
+  {"id": 1, "number": 1, "state": "failed", "error": "not_mergeable", "head_sha": "9b8a14276dd4650c894388cd6522cbd05a193c5a", "merge_sha": null, "child": "2"},
+  {"id": 2, "number": 1, "state": "failed", "error": "not_mergeable", "head_sha": "2318fa96276f8ed1107003623c7bc9bf3a3d70bd", "merge_sha": null, "child": "2"},
+  {"id": 3, "number": 1, "state": "failed", "error": "head_moved", "head_sha": "190c42089df049f2ed5769bda9d0e1269dff7102", "merge_sha": null, "child": "2"},
+  {"id": 4, "number": 1, "state": "merged", "error": null, "head_sha": "82e2f6f913d62d96b1d99bc6c50967d5d4a1500b", "merge_sha": "7a3061c6bdd5159978d7bc74039cfc0a4529df2f", "child": "2"}
+]

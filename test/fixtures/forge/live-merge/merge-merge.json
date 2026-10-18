@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "request": {
+    "merge_method": "merge",
+    "sha": "82e2f6f913d62d96b1d99bc6c50967d5d4a1500b"
+  },
+  "response": {
+    "merged": true,
+    "sha": "7a3061c6bdd5159978d7bc74039cfc0a4529df2f"
+  }
+}

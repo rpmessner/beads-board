@@ -1,0 +1,110 @@
+{
+  "status": 200,
+  "request": {
+    "tracked_query": "query($owner:String!,$name:String!) { repository(owner:$owner,name:$name) { defaultBranchRef { name } pullRequests(first:100,states:OPEN,orderBy:{field:CREATED_AT,direction:ASC}) { pageInfo { hasNextPage } nodes { number title body headRefName baseRefName headRefOid isDraft mergeable mergeStateStatus url state commits(last:1) { nodes { commit { statusCheckRollup { state } } } } } } pr1: pullRequest(number:1) { number title body headRefName baseRefName headRefOid isDraft mergeable mergeStateStatus url state commits(last:1) { nodes { commit { statusCheckRollup { state } } } } } pr2: pullRequest(number:2) { number title body headRefName baseRefName headRefOid isDraft mergeable mergeStateStatus url state commits(last:1) { nodes { commit { statusCheckRollup { state } } } } } } }"
+  },
+  "response": {
+    "data": {
+      "repository": {
+        "defaultBranchRef": {
+          "name": "main"
+        },
+        "pr1": {
+          "baseRefName": "main",
+          "body": "Disposable board acceptance fixture.",
+          "commits": {
+            "nodes": [
+              {
+                "commit": {
+                  "statusCheckRollup": null
+                }
+              }
+            ]
+          },
+          "headRefName": "pr/acceptance-bottom",
+          "headRefOid": "9b8a14276dd4650c894388cd6522cbd05a193c5a",
+          "isDraft": false,
+          "mergeStateStatus": "CLEAN",
+          "mergeable": "MERGEABLE",
+          "number": 1,
+          "state": "OPEN",
+          "title": "Guarded merge acceptance (bb-live.1)",
+          "url": "https://github.com/fixture-owner/merge-scratch/pull/1"
+        },
+        "pr2": {
+          "baseRefName": "pr/acceptance-bottom",
+          "body": "Disposable stacked child fixture.",
+          "commits": {
+            "nodes": [
+              {
+                "commit": {
+                  "statusCheckRollup": null
+                }
+              }
+            ]
+          },
+          "headRefName": "pr/acceptance-child",
+          "headRefOid": "2e8aa23947317903351a25bbffe97b9c9e319557",
+          "isDraft": false,
+          "mergeStateStatus": "CLEAN",
+          "mergeable": "MERGEABLE",
+          "number": 2,
+          "state": "OPEN",
+          "title": "Retarget acceptance child",
+          "url": "https://github.com/fixture-owner/merge-scratch/pull/2"
+        },
+        "pullRequests": {
+          "nodes": [
+            {
+              "baseRefName": "main",
+              "body": "Disposable board acceptance fixture.",
+              "commits": {
+                "nodes": [
+                  {
+                    "commit": {
+                      "statusCheckRollup": null
+                    }
+                  }
+                ]
+              },
+              "headRefName": "pr/acceptance-bottom",
+              "headRefOid": "9b8a14276dd4650c894388cd6522cbd05a193c5a",
+              "isDraft": false,
+              "mergeStateStatus": "CLEAN",
+              "mergeable": "MERGEABLE",
+              "number": 1,
+              "state": "OPEN",
+              "title": "Guarded merge acceptance (bb-live.1)",
+              "url": "https://github.com/fixture-owner/merge-scratch/pull/1"
+            },
+            {
+              "baseRefName": "pr/acceptance-bottom",
+              "body": "Disposable stacked child fixture.",
+              "commits": {
+                "nodes": [
+                  {
+                    "commit": {
+                      "statusCheckRollup": null
+                    }
+                  }
+                ]
+              },
+              "headRefName": "pr/acceptance-child",
+              "headRefOid": "2e8aa23947317903351a25bbffe97b9c9e319557",
+              "isDraft": false,
+              "mergeStateStatus": "CLEAN",
+              "mergeable": "MERGEABLE",
+              "number": 2,
+              "state": "OPEN",
+              "title": "Retarget acceptance child",
+              "url": "https://github.com/fixture-owner/merge-scratch/pull/2"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      }
+    }
+  }
+}
