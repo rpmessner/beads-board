@@ -65,8 +65,11 @@ const fs = require('node:fs');
     await page.reload(); await ready();
     await page.locator('#ticket-sheet [role=dialog]').waitFor({state: 'visible'});
     await page.waitForFunction(() => Math.abs(document.querySelector('#ticket-sheet [data-part=content]').getBoundingClientRect().right - innerWidth) < 1);
+    await page.locator('#ticket-overview-tab').click();
+    await page.waitForURL(url => url.searchParams.get('tab') === 'overview');
     await page.screenshot({path: `${out}/ticket-${theme}.png`, animations: 'disabled'});
-    await page.locator('#ticket-history-section').evaluate(el => el.scrollIntoView({block: 'start'}));
+    await page.locator('#ticket-history-tab').click();
+    await page.waitForURL(url => url.searchParams.get('tab') === 'history');
     await page.screenshot({path: `${out}/ticket-history-${theme}.png`, animations: 'disabled'});
   }
   await page.locator('#ticket-close').click();

@@ -61,6 +61,23 @@ defmodule BoardWeb.PullRequestsLiveTest do
     :ok
   end
 
+  test "sheet tabs preserve the PR page URL and refresh hidden streams", %{conn: conn} do
+    {:ok, view, _} = live(conn, "/pull-requests?project=sample&ticket=sample:fe-813.2&tab=notes")
+    assert has_element?(view, "#ticket-notes-tab[aria-selected=true]")
+    Board.Overlay.apply_event({"sample", "fe-813.2"}, :abandon)
+    Board.Overlay.apply_event({"sample", "fe-813.2"}, :revive)
+    Board.Overlay.apply_event({"sample", "fe-813.2"}, {:dispatch, %{window: "pr-tab-worker"}})
+    send(view.pid, {:notification, :board_events, "sample/fe-813.2"})
+    assert has_element?(view, "#ticket-sessions-panel[hidden]", "pr-tab-worker")
+    view |> element("#ticket-sessions-tab") |> render_click()
+    assert_patch(view, "/pull-requests?project=sample&tab=sessions&ticket=sample%3Afe-813.2")
+    assert has_element?(view, "#ticket-sessions-panel:not([hidden])", "pr-tab-worker")
+    render_patch(view, "/pull-requests?project=sample&ticket=sample:fe-813.2&tab=unknown")
+    assert has_element?(view, "#ticket-overview-tab[aria-selected=true]")
+    render_click(view, "close-ticket", %{"key" => "sample:fe-813.2"})
+    assert_patch(view, "/pull-requests?project=sample")
+  end
+
   test "stack links open the sheet; local repositories have no panel", %{conn: conn} do
     {:ok, view, _} = live(conn, "/pull-requests?project=sample")
     assert has_element?(view, "#pull-requests [data-number='5'] + [data-number='6']")
