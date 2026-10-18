@@ -48,7 +48,7 @@ defmodule BoardWeb.SettingsLive do
   defp home(path), do: String.replace_prefix(path, System.user_home!(), "~")
   defp age(nil), do: "never synced"
   defp age(%NaiveDateTime{} = time), do: age(DateTime.from_naive!(time, "Etc/UTC"))
-  defp age(time), do: "snapshot · #{max(DateTime.diff(DateTime.utc_now(), time), 0)} s ago"
+  defp age(time), do: "snapshot · #{BoardWeb.RelativeTime.format(time)}"
   defp color("synced"), do: "success"
   defp color("unreachable"), do: "danger"
   defp color(_), do: "warning"
@@ -74,13 +74,10 @@ defmodule BoardWeb.SettingsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} active={:settings}>
       <header class="flex flex-wrap items-center gap-3">
         <div class="mr-auto space-y-1">
           <h1 class="text-[22px] font-semibold text-foreground">Settings</h1>
-          <p class="text-[13px] text-foreground-softer">
-            Read from a TOML file you edit by hand. The board never writes it. Live state lives in Postgres.
-          </p>
         </div>
         <Button.button id="reload-config" phx-click="reload">
           <.icon name="hero-arrow-path" class="size-4" /> Reload
@@ -125,7 +122,7 @@ defmodule BoardWeb.SettingsLive do
         role="alert"
         class="rounded-lg border border-danger bg-danger-soft p-4 text-foreground-danger-soft"
       >
-        {@snapshot.error}. The last good config stays in use.
+        {@snapshot.error} · last good config
       </div>
       <div class="flex flex-wrap items-start gap-5">
         <div class="min-w-0 flex-[999_1_560px] space-y-5">
@@ -182,9 +179,6 @@ defmodule BoardWeb.SettingsLive do
                 </tbody>
               </table>
             </div>
-            <p class="text-xs text-foreground-softer">
-              Enabled flags are a read-only preview. To change one, edit the file; the board reloads it.
-            </p>
           </section>
           <section class="space-y-3" id="board-columns">
             <h2 class="bb-label">Board columns · from [[columns]]</h2>
@@ -199,9 +193,7 @@ defmodule BoardWeb.SettingsLive do
                 </span>
               </div>
             </div>
-            <p class="text-xs text-foreground-softer">
-              Columns group ticket stages only; config can name and group them, never invent them.
-            </p>
+
             <div class="bb-panel space-y-2 !bg-sunken">
               <h3 class="bb-label">Epic stages · fixed, not configurable</h3>
               <div class="flex flex-wrap gap-1">
@@ -221,7 +213,7 @@ defmodule BoardWeb.SettingsLive do
                 No unconfigured repositories found.
               </p>
               <div :for={path <- @discovered}>
-                <p class="mb-2 text-xs">Paste into board.toml to include {home(path)}:</p>
+                <p class="mb-2 text-xs">board.toml · {home(path)}</p>
                 <pre class="overflow-x-auto rounded-lg bg-sunken p-3 text-xs">{repo_block(path)}</pre>
               </div>
             </div>
@@ -231,7 +223,7 @@ defmodule BoardWeb.SettingsLive do
           <h2 class="bb-label">Loaded columns & repos · read-only view</h2>
           <pre
             id="config-preview"
-            class="overflow-x-auto rounded-[10px] border border-base bg-sunken p-4 font-mono text-xs leading-[19px]"
+            class="whitespace-pre-wrap [overflow-wrap:anywhere] rounded-[10px] border border-base bg-sunken p-4 font-mono text-xs leading-[19px]"
           >{@toml}</pre>
         </aside>
       </div>

@@ -18,6 +18,7 @@ defmodule Board.Events do
     config_changed: "config_changed",
     sync_status_changed: "sync_status_changed",
     projection_changed: "projection_changed",
+    overlay_changed: "overlay_changed",
     sync_requested: "sync_requested"
   }
 

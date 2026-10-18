@@ -2,7 +2,7 @@ defmodule Mix.Tasks.Board.Fsm.Docs do
   use Mix.Task
   @shortdoc "Generate diagrams and matrices for compiled Board.Fsm machines"
   @moduledoc """
-  Run `MIX_ENV=test mix board.fsm.docs` to include the epic fixture.
+  Run `mix board.fsm.docs` to generate the application machines.
   Without arguments, discovers machines in this application's compiled modules.
   Optional arguments select fully qualified module names from that list (no atom
   creation). Writes docs/machines/<last_module_segment_in_snake_case>.md.

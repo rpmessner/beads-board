@@ -1,4 +1,4 @@
-defmodule Board.Fixtures.Epic do
+defmodule Board.Epic do
   @moduledoc "Spec Decision 8. :new_draft models the table's pre-create origin."
   use Board.Fsm, observed_never_invalid: true
 

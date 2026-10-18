@@ -17,6 +17,7 @@ body { margin: 0; background: var(--background-base); }
 .bb-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--foreground-softer); }
 .bb-nav { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 8px; font-weight: 500; transition: background .15s; }
 a.bb-nav:hover, .bb-theme:hover { background: var(--background-accent); }
+a.bb-nav-active { background: light-dark(#e4e4e7, #3f3f46); color: var(--foreground); }
 .bb-theme { display: flex; align-items: center; justify-content: center; height: 32px; width: 36px; border: 1px solid var(--border-base); border-radius: 8px; cursor: pointer; }
 .bb-table { border-collapse: collapse; width: 100%; font-size: 13px; }
 .bb-table th { text-align: left; font-weight: 500; color: var(--foreground-softer); font-size: 12px; padding: 8px 12px; background: var(--background-sunken); }
@@ -26,4 +27,26 @@ a.bb-nav:hover, .bb-theme:hover { background: var(--background-accent); }
 .bb-switch::after { content: ""; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; border-radius: 99px; background: white; box-shadow: 0 1px 2px #0003; }
 .bb-switch:checked { background: var(--primary); }
 .bb-switch:checked::after { left: 18px; background: var(--foreground-primary); }
+.bb-initiative-panel { border: 1px solid var(--border-base); border-radius: 10px; overflow: hidden; }
+.bb-section-title { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--background-sunken); font-weight: 600; }
+.bb-initiative-grid { display: grid; grid-template-columns: 130px minmax(240px,1fr) 100px 130px 86px 50px 35px; gap: 16px; align-items: center; min-width: 970px; }
+.bb-initiative-row { padding: 12px 16px; border-top: 1px solid var(--border-base); transition: background .15s; }
+.bb-initiative-head { padding: 10px 16px; font-size: 12px; color: var(--foreground-softer); background: var(--background-sunken); }
+.bb-section-label { padding: 8px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; background: var(--background-sunken); color: var(--foreground-softer); }
+.bb-progress { height: 6px; background: var(--background-sunken); border: 1px solid var(--border-base); border-radius: 99px; overflow: hidden; }
+.bb-progress span { display: block; height: 100%; background: #22c55e; }
+.bb-histogram { display: flex; align-items: flex-end; gap: 3px; height: 28px; border-bottom: 1px solid var(--border-base); }
+.bb-histogram span { width: 11px; border-radius: 2px 2px 0 0; }
+.bb-hist-0 { background: #a1a1aa; } .bb-hist-1 { background: #3b82f6; } .bb-hist-2 { background: #eab308; } .bb-hist-3 { background: #22c55e; } .bb-hist-4 { background: #71717a; }
+.bb-filters > div { margin: 0; max-width: 210px; }
+.bb-filters .label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--foreground-softer); }
+.bb-filter-control { display: block; width: 100%; height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border-base); background: var(--background-base); color: var(--foreground); font-size: 13px; box-shadow: 0 1px 2px #0000000d; }
+.bb-ticket { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.bb-ticket-id { grid-row: 1; grid-column: 1; }
+.bb-ticket-stage { grid-row: 1; grid-column: 2; }
+.bb-ticket-title { grid-column: 1 / -1; overflow-wrap: anywhere; }
+@media (min-width: 768px) { .bb-ticket { display: flex; } }
+.bb-project-dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; background: #8b5cf6; }
+.bb-project:nth-child(3n) .bb-project-dot { background: #14b8a6; }
+.bb-project:nth-child(3n + 1) .bb-project-dot { background: #ec4899; }
 button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }

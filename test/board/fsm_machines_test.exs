@@ -2,7 +2,7 @@ defmodule Board.FsmMachinesTest do
   use ExUnit.Case, async: true
   use ExUnitProperties
   alias Board.Stage
-  alias Board.Fixtures.Epic
+  alias Board.Epic
 
   test "stage happy path follows Decision 7 and suggests close only on entering merged" do
     steps = [

@@ -3,6 +3,8 @@ defmodule BoardWeb.Layouts do
   embed_templates "layouts/*"
   attr :flash, :map, required: true
   attr :current_scope, :map, default: nil
+  attr :active, :atom, default: :initiatives
+  attr :repos, :list, default: []
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -13,17 +15,35 @@ defmodule BoardWeb.Layouts do
           <.icon name="hero-ellipsis-horizontal-circle" class="size-6" /> beads-board
         </a>
         <nav aria-label="Main" class="space-y-1">
-          <.link navigate={~p"/"} class="bb-nav">
+          <.link
+            navigate={~p"/"}
+            class={["bb-nav", @active == :initiatives && "bb-nav-active"]}
+            aria-current={@active == :initiatives && "page"}
+          >
             <.icon name="hero-bars-3-bottom-left" class="size-4" /> Initiatives
           </.link>
           <span class="bb-nav text-foreground-softer" aria-disabled="true">
             <.icon name="hero-code-bracket" class="size-4" /> Pull requests
             <span class="ml-auto text-xs">soon</span>
           </span>
-          <.link navigate={~p"/settings"} class="bb-nav bg-accent" aria-current="page">
+          <.link
+            navigate={~p"/settings"}
+            class={["bb-nav", @active == :settings && "bb-nav-active"]}
+            aria-current={@active == :settings && "page"}
+          >
             <.icon name="hero-cog-6-tooth" class="size-4" /> Settings
           </.link>
         </nav>
+        <section :if={@repos != []} class="space-y-2 px-2.5" aria-label="Projects">
+          <h2 class="bb-label">Projects · tickets</h2>
+          <div :for={repo <- @repos} class="bb-project flex items-center gap-2 py-1 text-xs">
+            <span class="bb-project-dot"></span>
+            <span class="min-w-0 flex-1 truncate" title={repo["key"]}>{repo["key"]}</span>
+            <span class="text-foreground-softer">
+              {if repo["health"].state == "unreachable", do: "down", else: repo["count"]}
+            </span>
+          </div>
+        </section>
         <div class="mt-auto space-y-4 px-2.5">
           <div class="flex gap-2">
             <button
@@ -45,10 +65,6 @@ defmodule BoardWeb.Layouts do
               <.icon name="hero-moon" class="size-4" />
             </button>
           </div>
-          <p class="text-xs text-foreground-softer">
-            Synced via <span class="font-mono">bd export</span>
-            <br />Agents take priority over freshness.
-          </p>
         </div>
       </aside>
       <main class="min-w-0 flex-1 space-y-5 px-5 pt-6 pb-10 lg:px-7">
