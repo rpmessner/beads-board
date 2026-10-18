@@ -1,3 +1,14 @@
+# beads-board
+
+Spec: `docs/spec.md` (authoritative); design pass: `docs/design.md`; approved mockup: `docs/mockup/`.
+
+## House rules for this app
+
+- **On-screen text is labels, status and controls only.** No subtitles that explain behaviour, no footers about how the app works, no chatty toasts; behaviour notes go in docs. Status badges ("Waiting on #5") are fine.
+- **Times use the shared human format** (just now, 2 min ago, full time on hover), never raw seconds or ISO strings.
+- **Stateful features sit on declared `Board.Fsm` machines** (workflows, sync and job lifecycles, external conversations, stateful UI); the house code-review baseline treats ad hoc status fields as Important findings.
+- Beads is read-only; the repos gain no board files; storage is Postgres only.
+
 This is a web application written using the Phoenix web framework.
 
 ## Project guidelines
