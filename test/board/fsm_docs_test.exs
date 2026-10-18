@@ -2,7 +2,7 @@ defmodule Board.FsmDocsTest do
   use ExUnit.Case, async: true
 
   test "diagram uses named group rows once and leaves group stays to the matrix" do
-    text = Board.Fixtures.Stage.to_mermaid()
+    text = Board.Stage.to_mermaid()
     assert text =~ "stateDiagram-v2\n    [*] --> queued\n"
     assert text =~ "working --> building: progress / append(progress), emit(stage)"
     assert text =~ ~s(state "working: dispatched, building" as working)
@@ -10,7 +10,7 @@ defmodule Board.FsmDocsTest do
   end
 
   test "matrix includes guarded fallbacks and ordered entry effects" do
-    text = Board.Fixtures.Stage.matrix()
+    text = Board.Stage.matrix()
 
     assert text =~
              "| building | dispatch [new_session?] | -> dispatched | record(session), append(redispatched), emit(stage) |"
@@ -24,7 +24,11 @@ defmodule Board.FsmDocsTest do
     assert length(String.split(String.trim(text), "\n")) == 135
   end
 
-  for {name, module} <- [{"stage", Board.Fixtures.Stage}, {"epic", Board.Fixtures.Epic}] do
+  for {name, module} <- [
+        {"stage", Board.Stage},
+        {"epic", Board.Fixtures.Epic},
+        {"reload_machine", Board.Config.ReloadMachine}
+      ] do
     test "#{name} documentation matches the committed golden" do
       module = unquote(module)
 

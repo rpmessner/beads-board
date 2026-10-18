@@ -1,0 +1,32 @@
+repos = []
+
+[board]
+swimlanes = "project"
+stale_session_after = "2h"
+
+[[columns]]
+title = "Queued"
+stages = ["queued"]
+
+[[columns]]
+title = "In flight"
+stages = ["dispatched", "building"]
+
+[[columns]]
+title = "Review"
+stages = ["reported", "in_review"]
+
+[[columns]]
+title = "Shipping"
+stages = ["committed", "pr_open", "merged"]
+
+[[columns]]
+title = "Done"
+stages = ["done"]
+collapsed = true
+
+[backfill]
+closed = "done"
+default = "queued"
+
+[epics]
