@@ -31,6 +31,172 @@ Development uses `beads_board_dev` and listens on `127.0.0.1:4747` (`PORT` overr
 the port, not the loopback bind). Migrate before starting Oban. Production still
 requires `DATABASE_URL`, plus `SECRET_KEY_BASE` for web/all; no systemd unit is installed.
 
+## Install the user services
+
+These steps are for you to run on the host. Nothing in the build installs or
+starts services. The templates are in [`deploy/systemd/`](deploy/systemd/).
+They use one release at `~/.local/lib/beads-board/current`, two foreground BEAM
+processes, and no terminal or Erlang distribution.
+
+### Prepare the host and environment
+
+Use a Linux host with systemd user services, Postgres 16, `python3`, `inotifywait`,
+and the tested embedded-store `bd` available. On WSL, enable systemd in the
+host's WSL configuration first. Start the host's Postgres service and create the
+`beads_board` database with a dedicated database user. Do not run the release as
+root. Run `command -v bd python3 inotifywait` to find the executable directories.
+
+```sh
+install -d -m 700 "$HOME/.config/beads-board"
+install -m 600 deploy/systemd/runtime.env.example "$HOME/.config/beads-board/runtime.env"
+install -m 600 deploy/systemd/web.env.example "$HOME/.config/beads-board/web.env"
+mix phx.gen.secret
+```
+
+Edit both files before continuing. Set `DATABASE_URL` and an **absolute** `PATH`
+containing `bd`, `python3`, and `inotifywait` in `runtime.env`. Put the generated
+secret only in `web.env`. These are systemd environment files: no `export`,
+`$HOME`, `~`, or command substitutions. URL-encode database credentials as needed.
+Keep both files untracked, mode 0600, outside a symlink into tracked dotfiles.
+Do not put Fluxon credentials in either file; they are build-time only.
+The API token belongs to the later API ticket, not these environment files.
+
+The units do not read shell startup files. `BOARD_ROLE`, `PHX_SERVER`,
+`RELEASE_DISTRIBUTION`, and `RELEASE_TMP` belong to the units; do not override them
+in environment files. The worker explicitly removes the endpoint secret and
+both units remove Fluxon variables inherited from the user manager.
+
+### Build, migrate and enable
+
+Build on the same OS and architecture as the host, with your existing private
+Hex authentication and Fluxon build variables available in your shell:
+
+```sh
+mix deps.get
+MIX_ENV=prod mix compile
+MIX_ENV=prod mix assets.deploy
+MIX_ENV=prod mix release --overwrite
+
+release_id=$(date -u +%Y%m%dT%H%M%S)
+install -d -m 700 "$HOME/.local/lib/beads-board/releases"
+cp -a _build/prod/rel/board "$HOME/.local/lib/beads-board/releases/$release_id"
+ln -s "releases/$release_id" "$HOME/.local/lib/beads-board/current"
+```
+
+Migrate before starting either service. Supply `DATABASE_URL` in the migration
+shell without adding it to shell history. The following hidden prompt works in
+Bash. Do not `source` systemd environment files; they are not shell scripts.
+
+```bash
+read -r -s -p 'DATABASE_URL: ' DATABASE_URL; printf '\n'
+export DATABASE_URL
+(umask 077
+ BOARD_ROLE=worker RELEASE_DISTRIBUTION=none \
+   "$HOME/.local/lib/beads-board/current/bin/board" eval \
+   '{:ok, _, _} = Ecto.Migrator.with_repo(Board.Repo, &Ecto.Migrator.run(&1, :up, all: true))')
+migration_status=$?
+unset DATABASE_URL
+test "$migration_status" -eq 0
+```
+
+Continue only if the migration succeeded. Then install and enable the units:
+
+```sh
+install -d "$HOME/.config/systemd/user"
+cp deploy/systemd/beads-board-*.service "$HOME/.config/systemd/user/"
+systemd-analyze --user verify "$HOME/.config/systemd/user/"beads-board-*.service
+systemctl --user daemon-reload
+systemctl --user enable --now beads-board-worker.service beads-board-web.service
+```
+
+Open `http://127.0.0.1:4747/settings`. Configure repositories using the TOML section
+below. A fresh installation has no repositories enabled.
+
+Both units start at login through `default.target`. To keep the user manager
+running after logout and start it at host boot, you may enable lingering with
+`loginctl enable-linger "$USER"` (host policy may require an administrator).
+On WSL, the distro must itself be running; these units cannot launch a stopped
+distro. Start the distro and user session before agents.
+
+System and user managers have separate dependency graphs. A user unit cannot
+order after the system manager's `postgresql.service`; adding that name would
+refer to a different user unit. These templates therefore retry independently.
+If your host exposes a real Postgres readiness unit in the **user** manager,
+add `After=` for that unit in user drop-ins. Do not move Postgres into this release.
+`Restart=always`, a five-second delay, and disabled start-rate limiting allow
+recovery after boot failures. Database connections also reconnect after outages.
+
+### Update the release
+
+Build a new release and copy it into a new timestamped directory using the build
+commands above, but do not repeat the initial `ln -s`. Never overwrite the release
+files a running service uses. Back up Postgres before schema changes.
+
+```sh
+systemctl --user stop beads-board-worker.service beads-board-web.service
+ln -s "releases/$release_id" "$HOME/.local/lib/beads-board/current.next"
+mv -Tf "$HOME/.local/lib/beads-board/current.next" "$HOME/.local/lib/beads-board/current"
+```
+
+Run the migration command above against the new `current`. If it fails, leave
+both services stopped and investigate. Restore an older release only if its code
+is compatible with the database schema. Refresh the unit templates if changed:
+
+```sh
+cp deploy/systemd/beads-board-*.service "$HOME/.config/systemd/user/"
+systemctl --user daemon-reload
+systemctl --user start beads-board-worker.service beads-board-web.service
+```
+
+Use `systemctl --user restart beads-board-worker beads-board-web` after changing
+environment files. TOML edits hot-reload without a restart. Stop uses SIGTERM on
+the BEAM first, allowing Oban and its owned subprocesses to drain. After 90 seconds,
+systemd kills remaining processes in that service's cgroup. Explicit stops do not
+trigger `Restart=always`. Use systemctl, not release `stop` or `rpc`, because
+Erlang distribution is disabled.
+
+### Inspect logs and verify host recovery
+
+```sh
+systemctl --user status beads-board-web beads-board-worker
+journalctl --user -u beads-board-web -u beads-board-worker -f
+systemctl --user is-enabled beads-board-web beads-board-worker
+```
+
+After installation, test recovery when no reads or writes are in progress:
+record each service's `MainPID` with `systemctl --user show -p MainPID`, kill only
+its main process with `systemctl --user kill --kill-whom=main --signal=SIGKILL
+beads-board-web`, and check that it returns with a new PID. Repeat for the worker.
+Check the page and a repository sync afterward. Restart WSL at a safe time, open
+the distro again, and check both units and the page before starting agents.
+These host checks cannot be proved by a build-only smoke test.
+
+### Uninstall the services
+
+```sh
+systemctl --user disable --now beads-board-web.service beads-board-worker.service
+/usr/bin/rm "$HOME/.config/systemd/user/beads-board-web.service" \
+  "$HOME/.config/systemd/user/beads-board-worker.service"
+systemctl --user daemon-reload
+systemctl --user reset-failed
+```
+
+Keep the database, TOML, environment files, and release directories until you
+choose to remove them. Remove service drop-ins too if you added any. Do not disable
+lingering if other user services need it. Uninstall does not drop Postgres data.
+
+### Run the release smoke test without installing
+
+After building the release, run `python3 tools/release-smoke.py`. It uses the
+local test Postgres credentials to create a unique disposable test database,
+starts the actual `bin/board start` twice on non-default ports, verifies role
+children, HTTP and Postgres sync notification delivery, then sends SIGTERM and
+requires exit 0 from both. It drops its database afterward. Logs and generated
+runtime files stay in the checkout's ignored `tmp/release-smoke-*` directory.
+The exporter is a synthetic fixture executable, not the host's `bd`; the test
+never opens a real store. Real embedded-store safety remains covered by the
+[reader acceptance report](docs/sessions/bb-exec.md).
+
 ## Deployment roles and notifications
 
 One release supports two systemd user services, `beads-board-web` and
