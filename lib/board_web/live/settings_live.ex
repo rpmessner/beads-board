@@ -11,7 +11,6 @@ defmodule BoardWeb.SettingsLive do
 
     {:ok,
      socket
-     |> assign(page_title: "Settings")
      |> stream_configure(:repos, dom_id: &("repo-" <> &1["key"]))
      |> refresh()}
   end
@@ -82,7 +81,12 @@ defmodule BoardWeb.SettingsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} active={:settings} repos={@sidebar_repos}>
+    <Layouts.app
+      flash={@flash}
+      pending_count={@pending_count}
+      active={:settings}
+      repos={@sidebar_repos}
+    >
       <header class="flex flex-wrap items-center gap-3">
         <div class="mr-auto space-y-1">
           <h1 class="text-[22px] font-semibold text-foreground">Settings</h1>

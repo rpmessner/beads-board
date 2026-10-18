@@ -1,0 +1,17 @@
+[
+  {
+    "command": "board ask decision scratch-1 --question Offline? --json",
+    "exit": 0,
+    "output": {
+      "request_id": "c7606955-dae8-473f-8c76-100461401bef",
+      "warning": "board and spool unavailable; event not saved; agent may continue"
+    }
+  },
+  {
+    "command": "board wait 00000000-0000-0000-0000-000000000001 --timeout 0",
+    "exit": 0,
+    "output": {
+      "warning": "board unavailable; read was not queued"
+    }
+  }
+]

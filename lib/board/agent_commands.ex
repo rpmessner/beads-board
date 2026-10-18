@@ -4,7 +4,7 @@ defmodule Board.AgentCommands do
   alias Board.{Agent, AgentCatalog, Overlay, Repo}
 
   def execute(request) do
-    if request["action"] in ["show", "ls"], do: command(request), else: write(request)
+    if request["action"] in ["show", "ls", "wait"], do: command(request), else: write(request)
   end
 
   defp write(%{"request_id" => id} = request) do
@@ -52,6 +52,13 @@ defmodule Board.AgentCommands do
 
   defp write(request), do: write(Map.put(request, "request_id", Ecto.UUID.generate()))
 
+  defp command(%{"action" => "wait", "id" => id}) do
+    case Board.Requests.get(id) do
+      nil -> {404, %{error: "not_found"}}
+      request -> {200, request |> Jason.encode!() |> Jason.decode!()}
+    end
+  end
+
   defp command(%{"action" => "ls"} = request) do
     rows =
       for table <- ["tickets", "epics"],
@@ -74,6 +81,15 @@ defmodule Board.AgentCommands do
 
     with {:ok, {repo, id} = key} <- key do
       case request["action"] do
+        "ask" ->
+          Agent.ensure_entity(key)
+
+          case Board.Requests.ask(key, request["request_kind"], request) do
+            {:ok, ask} -> {200, %{id: ask.id, state: ask.state}}
+            {:error, :not_found} -> {404, %{error: "not_found"}}
+            {:error, reason} -> {422, %{error: reason}}
+          end
+
         "event" ->
           Agent.event(repo, id, request)
 

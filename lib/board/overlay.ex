@@ -189,6 +189,7 @@ defmodule Board.Overlay do
                    )
 
                    Enum.each(effects, &effect(&1, key, row, event_id, payload, actor))
+                   if stage in [:done, :abandoned], do: Board.Requests.supersede(key)
                    notify(key)
                    {:ok, %{stage: get(key).stage, effects: effects}}
                end

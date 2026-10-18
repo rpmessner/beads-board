@@ -13,7 +13,6 @@ defmodule BoardWeb.PullRequestsLive do
 
     {:ok,
      assign(socket,
-       page_title: "Pull requests",
        project: nil,
        refresh_state: :idle,
        merge_state: :idle,
@@ -272,7 +271,7 @@ defmodule BoardWeb.PullRequestsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} active={:pull_requests} repos={@repos}>
+    <Layouts.app flash={@flash} pending_count={@pending_count} active={:pull_requests} repos={@repos}>
       <header class="flex flex-wrap items-center gap-3">
         <div class="mr-auto space-y-1">
           <h1 class="text-[22px] leading-7 font-semibold">Pull requests</h1>

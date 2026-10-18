@@ -6,6 +6,7 @@ defmodule BoardWeb.Layouts do
   attr :active, :atom, default: :initiatives
   attr :repos, :list, default: []
   attr :filters, :map, default: %{}
+  attr :pending_count, :integer, default: 0
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -16,6 +17,21 @@ defmodule BoardWeb.Layouts do
           <.icon name="hero-ellipsis-horizontal-circle" class="size-6" /> beads-board
         </a>
         <nav aria-label="Main" class="space-y-1">
+          <.link
+            id="needs-you-link"
+            navigate={~p"/needs-you"}
+            class={["bb-nav", @active == :needs_you && "bb-nav-active"]}
+            aria-current={@active == :needs_you && "page"}
+          >
+            <.icon name="hero-inbox" class="size-4" /> Needs you
+            <span
+              :if={@pending_count > 0}
+              id="needs-you-count"
+              class="ml-auto rounded-full border border-base bg-base px-2 py-0.5 text-xs font-semibold text-foreground"
+            >
+              {@pending_count}
+            </span>
+          </.link>
           <.link
             navigate={~p"/"}
             class={["bb-nav", @active in [:initiatives, :epic] && "bb-nav-active"]}

@@ -18,10 +18,13 @@ defmodule BoardWeb.Router do
   scope "/", BoardWeb do
     pipe_through :browser
 
-    live "/", InitiativesLive, :index
-    live "/settings", SettingsLive, :index
-    live "/pull-requests", PullRequestsLive, :index
-    live "/epics/:repo/:id", EpicLive, :show
+    live_session :board, on_mount: BoardWeb.RequestCount do
+      live "/needs-you", NeedsYouLive, :index
+      live "/", InitiativesLive, :index
+      live "/settings", SettingsLive, :index
+      live "/pull-requests", PullRequestsLive, :index
+      live "/epics/:repo/:id", EpicLive, :show
+    end
   end
 
   scope "/api", BoardWeb do
