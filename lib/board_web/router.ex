@@ -17,7 +17,8 @@ defmodule BoardWeb.Router do
   scope "/", BoardWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", SettingsLive, :index
+    live "/settings", SettingsLive, :index
   end
 
   # Other scopes may use custom stacks.

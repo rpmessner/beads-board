@@ -1,9 +1,10 @@
 # beads-board
 
 A local board for every beads repo on this machine, organised around epics.
-The Phoenix scaffold, `Board.Fsm`, config validation core, Oban/Postgres bootstrap,
-and export projection are implemented. Automatic repo reads, runtime config
-watching, Fluxon, and product views are not wired yet (bb-c2w.4 continuation).
+The worker reads configured repos through Oban and keeps a droppable Postgres
+projection. Settings shows config validation, sync health, columns and discovered
+repos using Fluxon 3. Initiatives, ticket/epic workflows and the agent CLI remain
+later slices; `/` currently opens Settings.
 
 - [Approved MVP spec](docs/spec.md) is authoritative.
 - [Design](docs/design.md) records the design pass and rationale.
@@ -37,12 +38,13 @@ One release supports two systemd user services, `beads-board-web` and
 unit and `BOARD_ROLE=worker` in the worker unit. Both use the same database and
 Oban schema prefix. Set `RELEASE_DISTRIBUTION=none` in both release units.
 `BOARD_ROLE=all` is the default for development and tests; unknown values fail boot.
-Role changes require a restart.
+Role and code changes require a service restart; only TOML configuration is
+hot-reloaded. Do not use development code reloading as a worker deployment path.
 
 - Web starts Phoenix and a queue-less Oban instance for Postgres notifications.
   It disables Oban plugins and leadership. It must not start readers or watchers.
-- Worker starts Oban queues and plugins, but no Phoenix endpoint. Scheduler and
-  watcher adapters still need implementation in `Board.Role.worker_children/0`.
+- Worker starts Oban queues, the nominal scheduler and config directory watcher,
+  but no Phoenix endpoint. Runtime readers are disabled in the test environment.
 - Both start Repo. Phoenix.PubSub remains for endpoint internals, not cross-role
   product events. DNS clustering is not started.
 
@@ -53,12 +55,11 @@ publish at commit; unchanged export hashes publish nothing. A rolled-back
 transaction cannot notify. Tests exercise independent notifiers and a raw
 Postgres LISTEN connection, not an in-memory notifier replacement.
 
-Notifications are transient. Views must fetch state from Postgres on mount and
-reconnect, then reconcile periodically. The future config runtime must persist
-its last-good snapshot and validation result in Postgres before notifying web;
-node-local `:persistent_term` alone cannot serve the split deployment. Config and
-sync-status publishers, LiveView consumers, release packaging and installed
-systemd units remain pending.
+Notifications are transient. Settings fetches Postgres on mount and every three
+seconds to recover missed notifications. Config installation and validation are
+persisted before publication. `Board.Runtime.ping/1` sends a `sync_requested`
+notification across roles; it uses the same admission path as ticks and sweeps.
+Release packaging and installed systemd units remain later work.
 
 ## Export projection boundary
 
@@ -79,10 +80,8 @@ its bead rows; the hash belongs to that same cache. Overlay rows have no cache F
 
 `Board.Beads.JournalLock.check/2` passively matches journal device/inode against
 Linux `/proc/locks`. Missing, unreadable or ambiguous evidence defers the read.
-It never acquires a lock. This observer is **not a reader**: physical-repo single
-flight, scheduled exports, subprocess cancellation/reaping, and Oban read jobs
-must be implemented before wiring it to configured repos. The probe's
-[read rule](docs/probe-bd-concurrency.md) remains mandatory.
+It never acquires a store lock. `SyncJob` executes this check before each export.
+The probe's [read rule](docs/probe-bd-concurrency.md) remains mandatory.
 
 Oban 2.23.0 emits an unused MySQL-pattern compiler warning on Elixir 1.19 when
 MyXQL is absent. The required pin is retained without suppressing the warning or
@@ -97,15 +96,40 @@ until the owned subprocess is reaped and discards late stdout. Schedule accepts
 three-second ticks even without changed signals, coalesces busy requests, and
 never launches catch-up reads on completion. Tokens include an owner epoch and
 generation so stale completions cannot release a newer flight. These modules
-perform no IO. Physical-store identity, cross-process admission, actual bd
-subprocess ownership, timer/Oban adapters and their acceptance tests remain open.
+perform no IO. `Runtime` executes schedule effects; `SyncJob` executes read effects.
+Physical aliases share a catalog identity and one scheduled export, projected to
+all their configured keys. Postgres advisory admission plus a Linux abstract
+socket prevent concurrent exports across workers, including the BEAM-death/reap
+window. Neither lock touches the store or creates a file.
+
+The bundled Python guardian owns a fresh process group, enforces a 20-second
+limit and 32 MB stdout cap, kills only its group, and reaps before replying.
+Owner/port death cancels it; partial or timed-out output never projects. Linux,
+Python 3, `realpath`, `inotifywait`, and the tested bd binary must be on the service
+PATH. Embedded-only reads reject redirects, ambiguous locks and server mode;
+there is no repair, store copy, JSONL fallback or Dolt-server startup.
+
+Every enabled physical store gets a nominal three-second request even without a
+changed signal. This replaces the insufficient signal-only heuristic, rather
+than watching Dolt files that exports themselves modify. Five-minute sweeps and
+pings coalesce; completion never queues catch-up work. Unchanged exports make no
+projection or health writes (unless health is recovering). Oban's own job records
+still change. Settings labels snapshot age separately from health; it does not
+pretend an unchanged snapshot was freshly written.
 
 ## Config contract
 
-The intended runtime reads `~/.config/beads-board/board.toml`, then
+The worker reads `~/.config/beads-board/board.toml`, then
 `board.local.toml` beside it, over `priv/board.defaults.toml`. The app never writes
 these files. No user files are needed to run the tests; they use temporary directories.
-The runtime watcher and Settings view are still pending.
+`BOARD_CONFIG_DIR` overrides the directory for isolated runs; `BOARD_DISCOVERY_ROOT`
+overrides the default `~/dev` discovery root. Non-recursive directory notifications handle
+atomic editor saves; a 30-second reconciliation recovers missed notifications.
+If the config directory is absent, the watcher follows its nearest existing
+parent and moves to the config directory when it appears.
+Discovery skips symlinks and build/dependency trees and is bounded to eight levels.
+No home config is created. Accepted config, last error, load time and physical
+store catalog live in Postgres so web-only nodes need no filesystem access.
 
 ```toml
 [board]
@@ -153,7 +177,34 @@ states, not an independent stage list.
 Its read/broadcast effects are data, not executed callbacks. The runtime must run
 reads through Oban and supply every terminal result, including job failure, before
 another reload can start. Bad edits retain the previous config and expose an error.
-This contract is tested; it is not yet connected to the application supervisor.
+`ReloadJob` executes this contract transactionally. Worker restarts enqueue a new
+reload; a failed job cannot leave an in-memory reload stuck in loading. The
+previous persisted config survives. A shared row lock at projection commit
+rejects late results for removed, disabled or repointed config entries.
+
+## Scratch acceptance
+
+Only run these with permission to write scratch copies. They never open original
+stores with bd. Server-mode acceptance uses copied metadata, not live PID/port files.
+
+```sh
+python3 tools/prepare-board-acceptance.py
+BOARD_CONFIG_DIR=/tmp/bb-exec/config BOARD_DISCOVERY_ROOT=/tmp/bb-exec/repos mix phx.server
+# In another shell, with the board running:
+python3 tools/board-write-acceptance.py
+python3 tools/verify-board-acceptance.py
+```
+
+The writer runs for ten minutes, without retrying failed writes. Verification
+compares `bd list --json --all --limit 0`, checks persisted notes/dependencies and
+measures idle note freshness. Raw artifacts stay under `/tmp/bb-exec`; see
+[the session report](docs/sessions/bb-exec.md) for measured evidence. The harness
+uses `psql -X` to ignore personal psql settings. Python bytecode caching is disabled
+because embedded operator paths in `.pyc` files correctly fail the hygiene gate.
+
+Fluxon is fetched from the preconfigured private Hex repo. Keep its authentication
+and `FLUXON_LICENSE_KEY` / `FLUXON_KEY_FINGERPRINT` in the environment, never here.
+The CSS theme and JS hooks are bundled through app.css/app.js, with no CDN scripts.
 
 ## Repository hygiene
 

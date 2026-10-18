@@ -24,12 +24,22 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/board"
 import topbar from "../vendor/topbar"
+import {Hooks as fluxonHooks, DOM} from "../../deps/fluxon/priv/static/fluxon.esm.js"
+
+const setTheme = theme => {
+  document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light"
+  localStorage.setItem("phx:theme", document.documentElement.dataset.theme)
+}
+setTheme(localStorage.getItem("phx:theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"))
+window.addEventListener("phx:set-theme", event => setTheme(event.target.closest("[data-phx-theme]").dataset.phxTheme))
+window.addEventListener("storage", event => { if (event.key === "phx:theme") setTheme(event.newValue) })
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...colocatedHooks, ...fluxonHooks},
+  dom: {onBeforeElUpdated: (from, to) => DOM.onBeforeElUpdated(from, to)},
 })
 
 // Show progress bar on live navigation and form submits
