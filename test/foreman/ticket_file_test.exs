@@ -4,14 +4,14 @@ defmodule Foreman.TicketFileTest do
   alias Foreman.TicketFile
 
   def canonical(title \\ "A ticket") do
-    "---\nid: bb-abc.1\ntitle: #{Jason.encode!(title)}\ntype: task\nstatus: open\npriority: 2\nparent: bb-abc\nblocked_by: []\nrelated: []\ndiscovered_from: null\nlabels: []\ncreated: 2026-10-18\nclosed: null\nclose_reason: null\n---\n\n## Acceptance\n- [ ] Works\n"
+    "---\nid: bb-abc.1\ntitle: #{Jason.encode!(title)}\ntype: task\nstatus: open\npriority: 2\nparent: bb-abc\nblocked_by: []\nrelated: []\nsupersedes: []\ndiscovered_from: null\nlabels: []\ncreated: 2026-10-18\nclosed: null\nclose_reason: null\n---\n\n## Acceptance\n- [ ] Works\n"
   end
 
   property "canonical parse then print is byte identity, including Unicode and YAML punctuation" do
     check all(
             title <- string(:utf8, min_length: 1),
             priority <- integer(0..4),
-            type <- member_of(~w(epic feature task bug decision)),
+            type <- member_of(~w(epic feature task bug decision chore)),
             status <- member_of(~w(open in_progress closed deferred)),
             labels <- list_of(string(:alphanumeric, min_length: 1), max_length: 8),
             prose <- string(:alphanumeric),
@@ -33,7 +33,7 @@ defmodule Foreman.TicketFileTest do
   for {field, value} <- [
         {"id", "../../escape"},
         {"title", "[]"},
-        {"type", "chore"},
+        {"type", "unknown"},
         {"status", "done"},
         {"priority", "5"},
         {"priority", "2.0"},
@@ -52,6 +52,28 @@ defmodule Foreman.TicketFileTest do
 
       assert {:error, reason} = TicketFile.parse(text)
       assert reason =~ unquote(field)
+    end
+  end
+
+  test "chore and supersedes survive canonical round trip; legacy files default to no supersedes" do
+    text =
+      canonical()
+      |> String.replace("type: task", "type: chore")
+      |> String.replace("supersedes: []", ~s(supersedes: ["bb-old"]))
+
+    assert {:ok, ticket} = TicketFile.parse(text)
+    assert ticket.facts["supersedes"] == ["bb-old"]
+    assert TicketFile.print(ticket) == text
+    assert {:ok, legacy} = TicketFile.parse(String.replace(canonical(), "supersedes: []\n", ""))
+    assert legacy.facts["supersedes"] == []
+  end
+
+  test "supersedes rejects invalid ids and non-list values" do
+    for value <- ["[invalid]", "null", "false", "bb-old"] do
+      assert {:error, "supersedes must be a list of ids"} =
+               TicketFile.parse(
+                 String.replace(canonical(), "supersedes: []", "supersedes: #{value}")
+               )
     end
   end
 

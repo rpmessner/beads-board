@@ -1,8 +1,8 @@
 defmodule Foreman.TicketFile do
   @moduledoc "Shared ticket Markdown codec. String-keyed facts and an opaque Markdown body."
-  @keys ~w(id title type status priority parent blocked_by related discovered_from labels created closed close_reason)
-  @lists ~w(blocked_by related labels)
-  @types ~w(epic feature task bug decision)
+  @keys ~w(id title type status priority parent blocked_by related supersedes discovered_from labels created closed close_reason)
+  @lists ~w(blocked_by related supersedes labels)
+  @types ~w(epic feature task bug decision chore)
   @statuses ~w(open in_progress closed deferred)
 
   def keys, do: @keys
@@ -17,7 +17,7 @@ defmodule Foreman.TicketFile do
          {:ok, pairs} <- YamlElixir.read_from_string(yaml, maps_as_keywords: true),
          true <- is_list(pairs) and Enum.all?(pairs, &match?({_, _}, &1)),
          true <- length(pairs) == map_size(Map.new(pairs)),
-         facts = Map.new(pairs),
+         facts = Map.put_new(Map.new(pairs), "supersedes", []),
          :ok <- validate(facts) do
       {:ok, %{facts: facts, body: String.trim_leading(body, "\n")}}
     else
@@ -28,7 +28,7 @@ defmodule Foreman.TicketFile do
 
   def validate(facts) do
     unknown = Map.keys(facts) -- @keys
-    missing = @keys -- Map.keys(facts)
+    missing = (@keys -- ["supersedes"]) -- Map.keys(facts)
 
     cond do
       unknown != [] ->
@@ -64,6 +64,9 @@ defmodule Foreman.TicketFile do
       not id_list?(facts["related"]) ->
         {:error, "related must be a list of ids"}
 
+      not id_list?(Map.get(facts, "supersedes", [])) ->
+        {:error, "supersedes must be a list of ids"}
+
       not (is_list(facts["labels"]) and Enum.all?(facts["labels"], &text?/1)) ->
         {:error, "labels must be a list of strings"}
 
@@ -82,6 +85,7 @@ defmodule Foreman.TicketFile do
   end
 
   def print(%{facts: facts, body: body}) do
+    facts = Map.put_new(facts, "supersedes", [])
     header = Enum.map_join(@keys, "\n", fn key -> "#{key}: #{scalar(key, facts[key])}" end)
 
     "---\n" <>

@@ -12,8 +12,11 @@ defmodule Foreman.BeadsConversion do
       Map.new(records, fn record ->
         deps = Map.get(record, "dependencies", [])
 
-        unless Enum.all?(deps, &(&1["type"] in ~w(blocks parent-child related discovered-from))),
-          do: raise(ArgumentError, "unsupported dependency type")
+        unless Enum.all?(
+                 deps,
+                 &(&1["type"] in ~w(blocks parent-child related tracks supersedes discovered-from))
+               ),
+               do: raise(ArgumentError, "unsupported dependency type")
 
         refs = fn type ->
           deps
@@ -38,7 +41,7 @@ defmodule Foreman.BeadsConversion do
         facts = %{
           "id" => record["id"],
           "title" => record["title"],
-          "type" => record["issue_type"],
+          "type" => if(record["issue_type"] == "convoy", do: "epic", else: record["issue_type"]),
           "status" => record["status"],
           "priority" => record["priority"],
           "created" => date(record["created_at"]),
@@ -46,7 +49,8 @@ defmodule Foreman.BeadsConversion do
           "close_reason" => record["close_reason"],
           "parent" => single.("parent-child"),
           "blocked_by" => refs.("blocks"),
-          "related" => refs.("related"),
+          "related" => Enum.sort(refs.("related") ++ refs.("tracks")),
+          "supersedes" => refs.("supersedes"),
           "discovered_from" => single.("discovered-from"),
           "labels" => Enum.sort(Map.get(record, "labels", []))
         }
@@ -114,6 +118,7 @@ defmodule Foreman.BeadsConversion do
         [
           {"blocks", facts["blocked_by"]},
           {"related", facts["related"]},
+          {"supersedes", facts["supersedes"]},
           {"parent-child", List.wrap(facts["parent"])},
           {"discovered-from", List.wrap(facts["discovered_from"])}
         ],
@@ -123,19 +128,27 @@ defmodule Foreman.BeadsConversion do
 
     source_edges =
       Map.get(record, "dependencies", [])
-      |> Enum.map(&{&1["type"], &1["depends_on_id"]})
+      |> Enum.map(fn dep ->
+        kind = if dep["type"] == "tracks", do: "related", else: dep["type"]
+        {kind, dep["depends_on_id"]}
+      end)
       |> Enum.sort()
 
     fields = [
       {"id", "id"},
       {"title", "title"},
-      {"issue_type", "type"},
       {"status", "status"},
       {"priority", "priority"},
       {"close_reason", "close_reason"}
     ]
 
-    edges == source_edges and
+    expected_type =
+      case record["issue_type"] do
+        "convoy" -> "epic"
+        type -> type
+      end
+
+    facts["type"] == expected_type and edges == source_edges and
       Enum.all?(fields, fn {source, target} -> record[source] == facts[target] end) and
       Enum.sort(Map.get(record, "labels", [])) == Enum.sort(facts["labels"]) and
       date(record["created_at"]) == facts["created"] and

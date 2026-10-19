@@ -105,6 +105,8 @@ defmodule Foreman.TicketCLITest do
         old,
         "--related",
         old,
+        "--supersedes",
+        old,
         "--discovered-from",
         old,
         "--body",
@@ -115,8 +117,20 @@ defmodule Foreman.TicketCLITest do
     result = call(root, ["show", child])
     assert result["parent"] == "zz-new"
     assert result["related"] == ["zz-new"]
+    assert result["supersedes"] == ["zz-new"]
     assert result["discovered_from"] == "zz-new"
     assert result["body"] == "See [ticket](zz-new.md), zz-new. Also #{old}.1 and x#{old}.\n"
+  end
+
+  test "chore supersedes absent tickets without becoming blocked", %{root: root} do
+    ticket = call(root, ["new", "Cleanup", "--type", "chore", "--supersedes", "zz-old,zz-absent"])
+    assert ticket["supersedes"] == ["zz-absent", "zz-old"]
+    assert call(root, ["check"])["valid"]
+    assert Enum.map(call(root, ["ready"]), & &1["id"]) == [ticket["id"]]
+    assert call(root, ["update", ticket["id"], "--supersedes", ""])["supersedes"] == []
+
+    assert call(root, ["update", ticket["id"], "--supersedes", "invalid"], 2)["error"] =~
+             "supersedes"
   end
 
   test "a note appends inside Notes without moving subsequent sections", %{root: root} do

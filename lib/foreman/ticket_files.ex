@@ -94,6 +94,7 @@ defmodule Foreman.TicketFiles do
     edges =
       Enum.map(facts["blocked_by"], &edge(&1, "blocks")) ++
         Enum.map(facts["related"], &edge(&1, "related")) ++
+        Enum.map(facts["supersedes"], &edge(&1, "supersedes")) ++
         if(facts["parent"], do: [edge(facts["parent"], "parent-child")], else: []) ++
         if(facts["discovered_from"],
           do: [edge(facts["discovered_from"], "discovered-from")],
