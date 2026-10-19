@@ -1,0 +1,18 @@
+Compiling 2 files (.ex)
+Generated foreman app
+Running ExUnit with seed: 811530, max_cases: 16
+
+...
+
+  1) test API errors only report actual usage limits (Foreman.SessionHooksTest)
+     test/foreman/session_hooks_test.exs:20
+     match (=) failed
+     code:  assert :activity = Foreman.SessionHooks.facts("StopFailure", %{"error" => "authentication_failed"})
+     left:  :activity
+     right: :ignore
+     stacktrace:
+       test/foreman/session_hooks_test.exs:28: (test)
+
+
+Finished in 0.04 seconds (0.04s async, 0.00s sync)
+4 tests, 1 failure

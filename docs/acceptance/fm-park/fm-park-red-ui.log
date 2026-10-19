@@ -1,0 +1,31 @@
+Running ExUnit with seed: 615788, max_cases: 16
+
+...
+
+  1) test live windows show Focus on sheets, details and list rows (ForemanWeb.SessionLaunchTest)
+     test/foreman_web/live/session_launch_test.exs:77
+     Expected truthy, got false
+     code: assert has_element?(sheet, "#ticket-launch", "Relaunch")
+     arguments:
+
+         # 1
+         #Phoenix.LiveViewTest.View<
+           id: "phx-GN_I_78QrEZt-RnB",
+           module: ForemanWeb.InitiativesLive,
+           pid: #PID<0.439.0>,
+           endpoint: ForemanWeb.Endpoint,
+           ...
+         >
+
+         # 2
+         "#ticket-launch"
+
+         # 3
+         "Relaunch"
+
+     stacktrace:
+       test/foreman_web/live/session_launch_test.exs:98: (test)
+
+.
+Finished in 1.1 seconds (0.00s async, 1.1s sync)
+5 tests, 1 failure

@@ -97,6 +97,9 @@ defmodule Foreman.CLI do
             opts
           )
 
+        :activity ->
+          Foreman.CLITransport.deliver(Map.put(request, "action", "session_activity"), opts)
+
         :ignore ->
           :ok
       end

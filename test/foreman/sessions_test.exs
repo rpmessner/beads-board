@@ -54,6 +54,166 @@ defmodule Foreman.SessionsTest do
     %{socket: socket, dir: dir, opts: [socket: socket, executable: "/bin/true"]}
   end
 
+  test "idle timeout keeps the record and closes only its window", c do
+    assert {:ok, session} = Sessions.launch({"sample", "x-1"}, c.opts)
+
+    System.cmd("tmux", [
+      "-L",
+      c.socket,
+      "set-option",
+      "-w",
+      "-t",
+      session.window,
+      "@foreman-state",
+      "ended"
+    ])
+
+    {other, 0} =
+      System.cmd("tmux", [
+        "-L",
+        c.socket,
+        "new-window",
+        "-d",
+        "-t",
+        "sample",
+        "-P",
+        "-F",
+        ~S(#{window_id}),
+        "sleep 60"
+      ])
+
+    assert :ok = Sessions.reconcile(Keyword.put(c.opts, :idle_timeout, 0))
+    parked = Sessions.get({"sample", "x-1"})
+    assert parked.state == :parked
+    assert parked.session_id == session.session_id
+
+    assert {windows, 0} =
+             System.cmd("tmux", ["-L", c.socket, "list-windows", "-a", "-F", ~S(#{window_id})])
+
+    assert windows == other
+  end
+
+  test "relaunch opens a new window with the stored conversation id", c do
+    assert {:ok, session} = Sessions.launch({"sample", "x-1"}, c.opts)
+    System.cmd("tmux", ["-L", c.socket, "kill-window", "-t", session.window])
+    Sessions.reconcile(c.opts)
+    executable = Path.join(c.dir, "resume-probe")
+    File.write!(executable, "#!/bin/sh\nprintf '%s\\n' \"$@\" > resumed-args\n")
+    File.chmod!(executable, 0o700)
+
+    assert {:ok, resumed} =
+             Sessions.relaunch({"sample", "x-1"}, Keyword.put(c.opts, :executable, executable))
+
+    assert resumed.session_id == session.session_id
+    refute resumed.window == session.window
+    assert eventually(fn -> File.exists?(Path.join(c.dir, "resumed-args")) end)
+    assert ["--resume", id | _] = String.split(File.read!(Path.join(c.dir, "resumed-args")), "\n")
+    assert id == session.session_id
+  end
+
+  defp eventually(fun, attempts \\ 100)
+  defp eventually(_, 0), do: false
+
+  defp eventually(fun, attempts) do
+    if fun.(),
+      do: true,
+      else:
+        (receive do
+         after
+           20 -> eventually(fun, attempts - 1)
+         end)
+  end
+
+  test "hooks refresh inactivity even when they do not change state", c do
+    {:ok, session} = Sessions.launch({"sample", "x-1"}, c.opts)
+    old = DateTime.add(DateTime.utc_now(), -90_000, :second)
+    Foreman.Repo.update!(Ecto.Changeset.change(session, state: :running, last_activity_at: old))
+
+    assert {:ok, active} =
+             Sessions.signal({"sample", "x-1"}, session.session_id, :resumed, "activity")
+
+    assert DateTime.compare(active.last_activity_at, old) == :gt
+    Sessions.reconcile(c.opts)
+    refute Sessions.get({"sample", "x-1"}).state == :parked
+  end
+
+  test "viewing the window refreshes inactivity", c do
+    {:ok, session} = Sessions.launch({"sample", "x-1"}, c.opts)
+    old = DateTime.add(DateTime.utc_now(), -90_000, :second)
+    Foreman.Repo.update!(Ecto.Changeset.change(session, last_activity_at: old))
+
+    client =
+      Port.open({:spawn_executable, System.find_executable("tmux")}, [
+        :binary,
+        :exit_status,
+        args: ["-L", c.socket, "-C", "attach", "-t", "sample"]
+      ])
+
+    assert eventually(fn -> Foreman.SessionTmux.attached?(session, c.opts) == {:ok, true} end)
+    Sessions.reconcile(c.opts)
+    current = Sessions.get({"sample", "x-1"})
+    refute current.state == :parked
+    assert DateTime.compare(current.last_activity_at, old) == :gt
+    Port.close(client)
+    assert eventually(fn -> Foreman.SessionTmux.attached?(session, c.opts) == {:ok, false} end)
+    Sessions.reconcile(c.opts)
+    refute Sessions.get({"sample", "x-1"}).state == :parked
+  end
+
+  test "the default timeout is one day", c do
+    {:ok, session} = Sessions.launch({"sample", "x-1"}, c.opts)
+
+    System.cmd("tmux", [
+      "-L",
+      c.socket,
+      "set-option",
+      "-w",
+      "-t",
+      session.window,
+      "@foreman-state",
+      "ended"
+    ])
+
+    Foreman.Repo.update!(
+      Ecto.Changeset.change(session,
+        last_activity_at: DateTime.add(DateTime.utc_now(), -86_390, :second)
+      )
+    )
+
+    Sessions.reconcile(c.opts)
+    refute Sessions.get({"sample", "x-1"}).state == :parked
+
+    Foreman.Repo.update!(
+      Ecto.Changeset.change(Sessions.get({"sample", "x-1"}),
+        last_activity_at: DateTime.add(DateTime.utc_now(), -86_401, :second)
+      )
+    )
+
+    Sessions.reconcile(c.opts)
+    assert Sessions.get({"sample", "x-1"}).state == :parked
+  end
+
+  test "relaunch from ended leaves the readable shell open", c do
+    {:ok, session} = Sessions.launch({"sample", "x-1"}, c.opts)
+
+    assert eventually(fn ->
+             Sessions.reconcile(c.opts)
+             Sessions.get({"sample", "x-1"}).state == :ended
+           end)
+
+    assert {:ok, resumed} = Sessions.relaunch({"sample", "x-1"}, c.opts)
+    refute resumed.window == session.window
+
+    assert {windows, 0} =
+             System.cmd("tmux", ["-L", c.socket, "list-windows", "-a", "-F", ~S(#{window_id})])
+
+    assert session.window in String.split(windows)
+    assert resumed.window in String.split(windows)
+    Sessions.reconcile(Keyword.put(c.opts, :idle_timeout, 0))
+
+    assert {"", 0} = System.cmd("tmux", ["-L", c.socket, "list-sessions"])
+  end
+
   test "persists launch identity and reuses its window", c do
     assert {:ok, session} = Sessions.launch({"sample", "x-1"}, c.opts)
     assert session.workdir == c.dir

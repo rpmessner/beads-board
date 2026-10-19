@@ -44,6 +44,9 @@ defmodule Foreman.SessionWaiting do
 
         case existing do
           [%{facts: %{"reason" => ^reason}} = request] ->
+            if facts["target"] == "planning",
+              do: Sessions.signal(key, params["session"], :waiting)
+
             {:ok, request}
 
           _ ->

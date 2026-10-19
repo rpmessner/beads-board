@@ -2,6 +2,16 @@ defmodule Foreman.SessionMachineTest do
   use ExUnit.Case, async: true
   alias Foreman.SessionMachine, as: M
 
+  test "idle parking and same-conversation relaunch are declared" do
+    for state <- [:running, :waiting, :ended] do
+      assert M.step(state, :idle_timeout, %{}) == {:parked, [close: :window, clear: :waiting]}
+    end
+
+    for state <- [:parked, :ended] do
+      assert M.step(state, :relaunch, %{}) == {:starting, [open: :resume]}
+    end
+  end
+
   test "the declared resume guard ignores unrelated tool completions" do
     assert M.step(:waiting, :resumed, %{resume_matches: false}) == {:waiting, []}
   end

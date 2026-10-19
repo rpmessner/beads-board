@@ -89,7 +89,7 @@ defmodule Foreman.SessionHooks do
 
       {:waiting, %{"reason" => "usage_limit", "provider" => "Anthropic", "reset_at" => reset}}
     else
-      :ignore
+      :activity
     end
   end
 

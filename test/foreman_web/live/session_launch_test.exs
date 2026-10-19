@@ -95,13 +95,14 @@ defmodule ForemanWeb.SessionLaunchTest do
     assert has_element?(detail, "#epic-launch", "Focus")
     Foreman.Repo.query!("UPDATE planning_sessions SET state = 'ended'")
     send(sheet.pid, :reconcile)
-    assert has_element?(sheet, "#ticket-launch", "Focus")
+    assert has_element?(sheet, "#ticket-launch", "Relaunch")
     Foreman.Repo.query!("UPDATE planning_sessions SET state = 'parked'")
     send(sheet.pid, :reconcile)
     send(detail.pid, :reconcile)
-    assert has_element?(sheet, "#ticket-launch", "Launch")
-    assert has_element?(sheet, "#drafts [phx-click=launch-session]", "Launch")
-    assert has_element?(detail, "#epic-launch", "Launch")
+    assert has_element?(sheet, "#ticket-launch[phx-value-action=relaunch]", "Relaunch")
+    assert has_element?(sheet, "#drafts [phx-click=launch-session]", "Relaunch")
+    assert has_element?(sheet, "#epics [phx-click=launch-session]", "Relaunch")
+    assert has_element?(detail, "#epic-launch", "Relaunch")
   end
 
   test "session state and copyable attach command are visible", %{conn: conn} do

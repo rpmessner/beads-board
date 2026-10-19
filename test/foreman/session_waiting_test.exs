@@ -18,6 +18,30 @@ defmodule Foreman.SessionWaitingTest do
     %{session: session}
   end
 
+  test "a repeated waiting hook is still activity", %{session: s} do
+    params = %{"session" => s.session_id, "facts" => %{"reason" => "input"}}
+    {:ok, request} = Requests.ask({"sample", "s-1"}, "session_waiting", params)
+    old = DateTime.add(DateTime.utc_now(), -90_000, :second)
+
+    Sessions.get({"sample", "s-1"})
+    |> Ecto.Changeset.change(last_activity_at: old)
+    |> Repo.update!()
+
+    assert {:ok, repeated} = Requests.ask({"sample", "s-1"}, "session_waiting", params)
+    assert repeated.id == request.id
+
+    assert {200, %{state: :waiting}} =
+             Foreman.AgentCommands.execute(%{
+               "action" => "session_activity",
+               "repo" => "sample",
+               "id" => "s-1",
+               "session" => s.session_id
+             })
+
+    assert Requests.get(request.id).state == "pending"
+    assert DateTime.compare(Sessions.get({"sample", "s-1"}).last_activity_at, old) == :gt
+  end
+
   test "completion of an unrelated parallel tool does not clear a permission wait", %{session: s} do
     {:ok, request} =
       Requests.ask({"sample", "s-1"}, "session_waiting", %{

@@ -1,0 +1,16 @@
+Running ExUnit with seed: 191354, max_cases: 16
+
+..
+
+  1) test a repeated waiting hook is still activity (Foreman.SessionWaitingTest)
+     test/foreman/session_waiting_test.exs:21
+     Assertion with == failed
+     code:  assert DateTime.compare(Sessions.get({"sample", "s-1"}).last_activity_at, old) == :gt
+     left:  :eq
+     right: :gt
+     stacktrace:
+       test/foreman/session_waiting_test.exs:28: (test)
+
+...
+Finished in 0.4 seconds (0.00s async, 0.4s sync)
+6 tests, 1 failure

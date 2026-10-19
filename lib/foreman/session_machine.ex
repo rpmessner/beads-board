@@ -1,5 +1,5 @@
 defmodule Foreman.SessionMachine do
-  @moduledoc "Planning session launch and observed liveness. Window loss keeps the record; no effect kills a window."
+  @moduledoc "Planning session lifecycle. Parking alone closes an unattached window; relaunch preserves the conversation identity."
   use Foreman.Fsm, observed_never_invalid: true
   initial(:new)
   state(:new)
@@ -14,7 +14,18 @@ defmodule Foreman.SessionMachine do
   event(:resumed, source: :observed)
   event(:exited, source: :observed)
   event(:window_gone, source: :observed)
-  effects([:open, :clear])
+  event(:idle_timeout, source: :observed)
+  event(:activity, source: :observed)
+  event(:relaunch)
+  effects([:open, :clear, :close])
+
+  transition(:idle_timeout,
+    from: [:running, :waiting, :ended],
+    to: :parked,
+    do: [close: :window, clear: :waiting]
+  )
+
+  transition(:relaunch, from: [:parked, :ended], to: :starting, do: [open: :resume])
   guard(:resume_matches?)
   transition(:launch, from: :new, to: :starting, do: [open: :window])
   transition(:started, from: :starting, to: :running)
@@ -35,8 +46,12 @@ defmodule Foreman.SessionMachine do
     do: [clear: :waiting]
   )
 
-  ignore([:started, :waiting, :resumed, :exited, :window_gone], from: :any)
+  ignore([:started, :waiting, :resumed, :exited, :window_gone, :idle_timeout, :activity],
+    from: :any
+  )
+
   invalid(:launch, from: :any)
+  invalid(:relaunch, from: :any)
 
   def resume_matches?(context, _), do: Map.get(context, :resume_matches, true)
 end

@@ -1,0 +1,16 @@
+Running ExUnit with seed: 321416, max_cases: 16
+
+.
+
+  1) test an unmarked window cannot be mistaken for the stored conversation (Foreman.SessionTmuxTest)
+     test/foreman/session_tmux_test.exs:111
+     match (=) failed
+     code:  assert {:ok, :window_gone} = Tmux.observe(session, c.opts)
+     left:  {:ok, :window_gone}
+     right: {:ok, %{state: :running, window: "@0"}}
+     stacktrace:
+       test/foreman/session_tmux_test.exs:116: (test)
+
+........
+Finished in 0.6 seconds (0.6s async, 0.00s sync)
+10 tests, 1 failure

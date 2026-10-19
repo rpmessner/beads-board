@@ -1,8 +1,13 @@
 defmodule ForemanWeb.PlanningSession do
   use ForemanWeb, :html
 
-  def launch(socket, %{"project" => project, "ticket" => ticket}) do
-    case Foreman.Sessions.launch({project, ticket}) do
+  def launch(socket, %{"project" => project, "ticket" => ticket} = params) do
+    result =
+      if params["action"] == "relaunch",
+        do: Foreman.Sessions.relaunch({project, ticket}),
+        else: Foreman.Sessions.launch({project, ticket})
+
+    case result do
       {:ok, _} ->
         Phoenix.LiveView.clear_flash(socket, :error)
 
@@ -21,20 +26,30 @@ defmodule ForemanWeb.PlanningSession do
       assigns.session && assigns.session.window != nil &&
         assigns.session.state in [:starting, :running, :waiting, :ended]
 
-    assigns = assign(assigns, :focus?, !!focus?)
+    relaunch? = assigns.session && assigns.session.state in [:parked, :ended]
+
+    label =
+      cond do
+        relaunch? -> "Relaunch"
+        focus? -> "Focus"
+        true -> "Launch"
+      end
+
+    assigns = assign(assigns, label: label, relaunch?: !!relaunch?)
 
     ~H"""
     <button
-      :if={@allowed}
+      :if={@allowed || @relaunch?}
       id={@id}
       type="button"
       phx-click="launch-session"
       phx-value-project={elem(@key, 0)}
       phx-value-ticket={elem(@key, 1)}
-      phx-disable-with={if @focus?, do: "Focusing…", else: "Launching…"}
+      phx-value-action={if @relaunch?, do: "relaunch", else: "launch"}
+      phx-disable-with={@label <> "…"}
       class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-base bg-base px-3 py-1.5 text-xs font-medium transition-colors hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2"
     >
-      {if @focus?, do: "Focus", else: "Launch"}
+      {@label}
     </button>
     """
   end

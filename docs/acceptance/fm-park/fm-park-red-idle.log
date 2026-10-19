@@ -1,0 +1,16 @@
+Running ExUnit with seed: 792672, max_cases: 16
+
+.......
+
+  1) test idle timeout keeps the record and closes only its window (Foreman.SessionsTest)
+     test/foreman/sessions_test.exs:57
+     Assertion with == failed
+     code:  assert parked.state == :parked
+     left:  :ended
+     right: :parked
+     stacktrace:
+       test/foreman/sessions_test.exs:63: (test)
+
+
+Finished in 0.9 seconds (0.00s async, 0.9s sync)
+8 tests, 1 failure

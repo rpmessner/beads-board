@@ -1,0 +1,12 @@
+[
+  {
+    "pid": "3779594",
+    "argv": [
+      "claude",
+      "--resume",
+      "db1713eb-cda6-4646-a70a-b6b037bec87b",
+      "--settings",
+      "<per-launch settings omitted>"
+    ]
+  }
+]

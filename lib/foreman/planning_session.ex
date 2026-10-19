@@ -11,5 +11,7 @@ defmodule Foreman.PlanningSession do
     field :error, :string
     field :launched_at, :utc_datetime_usec
     field :observed_at, :utc_datetime_usec
+    field :last_activity_at, :utc_datetime_usec
+    field :previous_windows, {:array, :map}, default: []
   end
 end

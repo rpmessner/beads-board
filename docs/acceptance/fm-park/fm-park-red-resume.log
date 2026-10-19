@@ -1,0 +1,19 @@
+Compiling 1 file (.ex)
+Generated foreman app
+Running ExUnit with seed: 50680, max_cases: 16
+
+..
+
+  1) test relaunch opens a new window with the stored conversation id (Foreman.SessionsTest)
+     test/foreman/sessions_test.exs:69
+     match (=) failed
+     code:  assert {:ok, resumed} =
+              Sessions.relaunch({"sample", "x-1"}, Keyword.put(c.opts, :executable, executable))
+     left:  {:ok, resumed}
+     right: {:error, :not_relaunchable}
+     stacktrace:
+       test/foreman/sessions_test.exs:76: (test)
+
+......
+Finished in 1.0 seconds (0.00s async, 1.0s sync)
+9 tests, 1 failure

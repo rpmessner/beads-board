@@ -1,0 +1,1 @@
+PASS: Relaunch on sheet/detail/list, 390/1440 light/dark, no clipping; sheet reopens a window

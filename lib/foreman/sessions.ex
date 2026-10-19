@@ -76,7 +76,67 @@ defmodule Foreman.Sessions do
     end
   end
 
-  def signal({project, _} = key, id, event, tool \\ nil) when event in [:waiting, :resumed] do
+  def relaunch({project, _} = key, opts \\ []) do
+    with :ok <- Foreman.Preview.allow_external_write() do
+      {:ok, result} =
+        Repo.transaction(fn ->
+          Foreman.SessionWaiting.lock(project)
+
+          case get(key) do
+            nil ->
+              {:error, :not_relaunchable}
+
+            _ ->
+              session = locked(key) |> observe(opts)
+
+              case SessionMachine.step(session.state, :relaunch, %{}) do
+                {:starting, [open: :resume]} ->
+                  case SessionTmux.resume(session, opts) do
+                    {:ok, window} ->
+                      previous =
+                        if session.state == :ended do
+                          session.previous_windows ++
+                            [
+                              %{
+                                "window" => session.window,
+                                "last_activity_at" =>
+                                  DateTime.to_iso8601(
+                                    session.last_activity_at || session.launched_at
+                                  )
+                              }
+                            ]
+                        else
+                          session.previous_windows
+                        end
+
+                      session = transition(session, :relaunch)
+
+                      {:ok,
+                       save(session, %{
+                         window: window,
+                         previous_windows: previous,
+                         error: nil,
+                         last_activity_at: DateTime.utc_now()
+                       })}
+
+                    {:error, reason} ->
+                      save(session, %{error: error_message(reason)})
+                      {:error, reason}
+                  end
+
+                _ ->
+                  {:error, :not_relaunchable}
+              end
+          end
+        end)
+
+      Foreman.Events.broadcast(:sessions_changed, project)
+      result
+    end
+  end
+
+  def signal({project, _} = key, id, event, tool \\ nil)
+      when event in [:waiting, :resumed, :activity] do
     Repo.transaction(fn ->
       Foreman.SessionWaiting.lock(project)
 
@@ -93,6 +153,7 @@ defmodule Foreman.Sessions do
                      request.facts["reason"] in ["input", "usage_limit"])
               end)
 
+          session = save(session, %{last_activity_at: DateTime.utc_now()})
           {:ok, transition(session, event, %{resume_matches: matches})}
 
         _ ->
@@ -108,15 +169,88 @@ defmodule Foreman.Sessions do
   def reconcile(opts \\ []) do
     Foreman.SessionWaiting.reconcile_external()
 
-    Repo.all(from s in PlanningSession, where: s.state != :parked)
+    Repo.all(from s in PlanningSession, where: s.state != :parked or s.previous_windows != [])
     |> Enum.each(fn s ->
       Repo.transaction(fn ->
         Foreman.SessionWaiting.lock(s.project)
-        locked({s.project, s.ticket}) |> observe(opts)
+
+        locked({s.project, s.ticket})
+        |> observe(opts)
+        |> park_if_idle(opts)
+        |> reconcile_previous(opts)
       end)
     end)
 
     :ok
+  end
+
+  defp reconcile_previous(session, opts) do
+    previous =
+      Enum.flat_map(session.previous_windows, fn entry ->
+        {:ok, last, _} = DateTime.from_iso8601(entry["last_activity_at"])
+        old = %{session | window: entry["window"], state: :ended, last_activity_at: last}
+
+        case SessionTmux.observe(old, opts) do
+          {:ok, :window_gone} ->
+            []
+
+          {:ok, _} ->
+            case idle_result(old, opts) do
+              :parked -> []
+              {:active, now} -> [Map.put(entry, "last_activity_at", DateTime.to_iso8601(now))]
+              :unchanged -> [entry]
+            end
+
+          _ ->
+            [entry]
+        end
+      end)
+
+    if previous == session.previous_windows,
+      do: session,
+      else: save(session, %{previous_windows: previous})
+  end
+
+  defp park_if_idle(%{state: state} = session, opts) when state in [:running, :waiting, :ended] do
+    case idle_result(session, opts) do
+      :parked -> transition(session, :idle_timeout)
+      {:active, now} -> save(session, %{last_activity_at: now})
+      :unchanged -> session
+    end
+  end
+
+  defp park_if_idle(session, _opts), do: session
+
+  defp idle_result(session, opts) do
+    now = DateTime.utc_now()
+
+    timeout =
+      Keyword.get(
+        opts,
+        :idle_timeout,
+        Application.get_env(:foreman, :planning_idle_timeout, 86_400)
+      )
+
+    case SessionTmux.attached?(session, opts) do
+      {:ok, true} ->
+        {:active, now}
+
+      {:ok, false} ->
+        last = session.last_activity_at || session.launched_at
+
+        if DateTime.diff(now, last, :second) >= timeout do
+          {_state, effects} = SessionMachine.step(session.state, :idle_timeout, %{})
+
+          if {:close, :window} in effects and SessionTmux.park(session, opts) == :ok,
+            do: :parked,
+            else: :unchanged
+        else
+          :unchanged
+        end
+
+      _ ->
+        :unchanged
+    end
   end
 
   defp observe(session, opts) do

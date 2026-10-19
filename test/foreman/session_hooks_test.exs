@@ -25,7 +25,7 @@ defmodule Foreman.SessionHooksTest do
                "last_assistant_message" => "Usage limit reached; resets 14:00"
              })
 
-    assert :ignore =
+    assert :activity =
              Foreman.SessionHooks.facts("StopFailure", %{"error" => "authentication_failed"})
   end
 

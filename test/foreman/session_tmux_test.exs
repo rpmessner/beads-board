@@ -75,6 +75,52 @@ defmodule Foreman.SessionTmuxTest do
     assert {_, 0} = System.cmd("tmux", ["-L", c.socket, "has-session", "-t", "=sample"])
   end
 
+  test "parking refuses attached clients and foreign identities", c do
+    assert {:ok, window} = Tmux.launch(c.session, "flow", c.opts)
+    session = Map.put(c.session, :window, window)
+
+    assert eventually(fn ->
+             Tmux.observe(session, c.opts) == {:ok, %{window: window, state: :running}}
+           end)
+
+    client =
+      Port.open({:spawn_executable, System.find_executable("tmux")}, [
+        :binary,
+        :exit_status,
+        args: ["-L", c.socket, "-C", "attach", "-t", "sample"]
+      ])
+
+    assert eventually(fn -> Tmux.attached?(session, c.opts) == {:ok, true} end)
+    assert {:error, :parking_refused} = Tmux.park(session, c.opts)
+    assert {:ok, %{window: ^window}} = Tmux.observe(session, c.opts)
+    Port.close(client)
+    assert eventually(fn -> Tmux.attached?(session, c.opts) == {:ok, false} end)
+
+    assert {:error, :parking_refused} =
+             Tmux.park(%{session | session_id: Ecto.UUID.generate()}, c.opts)
+
+    assert :ok = Tmux.park(session, c.opts)
+    assert {:ok, :window_gone} = Tmux.observe(session, c.opts)
+  end
+
+  test "attach addresses the recorded window even when ticket names repeat", c do
+    session = Map.put(c.session, :window, "@42")
+    assert Tmux.attach_command(session, c.opts) == "tmux -L '#{c.socket}' attach -t 'sample:@42'"
+  end
+
+  test "an unmarked window cannot be mistaken for the stored conversation", c do
+    assert {:ok, window} = Tmux.launch(c.session, "flow", c.opts)
+    session = Map.put(c.session, :window, window)
+
+    assert eventually(fn ->
+             Tmux.observe(session, c.opts) == {:ok, %{window: window, state: :running}}
+           end)
+
+    System.cmd("tmux", ["-L", c.socket, "set-option", "-wu", "-t", window, "@foreman-session"])
+    assert {:ok, :window_gone} = Tmux.observe(session, c.opts)
+    assert {:error, :parking_refused} = Tmux.park(session, c.opts)
+  end
+
   test "Continue sends only the literal word and Enter to the identified planning window", c do
     executable = Path.join(c.dir, "receiver")
 

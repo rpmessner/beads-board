@@ -1,0 +1,16 @@
+Running ExUnit with seed: 851153, max_cases: 16
+
+...
+
+  1) test attach addresses the recorded window even when ticket names repeat (Foreman.SessionTmuxTest)
+     test/foreman/session_tmux_test.exs:106
+     Assertion with == failed
+     code:  assert Tmux.attach_command(session, c.opts) == "tmux -L '#{c.socket}' attach -t 'sample:@42'"
+     left:  "tmux -L 'fm-test-4962' attach -t 'sample:x-1.2'"
+     right: "tmux -L 'fm-test-4962' attach -t 'sample:@42'"
+     stacktrace:
+       test/foreman/session_tmux_test.exs:108: (test)
+
+.....
+Finished in 0.5 seconds (0.5s async, 0.00s sync)
+9 tests, 1 failure

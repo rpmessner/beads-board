@@ -1,0 +1,18 @@
+Compiling 5 files (.ex)
+Generated foreman app
+Running ExUnit with seed: 792, max_cases: 16
+
+.
+
+  1) test relaunch from ended leaves the readable shell open (Foreman.SessionsTest)
+     test/foreman/sessions_test.exs:190
+     match (=) failed
+     code:  assert {"", 0} = System.cmd("tmux", ["-L", c.socket, "list-windows", "-a", "-F", ~S(#{window_id})])
+     left:  {"", 0}
+     right: {"@0\n", 0}
+     stacktrace:
+       test/foreman/sessions_test.exs:207: (test)
+
+...........
+Finished in 1.7 seconds (0.00s async, 1.7s sync)
+13 tests, 1 failure

@@ -1,5 +1,5 @@
 defmodule Foreman.SessionTmux do
-  @moduledoc "Non-destructive tmux adapter. Targets are resolved by exact names, then addressed by tmux IDs. No kill command is exposed."
+  @moduledoc "Dedicated-server adapter. Parking closes only an identified, unattached window; other operations preserve windows."
 
   def external_target(window, opts \\ []) do
     format =
@@ -111,7 +111,7 @@ defmodule Foreman.SessionTmux do
     with :ok <- Foreman.Preview.allow_external_write(),
          :ok <- validate(session),
          {:ok, windows} <- windows(opts) do
-      case Enum.find(windows, &(&1.project == session.project and &1.ticket == session.ticket)) do
+      case Enum.find(windows, &matches?(&1, session)) do
         nil ->
           create(session, prompt, windows, opts)
 
@@ -122,17 +122,62 @@ defmodule Foreman.SessionTmux do
     end
   end
 
+  def resume(session, opts \\ []) do
+    with :ok <- Foreman.Preview.allow_external_write(),
+         :ok <- validate(session),
+         {:ok, windows} <- windows(opts) do
+      create(session, nil, windows, Keyword.put(opts, :resume, true))
+    end
+  end
+
   def observe(session, opts \\ []) do
     with {:ok, windows} <- windows(opts) do
-      case Enum.find(windows, &(&1.project == session.project and &1.ticket == session.ticket)) do
+      case Enum.find(windows, &matches?(&1, session)) do
         nil -> {:ok, :window_gone}
         w -> {:ok, %{window: w.window, state: w.state}}
       end
     end
   end
 
+  # The guard and kill run in one tmux command queue, not a shell check/kill race.
+  # An unknown identity or attached client fails closed.
+  def park(session, opts \\ []) do
+    with :ok <- Foreman.Preview.allow_external_write(),
+         true <- is_binary(session.window) and Regex.match?(~r/\A@\d+\z/, session.window),
+         {:ok, output} <-
+           cmd(
+             [
+               "if-shell",
+               "-F",
+               "-t",
+               session.window,
+               "\#{&&:\#{==:\#{@foreman-session},#{session.session_id}},\#{==:\#{window_active_clients},0}}",
+               "kill-window -t #{session.window}",
+               "display-message -p parking-refused"
+             ],
+             opts
+           ) do
+      if String.trim(output) == "", do: :ok, else: {:error, :parking_refused}
+    else
+      _ -> {:error, :parking_refused}
+    end
+  end
+
+  def attached?(session, opts \\ []) do
+    with {:ok, output} <-
+           cmd(
+             ["display-message", "-p", "-t", session.window, ~S(#{window_active_clients})],
+             opts
+           ),
+         {count, ""} <- Integer.parse(String.trim(output)) do
+      {:ok, count > 0}
+    else
+      _ -> {:error, :tmux_unavailable}
+    end
+  end
+
   def attach_command(session, opts \\ []) do
-    "tmux -L #{quote_arg(socket(opts))} attach -t #{quote_arg(session.project <> ":" <> session.ticket)}"
+    "tmux -L #{quote_arg(socket(opts))} attach -t #{quote_arg(session.project <> ":" <> (Map.get(session, :window) || session.ticket))}"
   end
 
   defp create(s, prompt, windows, opts) do
@@ -153,26 +198,45 @@ defmodule Foreman.SessionTmux do
     with {:ok, output} <-
            cmd(args ++ ["-P", "-F", ~S(#{window_id}), "-c", s.workdir, command], opts) do
       window = String.trim(output)
-      if Regex.match?(~r/\A@\d+\z/, window), do: {:ok, window}, else: {:error, :tmux_unavailable}
+
+      if Regex.match?(~r/\A@\d+\z/, window) do
+        with {:ok, _} <-
+               cmd(["set-option", "-w", "-t", window, "@foreman-session", s.session_id], opts),
+             do: {:ok, window}
+      else
+        {:error, :tmux_unavailable}
+      end
     end
   end
 
   defp wrapper(s, prompt, opts) do
     tmux = "tmux -L " <> quote_arg(socket(opts))
     claude = Keyword.get(opts, :executable, "claude")
-    # All variable text becomes a single shell argument, including multiline prompts.
-    "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-session #{quote_arg(s.session_id)}; " <>
-      "#{tmux} set-option -w -t \"$TMUX_PANE\" automatic-rename off; " <>
-      "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-state running; " <>
-      Enum.map_join(
-        [
+
+    args =
+      if Keyword.get(opts, :resume, false),
+        do: [
+          claude,
+          "--resume",
+          s.session_id,
+          "--settings",
+          Jason.encode!(Foreman.SessionHooks.settings(s, opts))
+        ],
+        else: [
           claude,
           "--session-id",
           s.session_id,
           "--settings",
           Jason.encode!(Foreman.SessionHooks.settings(s, opts)),
           prompt
-        ],
+        ]
+
+    # All variable text becomes a single shell argument, including multiline prompts.
+    "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-session #{quote_arg(s.session_id)}; " <>
+      "#{tmux} set-option -w -t \"$TMUX_PANE\" automatic-rename off; " <>
+      "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-state running; " <>
+      Enum.map_join(
+        args,
         " ",
         &quote_arg/1
       ) <>
@@ -180,17 +244,20 @@ defmodule Foreman.SessionTmux do
   end
 
   defp windows(opts) do
-    format = ~S(#{session_name}\t#{window_name}\t#{window_id}\t#{@foreman-state}\t#{pane_dead})
+    format =
+      ~S(#{session_name}\t#{window_name}\t#{window_id}\t#{@foreman-state}\t#{pane_dead}\t#{@foreman-session})
+
     format = String.replace(format, "\\t", "\t")
 
     case cmd(["list-windows", "-a", "-F", format], opts) do
       {:ok, output} ->
         rows =
           for line <- String.split(output, "\n", trim: true),
-              [project, ticket, window, state, dead] = String.split(line, "\t"),
+              [project, ticket, window, state, dead, identity] = String.split(line, "\t"),
               do: %{
                 project: project,
                 ticket: ticket,
+                identity: identity,
                 window: window,
                 state:
                   cond do
@@ -214,6 +281,14 @@ defmodule Foreman.SessionTmux do
       error ->
         error
     end
+  end
+
+  defp matches?(window, session) do
+    target = Map.get(session, :window)
+
+    window.project == session.project and
+      if(target, do: window.window == target, else: window.ticket == session.ticket) and
+      window.identity == session.session_id
   end
 
   defp validate(s) do
