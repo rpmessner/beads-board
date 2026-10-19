@@ -264,4 +264,42 @@ defmodule Foreman.CLITransportTest do
 
     assert Jason.decode!(output)["warning"] =~ "event not saved"
   end
+
+  test "a session_waiting ask is never spooled when foreman is unavailable" do
+    outside = Path.join(System.tmp_dir!(), "cli-outside-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(outside)
+    on_exit(fn -> File.rm_rf(outside) end)
+    db = Keyword.take(Repo.config(), [:hostname, :port, :username, :password, :database])
+    ticket = isolated_spool_id()
+
+    count = fn ->
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        Repo.one(
+          from s in "spooled_events",
+            where: fragment("?->>'id' = ?", s.request, ^ticket),
+            select: count()
+        )
+      end)
+    end
+
+    capture_io(fn ->
+      assert CLI.run(
+               [
+                 "ask",
+                 "session_waiting",
+                 ticket,
+                 "--reason",
+                 "input",
+                 "--session",
+                 "s-1",
+                 "--json"
+               ],
+               url: "http://127.0.0.1:1",
+               database: db,
+               cwd: outside
+             ) == 0
+    end)
+
+    assert count.() == 0
+  end
 end

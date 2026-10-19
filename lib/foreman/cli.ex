@@ -246,6 +246,9 @@ defmodule Foreman.CLI do
             "request_kind" => request_kind,
             "facts" => ask_facts(request_kind, opts)
           })
+          # A waiting ask replayed after an outage would outlive the session's resume
+          # (clears are never spooled), so it is not queued either.
+          |> Map.put("transient", request_kind == "session_waiting")
 
         {:ok, %{request: request, json: opts[:json] || false}}
 
