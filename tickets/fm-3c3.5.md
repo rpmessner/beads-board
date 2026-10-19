@@ -2,7 +2,7 @@
 id: fm-3c3.5
 title: "pi extension: tell foreman when a pi session waits on input"
 type: feature
-status: open
+status: in_progress
 priority: 2
 parent: fm-3c3
 blocked_by: ["fm-3c3.2"]
