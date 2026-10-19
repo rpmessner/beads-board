@@ -2,7 +2,7 @@
 id: fm-c2w.14
 title: "Preview servers from the ticket sheet, tied to the ticket's stage"
 type: task
-status: in_progress
+status: closed
 priority: 2
 parent: fm-c2w
 blocked_by: ["fm-c2w.6"]
@@ -10,8 +10,8 @@ related: []
 discovered_from: null
 labels: []
 created: 2026-10-18
-closed: null
-close_reason: null
+closed: 2026-10-19
+close_reason: "Merged 6975e7a: previews from the sheet, stage-tied cleanup, orphans page; live check passed."
 ---
 
 ## What to build
