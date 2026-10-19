@@ -83,6 +83,38 @@ defmodule ForemanWeb.InitiativesLiveTest do
     refute has_element?(view, "#ticket-overview h3", "Linked CRs")
   end
 
+  test "file ticket supersedes appears on the sheet even when its target is absent", %{conn: conn} do
+    root = Path.join(System.tmp_dir!(), "fm-sheet-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(Path.join(root, "tickets"))
+    {_, 0} = System.cmd("git", ["init", "-q", root])
+    on_exit(fn -> File.rm_rf!(root) end)
+
+    File.write!(Path.join(root, "tickets/demo-new.md"), """
+    ---
+    id: demo-new
+    title: Replacement
+    type: chore
+    status: open
+    priority: 2
+    parent: null
+    blocked_by: []
+    related: []
+    supersedes: [demo-old]
+    discovered_from: null
+    labels: []
+    created: 2026-10-18
+    closed: null
+    close_reason: null
+    ---
+    """)
+
+    {:ok, snapshot} = Foreman.TicketFiles.snapshot(root)
+    {[raw], []} = Foreman.TicketFiles.decode(snapshot, [])
+    Foreman.Beads.Projection.replace("sample", Jason.encode!(raw))
+    {:ok, view, _} = live(conn, "/?ticket=sample:demo-new")
+    assert has_element?(view, "#ticket-overview span", "supersedes · demo-old")
+  end
+
   test "file ticket acceptance shows checked and total", %{conn: conn} do
     raw =
       b("progress", "task")

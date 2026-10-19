@@ -11,6 +11,7 @@ defmodule Foreman.TicketCLI do
     parent: :string,
     blocked_by: :string,
     related: :string,
+    supersedes: :string,
     discovered_from: :string,
     labels: :string,
     body: :string,
@@ -100,6 +101,7 @@ defmodule Foreman.TicketCLI do
         "parent" => parent,
         "blocked_by" => [],
         "related" => [],
+        "supersedes" => [],
         "discovered_from" => nil,
         "labels" => [],
         "created" => today(),
@@ -214,7 +216,7 @@ defmodule Foreman.TicketCLI do
                     key in ~w(id parent discovered_from) and value == old ->
                       new
 
-                    key in ~w(blocked_by related) ->
+                    key in ~w(blocked_by related supersedes) ->
                       Enum.map(value, &if(&1 == old, do: new, else: &1))
 
                     true ->
@@ -260,11 +262,20 @@ defmodule Foreman.TicketCLI do
         field = to_string(key)
 
         cond do
-          field in ~w(blocked_by related labels) -> put_in(ticket, [:facts, field], csv(value))
-          field in ~w(parent discovered_from) -> put_in(ticket, [:facts, field], nullable(value))
-          field in ~w(title type priority) -> put_in(ticket, [:facts, field], value)
-          field == "body" -> %{ticket | body: value}
-          true -> ticket
+          field in ~w(blocked_by related supersedes labels) ->
+            put_in(ticket, [:facts, field], csv(value))
+
+          field in ~w(parent discovered_from) ->
+            put_in(ticket, [:facts, field], nullable(value))
+
+          field in ~w(title type priority) ->
+            put_in(ticket, [:facts, field], value)
+
+          field == "body" ->
+            %{ticket | body: value}
+
+          true ->
+            ticket
         end
       end)
 
@@ -337,6 +348,7 @@ defmodule Foreman.TicketCLI do
     |> Map.put("body", ticket.body)
     |> Map.update!("blocked_by", &Enum.sort/1)
     |> Map.update!("related", &Enum.sort/1)
+    |> Map.update!("supersedes", &Enum.sort/1)
     |> Map.update!("labels", &Enum.sort/1)
   end
 
@@ -381,6 +393,7 @@ defmodule Foreman.TicketCLI do
       :parent,
       :blocked_by,
       :related,
+      :supersedes,
       :discovered_from,
       :labels,
       :body

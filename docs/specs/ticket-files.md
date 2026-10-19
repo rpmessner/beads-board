@@ -28,12 +28,13 @@ The user uses beads only for two things: a flat-file record of planned work in t
    ---
    id: fm-zgd.3
    title: Push requests executed by the worker
-   type: feature            # epic | feature | task | bug | decision
+   type: feature            # epic | feature | task | bug | decision | chore
    status: open             # open | in_progress | closed | deferred
    priority: 2              # 0 (highest) .. 4
    parent: fm-zgd
    blocked_by: [fm-zgd.1]
    related: []
+   supersedes: []
    discovered_from: null
    labels: []
    created: 2026-10-18
@@ -51,15 +52,15 @@ The user uses beads only for two things: a flat-file record of planned work in t
    - 2026-10-18 coordinator: ...
    ```
 
-   Facts in frontmatter, prose in sections. Unknown frontmatter keys are errors. Acceptance items are Markdown checkboxes; the board shows checked/total. Notes are dated lines appended under `## Notes` (replacing `bd comments`). Other `##` sections (Design, Interfaces, Why) are free prose.
+   `supersedes` is optional when reading older files (defaults to `[]`); canonical writes include it. Facts in frontmatter, prose in sections. Unknown frontmatter keys are errors. Acceptance items are Markdown checkboxes; the board shows checked/total. Notes are dated lines appended under `## Notes` (replacing `bd comments`). Other `##` sections (Design, Interfaces, Why) are free prose.
 4. **Ids** (user). Keep the beads scheme and every existing id: `<prefix>-<code>` for top level (short random base36, checked against existing files), `<parent>.<N>` for children (next free N). The prefix comes from the repo's `foreman.toml` entry. Ticket creation stays a main-checkout job; build sessions report fallout and the coordinator files it. A child-number collision between branches surfaces as a git add/add conflict; `foreman renumber <old> <new>` rewrites the file and every reference to it.
 5. **Agent toolset** (user). The `foreman` CLI writes ticket files directly in the current checkout, with no server needed: `new`, `show`, `ls`, `ready` (open, no open blockers, not an epic), `update`, `close --reason`, `reopen`, `dep add|rm`, `note`, `tree`, `renumber`, `check`. It writes a canonical form (fixed key order, sorted lists, one trailing newline) so its edits make minimal diffs, and keeps every rule the CLI already has: never fails an agent except for invalid input, `--json` everywhere. Stage and session events still go to the server as today.
-6. **Validation** (user). `foreman check` validates every file: frontmatter schema, id matches filename, parent and blockers exist, no dependency cycles, no epic as a blocker of its own child. It runs from each repo's pre-commit hook (the hook that runs the beads export today), so a broken ticket file cannot be committed.
+6. **Validation** (user). `foreman check` validates every file: frontmatter schema, id matches filename, parent and blockers exist, no dependency cycles, no epic as a blocker of its own child. Related, supersedes and discovered-from references must be valid ids but may name absent tickets; they do not block readiness. It runs from each repo's pre-commit hook (the hook that runs the beads export today), so a broken ticket file cannot be committed.
 7. **Reading** (agent call). The board reads each configured repo's main-checkout `tickets/` folder: inotify on that one directory per repo, plus a 60-second rescan, parse into the Postgres cache, and project into the existing ticket identity (repo, id) so overlays, stages, sessions, links and requests carry over unchanged. A file that fails to parse keeps its last good version on the board and shows a per-repo error on Settings. The `bd export` reader, lock probe, process guard and export scheduler are deleted once no repo uses beads.
 8. **Migration** (user). Per-repo switch in `foreman.toml` (`tickets = "files" | "beads"`) so the board reads both during the transition. Order: foreman, then skills, form-engine, dotfiles, then ui-o-matic, cooldown-o-matic, we_go_next_dev. Per repo: back up `.beads/` to a tarball outside the repo; convert every issue including closed ones (fields, dependencies of every type, comments into Notes with their dates); verify counts and a field-by-field comparison; then one commit that adds `tickets/`, removes `.beads/` and its hooks, and installs the `foreman check` pre-commit. The commit is made only in a clean checkout, after the user approves that repo.
 9. **Skills and house rules** (user: switch once foreman has migrated). `to-tickets`, `dispatch` (incl. "dispatch from ready", now `foreman ready` across repos), `wayfinder` and `foreman` use the `foreman` ticket commands; the house AGENTS.md beads section becomes a short tickets section; the per-repo AGENTS beads blocks are removed during each repo's migration.
 
-10. **Onboarding with `foreman adopt`** (user, 2026-10-18). One idempotent command onboards any repo: appends its `[[repos]]` entry to the user's config (the only config write anywhere, made by the user's own command, append-only; the web and worker never write config), migrates `.beads/` when present (backup, convert, compare, remove) or creates `tickets/`, adds a marked block to the repo's AGENTS.md pointing at the `foreman` skill (the one maintained instruction file, linked globally), installs the `foreman check` pre-commit hook, and stops before committing. Each repo cutover in Decision 8 is a run of `foreman adopt`. The CLI stays an Erlang escript on every machine.
+10. **Onboarding with `foreman adopt`** (user, 2026-10-18). One idempotent command onboards any repo: appends its `[[repos]]` entry to the user's config (the only config write anywhere, made by the user's own command, append-only; the web and worker never write config), migrates `.beads/` when present (backup, convert, compare, remove) or creates `tickets/`, adds a marked block to the repo's AGENTS.md pointing at the `foreman` skill (the one maintained instruction file, linked globally), installs the `foreman check` pre-commit hook, and stops before committing. Each repo cutover in Decision 8 is a run of `foreman adopt`. The CLI stays an Erlang escript on every machine. Beads `convoy` maps to `epic`, `tracks` dependencies map to `related`, and `chore` and `supersedes` retain their names. Comparison checks the mapped relations with their multiplicity; original kinds remain in the external export backup.
 
 ## Acceptance checks
 

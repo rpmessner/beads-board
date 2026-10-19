@@ -7,6 +7,38 @@ defmodule Foreman.BeadsConversionTest do
     record
   end
 
+  test "maps convoy, chore and every supported relation without losing edge multiplicity" do
+    deps =
+      for {kind, id} <- [
+            {"tracks", "demo-b"},
+            {"related", "demo-b"},
+            {"tracks", "demo-c"},
+            {"supersedes", "demo-old"}
+          ],
+          do: %{"type" => kind, "depends_on_id" => id}
+
+    source = record() |> Map.put("issue_type", "convoy") |> Map.put("dependencies", deps)
+    assert {:ok, tickets} = Conversion.convert([source])
+    assert tickets["demo-a"].facts["type"] == "epic"
+    assert tickets["demo-a"].facts["related"] == ["demo-b", "demo-b", "demo-c"]
+    assert tickets["demo-a"].facts["supersedes"] == ["demo-old"]
+    assert {:ok, %{count: 1}} = Conversion.compare([source], tickets)
+
+    for {field, value} <- [
+          {"related", ["demo-b", "demo-c"]},
+          {"supersedes", []},
+          {"type", "convoy"}
+        ] do
+      assert {:error, _} =
+               Conversion.compare([source], put_in(tickets, ["demo-a", :facts, field], value))
+    end
+
+    chore = Map.put(source, "issue_type", "chore")
+    assert {:ok, chores} = Conversion.convert([chore])
+    assert chores["demo-a"].facts["type"] == "chore"
+    assert {:ok, _} = Conversion.compare([chore], chores)
+  end
+
   test "refuses relationships or incomplete comments that cannot be represented" do
     for record <- [
           put_in(record(), ["dependencies"], [%{"type" => "unknown", "depends_on_id" => "demo-b"}]),
@@ -88,6 +120,7 @@ defmodule Foreman.BeadsConversionTest do
              "parent" => "demo-c",
              "blocked_by" => ["demo-b"],
              "related" => ["demo-d"],
+             "supersedes" => [],
              "discovered_from" => "demo-e",
              "labels" => ["a", "z"]
            }
