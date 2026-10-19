@@ -2,7 +2,7 @@
 id: fm-c2w.20
 title: "Previews run a full worker that re-syncs every repo beside the real board"
 type: task
-status: open
+status: in_progress
 priority: 2
 parent: fm-c2w
 blocked_by: []
