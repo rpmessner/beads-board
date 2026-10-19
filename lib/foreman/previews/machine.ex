@@ -1,0 +1,33 @@
+defmodule Foreman.Previews.Machine do
+  @moduledoc "Preview intent and devserve observations. Only an explicit start can launch an app."
+  use Foreman.Fsm
+  initial(:none)
+  state(:none)
+  state(:starting)
+  state(:running)
+  state(:failed)
+  state(:stopping)
+  state(:stopped)
+  event(:start)
+  event(:stop)
+  event(:starting)
+  event(:running)
+  event(:failed)
+  event(:stopped)
+  event(:reconcile)
+  effects([:run])
+  guard(:launch_requested?)
+  transition(:reconcile, from: :starting, to: :stay, guard: :launch_requested?, do: [run: :start])
+  transition(:reconcile, from: :stopping, to: :stay, do: [run: :stop])
+  transition(:reconcile, from: :any, to: :stay, do: [run: :observe])
+  transition(:start, from: [:none, :stopped, :failed], to: :starting)
+  transition(:stop, from: :any, to: :stopping)
+  transition(:starting, from: [:none, :starting, :running, :failed, :stopped], to: :starting)
+  transition(:running, from: [:none, :starting, :running, :failed, :stopped], to: :running)
+  transition(:failed, from: [:none, :starting, :running, :failed, :stopped], to: :failed)
+  transition(:stopped, from: :any, to: :stopped)
+  ignore([:starting, :running, :failed], from: :stopping)
+  invalid(:start, from: :any)
+
+  def launch_requested?(data, _), do: Map.get(data, :launch_requested, false)
+end

@@ -15,7 +15,7 @@ config :foreman, Oban,
   repo: Foreman.Repo,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [external_reads: 4, external_writes: 1],
+  queues: [external_reads: 4, external_writes: 1, previews: 1],
   # Lifeline frees jobs orphaned by a killed worker: unique-while-incomplete sync jobs
   # would otherwise block their repo forever. rescue_after stays above every job timeout.
   plugins: [Oban.Plugins.Pruner, {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(5)}]

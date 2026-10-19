@@ -30,7 +30,11 @@ defmodule ForemanWeb.TicketDetail do
 
     socket
     |> assign(
-      ticket: ticket && Map.drop(ticket, [:history, :sessions, :notes]),
+      ticket:
+        ticket &&
+          ticket
+          |> Map.drop([:history, :sessions, :notes])
+          |> Map.put(:preview, Foreman.Previews.for_ticket(key)),
       ticket_key: key,
       sheet_state: state,
       ticket_tab: Foreman.TicketSheet.tab(params["tab"]),
@@ -56,6 +60,25 @@ defmodule ForemanWeb.TicketDetail do
     if current && key == elem(current, 0) <> ":" <> elem(current, 1),
       do: push_patch(socket, to: socket.assigns.sheet_return),
       else: socket
+  end
+
+  def preview(socket, %{"action" => action}) do
+    key = socket.assigns.ticket_key
+
+    result =
+      case {action, key && Foreman.Previews.for_ticket(key)} do
+        {"start", preview} when not is_nil(preview) -> Foreman.Previews.start(key)
+        {"stop", %{id: id}} when not is_nil(id) -> Foreman.Previews.stop(id)
+        _ -> {:error, :unavailable}
+      end
+
+    socket =
+      case result do
+        {:ok, _} -> socket
+        {:error, reason} -> Phoenix.LiveView.put_flash(socket, :error, "Preview: #{reason}")
+      end
+
+    refresh(socket)
   end
 
   attr :ticket, :any, required: true
@@ -117,6 +140,11 @@ defmodule ForemanWeb.TicketDetail do
             <Badge.badge>{@ticket.raw["issue_type"] || "ticket"}</Badge.badge>
             <Badge.badge :if={@ticket.raw["priority"] != nil}>P{@ticket.raw["priority"]}</Badge.badge>
           </div>
+          <ForemanWeb.PreviewControls.controls
+            :if={@ticket.preview}
+            preview={@ticket.preview}
+            terminal={@ticket.stage in [:merged, :done, :abandoned, "merged", "done", "abandoned"]}
+          />
           <div id="ticket-actions" class="flex flex-wrap gap-2">
             <ForemanWeb.PlanningSession.launch_button
               id="ticket-launch"

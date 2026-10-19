@@ -32,6 +32,27 @@ defmodule ForemanWeb.InitiativesLiveTest do
     :ok
   end
 
+  test "sheet preview is explicit and exposes running URL, logs and stop", %{conn: conn} do
+    key = {"sample", "f"}
+
+    Foreman.Overlay.apply_event(
+      key,
+      {:dispatch, %{window: "preview", workdir: System.tmp_dir!()}}
+    )
+
+    {:ok, view, _} = live(conn, "/?ticket=sample:f")
+    assert has_element?(view, "#preview-start")
+    assert Foreman.Previews.for_ticket(key).state == :none
+    view |> element("#preview-start") |> render_click()
+    assert has_element?(view, "#preview-state", "starting")
+    Foreman.Previews.reconcile(Foreman.FakeDevserve)
+    send(view.pid, :reconcile)
+    assert has_element?(view, "#preview-open[href='http://127.0.0.1:4888']")
+    assert has_element?(view, "#preview-logs", "Listening on localhost")
+    view |> element("#preview-stop") |> render_click()
+    assert Foreman.Previews.for_ticket(key).state == :stopping
+  end
+
   test "ticket sections render Markdown and disabled acceptance checkboxes", %{conn: conn} do
     raw =
       b("markdown", "task")

@@ -58,6 +58,13 @@ defmodule ForemanWeb.Layouts do
             <.icon name="hero-code-bracket" class="size-4" /> Pull requests
           </.link>
           <.link
+            navigate={~p"/previews"}
+            class={["bb-nav", @active == :previews && "bb-nav-active"]}
+            aria-current={@active == :previews && "page"}
+          >
+            <.icon name="hero-eye" class="size-4" /> Previews
+          </.link>
+          <.link
             navigate={~p"/settings"}
             class={["bb-nav", @active == :settings && "bb-nav-active"]}
             aria-current={@active == :settings && "page"}

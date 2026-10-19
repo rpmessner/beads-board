@@ -1,0 +1,2 @@
+PASS: sheet start/open/logs/stop; Done cleanup; four viewport/theme screenshots; no browser errors
+PASS: registry empty for worktree and preview database absent
