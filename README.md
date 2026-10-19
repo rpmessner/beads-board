@@ -74,6 +74,19 @@ Development uses `foreman_dev` and listens on `127.0.0.1:4747` (`PORT` overrides
 the port, not the loopback bind). Migrate before starting Oban. Production still
 requires `DATABASE_URL`, plus `SECRET_KEY_BASE` for web/all; no systemd unit is installed.
 
+## Worktree previews
+
+With `PREVIEW=1`, foreman serves the copied Postgres cache without starting
+workers or executing queued jobs. Repo, the Postgres notifier, and the selected
+role's web endpoint stay available. Config discovery, beads/files readers, forge
+sync, session monitoring, spool consumption, and preview polling stay off.
+
+For reader development, set `FOREMAN_PREVIEW_READERS=1` in the preview app's
+startup environment and restart it. This restores the selected role's full worker
+set and queues; it does not override `FOREMAN_ROLE=web` or the test runtime switch.
+The `PREVIEW=1` external-write guard still refuses writes. Leave the opt-in unset
+for UI work; copied sync and session status will remain a snapshot.
+
 ## Install the user services
 
 These steps are for you to run on the host. Nothing in the build installs or

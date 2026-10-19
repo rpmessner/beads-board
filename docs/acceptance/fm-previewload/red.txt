@@ -1,0 +1,14 @@
+  1) test preview serves cached data without worker children or copied jobs (Foreman.RoleTest)
+     test/foreman/role_test.exs:19
+     Assertion with == failed
+     code:  assert opts[:queues] == false
+     left:  [external_reads: 4]
+     right: false
+     stacktrace:
+       test/foreman/role_test.exs:25: anonymous fn/1 in Foreman.RoleTest."test preview serves cached data without worker children or copied jobs"/1
+       (elixir 1.19.5) lib/enum.ex:1688: Enum."-map/2-lists^map/1-1-"/2
+       test/foreman/role_test.exs:22: (test)
+
+...
+Finished in 0.04 seconds (0.00s async, 0.04s sync)
+5 tests, 1 failure

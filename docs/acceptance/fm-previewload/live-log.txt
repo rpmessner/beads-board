@@ -1,0 +1,93 @@
+Oct 18 21:34:30 ORGANIC-PC systemd[737]: Starting devserve-foreman-fm_previewload-66021fe7b7c5.service...
+Oct 18 21:34:30 ORGANIC-PC systemd[737]: Started devserve-foreman-fm_previewload-66021fe7b7c5.service.
+Oct 18 21:35:03 ORGANIC-PC python3[3888940]: [info] Running ForemanWeb.Endpoint with Bandit 1.13.1 at 127.0.0.1:4880 (http)
+Oct 18 21:35:03 ORGANIC-PC python3[3888940]: [info] Access ForemanWeb.Endpoint at http://localhost:4880
+Oct 18 21:35:03 ORGANIC-PC python3[3888940]: [debug] Downloading tailwind from https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.12/tailwindcss-linux-x64
+Oct 18 21:35:03 ORGANIC-PC python3[3888940]: [debug] Downloading esbuild from https://registry.npmjs.org/@esbuild/linux-x64/0.25.4
+Oct 18 21:35:05 ORGANIC-PC python3[3888940]: [watch] build finished, watching for changes...
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [info] GET /
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] Processing with ForemanWeb.InitiativesLive.__live__/0
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]:   Parameters: %{}
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]:   Pipelines: [:browser]
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="approval_requests" db=0.7ms queue=1.1ms idle=1675.0ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT a0."id", a0."repo_key", a0."bead_id", a0."kind", a0."actor", a0."session", a0."facts", a0."state", a0."outcome", a0."note", a0."inserted_at", a0."updated_at" FROM "approval_requests" AS a0 WHERE (a0."state" = 'pending') ORDER BY a0."inserted_at", a0."id" []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ ForemanWeb.RequestCount.refresh/1, at: lib/foreman_web/live/request_count.ex:30
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="board_config" db=3.0ms queue=0.8ms idle=1683.5ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."config", b0."error", b0."source", b0."stores", b0."discovered", b0."loaded_at" FROM "board_config" AS b0 WHERE (b0."id" = 1) []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:9
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="board_config" db=1.5ms idle=1689.6ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."config", b0."error", b0."source", b0."stores", b0."discovered", b0."loaded_at" FROM "board_config" AS b0 WHERE (b0."id" = 1) []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.RuntimeState.repos/0, at: lib/foreman/runtime_state.ex:22
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="repo_sync" db=0.6ms queue=0.7ms idle=1691.5ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT r0."key", r0."state", r0."reason", r0."succeeded_at" FROM "repo_sync" AS r0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.RuntimeState.repos/0, at: lib/foreman/runtime_state.ex:25
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="beads" db=1.1ms queue=0.8ms idle=1693.0ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."repo_key", count(b0."bead_id") FROM "beads" AS b0 GROUP BY b0."repo_key" []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.RuntimeState.repos/0, at: lib/foreman/runtime_state.ex:32
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="tickets" db=1.0ms queue=0.7ms idle=1695.1ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT t0."repo_key", t0."bead_id", t0."stage" FROM "tickets" AS t0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:20
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="epics" db=0.7ms queue=0.6ms idle=1697.4ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT e0."repo_key", e0."bead_id", e0."beads_epic_id", e0."stage", e0."title", e0."spec_link" FROM "epics" AS e0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:24
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="planning_sessions" db=0.5ms queue=0.7ms idle=240.1ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT p0."session_id", p0."project", p0."ticket", p0."window", p0."workdir", p0."state", p0."error", p0."launched_at", p0."observed_at", p0."last_activity_at", p0."previous_windows" FROM "planning_sessions" AS p0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:39
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="sessions" db=0.9ms queue=0.7ms idle=88.4ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT s0."repo_key", s0."bead_id", s0."last_seen_at" FROM "sessions" AS s0 WHERE (s0."ended_at" IS NULL) ORDER BY s0."id" []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:42
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="board_config" db=1.3ms idle=83.4ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."config", b0."error", b0."source", b0."stores", b0."discovered", b0."loaded_at" FROM "board_config" AS b0 WHERE (b0."id" = 1) []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Forge.Store.open_links/0, at: lib/foreman/forge/store.ex:147
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="forge_snapshots" db=0.7ms queue=0.4ms idle=30.1ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT f0."repo_key", f0."remote", f0."snapshot" FROM "forge_snapshots" AS f0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Forge.Store.open_links/0, at: lib/foreman/forge/store.ex:150
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="beads" db=15.5ms queue=0.5ms idle=21.0ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."repo_key", b0."raw" FROM "beads" AS b0 WHERE (b0."repo_key" = ANY($1)) [["form-engine", "foreman", "skills", "dotfiles", "ui-o-matic", "cooldown-o-matic", "we_go_next_dev"]]
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:55
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="epic_links" db=0.9ms queue=0.4ms idle=38.3ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT e0."repo_key", e0."bead_id", e0."epic_repo_key", e0."epic_bead_id" FROM "epic_links" AS e0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:95
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="approval_requests" db=1.5ms idle=47.7ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT a0."id", a0."repo_key", a0."bead_id", a0."kind", a0."actor", a0."session", a0."facts", a0."state", a0."outcome", a0."note", a0."inserted_at", a0."updated_at" FROM "approval_requests" AS a0 WHERE (a0."state" = 'pending') ORDER BY a0."inserted_at", a0."id" []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ ForemanWeb.RequestCount.refresh/1, at: lib/foreman_web/live/request_count.ex:30
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="board_config" db=1.2ms idle=52.8ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."config", b0."error", b0."source", b0."stores", b0."discovered", b0."loaded_at" FROM "board_config" AS b0 WHERE (b0."id" = 1) []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:9
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="board_config" db=1.2ms idle=52.2ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."config", b0."error", b0."source", b0."stores", b0."discovered", b0."loaded_at" FROM "board_config" AS b0 WHERE (b0."id" = 1) []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.RuntimeState.repos/0, at: lib/foreman/runtime_state.ex:22
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="repo_sync" db=1.1ms idle=51.5ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT r0."key", r0."state", r0."reason", r0."succeeded_at" FROM "repo_sync" AS r0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.RuntimeState.repos/0, at: lib/foreman/runtime_state.ex:25
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="beads" db=1.4ms idle=49.2ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."repo_key", count(b0."bead_id") FROM "beads" AS b0 GROUP BY b0."repo_key" []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.RuntimeState.repos/0, at: lib/foreman/runtime_state.ex:32
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="tickets" db=1.3ms idle=49.0ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT t0."repo_key", t0."bead_id", t0."stage" FROM "tickets" AS t0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:20
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="epics" db=1.0ms idle=48.2ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT e0."repo_key", e0."bead_id", e0."beads_epic_id", e0."stage", e0."title", e0."spec_link" FROM "epics" AS e0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:24
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="planning_sessions" db=0.7ms idle=48.0ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT p0."session_id", p0."project", p0."ticket", p0."window", p0."workdir", p0."state", p0."error", p0."launched_at", p0."observed_at", p0."last_activity_at", p0."previous_windows" FROM "planning_sessions" AS p0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:39
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="sessions" db=1.0ms idle=32.6ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT s0."repo_key", s0."bead_id", s0."last_seen_at" FROM "sessions" AS s0 WHERE (s0."ended_at" IS NULL) ORDER BY s0."id" []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:42
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="board_config" db=0.4ms idle=27.5ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."config", b0."error", b0."source", b0."stores", b0."discovered", b0."loaded_at" FROM "board_config" AS b0 WHERE (b0."id" = 1) []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Forge.Store.open_links/0, at: lib/foreman/forge/store.ex:147
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="forge_snapshots" db=1.0ms idle=16.9ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT f0."repo_key", f0."remote", f0."snapshot" FROM "forge_snapshots" AS f0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Forge.Store.open_links/0, at: lib/foreman/forge/store.ex:150
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="beads" db=14.5ms idle=11.1ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT b0."repo_key", b0."raw" FROM "beads" AS b0 WHERE (b0."repo_key" = ANY($1)) [["form-engine", "foreman", "skills", "dotfiles", "ui-o-matic", "cooldown-o-matic", "we_go_next_dev"]]
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:55
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [debug] QUERY OK source="epic_links" db=1.0ms idle=25.9ms
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: SELECT e0."repo_key", e0."bead_id", e0."epic_repo_key", e0."epic_bead_id" FROM "epic_links" AS e0 []
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: ↳ Foreman.Initiatives.snapshot/1, at: lib/foreman/initiatives.ex:95
+Oct 18 21:35:09 ORGANIC-PC python3[3888940]: [info] Sent 200 in 215ms
+Oct 18 21:35:13 ORGANIC-PC python3[3888940]: ≈ tailwindcss v4.1.12
+Oct 18 21:35:13 ORGANIC-PC python3[3888940]: sh: 1: watchman: not found
+Oct 18 21:35:13 ORGANIC-PC python3[3888940]: Done in 175ms
