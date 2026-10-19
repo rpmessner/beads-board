@@ -44,6 +44,12 @@ if config_env() == :dev do
   end
 end
 
+# The tmux server holding coordinator-launched (pi) windows that Continue may type into;
+# "foreman" when the coordinator itself runs on the board-owned server.
+if socket = System.get_env("FOREMAN_EXTERNAL_TMUX_SOCKET") do
+  config :foreman, external_tmux_socket: socket
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
