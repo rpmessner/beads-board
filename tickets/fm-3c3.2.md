@@ -2,7 +2,7 @@
 id: fm-3c3.2
 title: "Session waiting reaches the user (input, permission, usage limit)"
 type: feature
-status: in_progress
+status: closed
 priority: 2
 parent: fm-3c3
 blocked_by: ["fm-3c3.1","fm-zgd.1"]
@@ -10,8 +10,8 @@ related: []
 discovered_from: null
 labels: []
 created: 2026-10-18
-closed: null
-close_reason: null
+closed: 2026-10-19
+close_reason: "Merged 335b706: session waiting with hooks and Continue; 544 tests in slice; live scratch checks passed."
 ---
 
 ## What to build
