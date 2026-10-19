@@ -15,7 +15,7 @@ defmodule ForemanWeb.Layouts do
   def app(assigns) do
     ~H"""
     <div class="min-h-screen bg-base text-sm text-foreground md:flex">
-      <aside class="flex shrink-0 flex-col gap-6 border-b border-base bg-sunken px-3 py-4 md:min-h-screen md:w-60 md:border-r md:border-b-0">
+      <aside class="flex shrink-0 flex-col gap-6 border-b border-base bg-sunken px-3 py-4 md:sticky md:top-0 md:h-screen md:overflow-y-auto md:w-60 md:border-r md:border-b-0">
         <a href="/" class="flex items-center gap-2.5 px-2.5 py-1 text-[15px] font-semibold">
           <.icon name="hero-ellipsis-horizontal-circle" class="size-6" /> foreman
         </a>
