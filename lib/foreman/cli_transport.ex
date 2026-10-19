@@ -19,7 +19,9 @@ defmodule Foreman.CLITransport do
        when is_binary(stage) and is_list(allowed), do: {:conflict, body}
 
   defp classify({:ok, %{status: status, body: body}}) when status in [400, 404, 422],
-    do: {:refused, %{"warning" => "foreman refused command: #{error(body)}"}}
+    do:
+      {:refused,
+       %{"warning" => "foreman refused command: #{error(body)}", "error" => error(body)}}
 
   defp classify(_), do: {:unavailable, %{}}
 

@@ -1,6 +1,15 @@
 defmodule Foreman.SessionHooksTest do
   use ExUnit.Case, async: true
 
+  test "hooks resolve foreman on the pane PATH, not the web release PATH" do
+    settings =
+      Foreman.SessionHooks.settings(%{project: "sample", ticket: "x-1", session_id: "test"})
+
+    [entry] = settings["hooks"]["Stop"]
+    [hook] = entry["hooks"]
+    assert String.contains?(hook["command"], "timeout -k 1 3 'foreman' 'session-hook'")
+  end
+
   test "question tools stay input waits across the permission hook" do
     input = %{"tool_name" => "AskUserQuestion", "tool_input" => %{"questions" => []}}
 

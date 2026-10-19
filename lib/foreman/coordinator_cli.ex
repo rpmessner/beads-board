@@ -29,10 +29,40 @@ defmodule Foreman.CoordinatorCLI do
       0
     else
       error ->
-        IO.puts(:stderr, "Coordinator not launched: #{inspect(error)}")
+        IO.puts(:stderr, "Coordinator not launched: #{refusal(error)}.")
         1
     end
   end
+
+  defp refusal({:error, :usage}), do: refusal_reason("invalid_coordinator_mode")
+  defp refusal({:error, :run_inside_tmux}), do: "run this command inside tmux"
+  defp refusal({_, %{"error" => reason}}), do: refusal_reason(reason)
+
+  defp refusal({_, %{"warning" => _}}),
+    do: "foreman is unavailable; check the service and CLI authentication"
+
+  defp refusal(_), do: "foreman returned an unexpected response"
+
+  defp refusal_reason("claude_unavailable"), do: "claude is not on the foreman service PATH"
+
+  defp refusal_reason("invalid_coordinator_pane"),
+    do: "run this command in the coordinator pane on the foreman tmux server"
+
+  defp refusal_reason("coordinator_active"),
+    do: "the coordinator is still running; stop it before replacing its conversation"
+
+  defp refusal_reason("session_id_in_use"), do: "that conversation belongs to another session"
+  defp refusal_reason("invalid_session_id"), do: "the conversation ID must be a UUID"
+
+  defp refusal_reason("invalid_coordinator_mode"),
+    do: "use foreman coordinator [--fresh | --adopt <uuid>]"
+
+  defp refusal_reason("invalid_launch_target"),
+    do: "the coordinator working directory is unavailable"
+
+  defp refusal_reason("tmux_unavailable"), do: "the foreman tmux server is unavailable"
+  defp refusal_reason("refused in preview"), do: "this command is unavailable in a preview"
+  defp refusal_reason(_), do: "foreman refused the coordinator request"
 
   defp mode_name({:adopt, _}), do: "adopt"
   defp mode_name(mode), do: to_string(mode)

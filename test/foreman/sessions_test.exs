@@ -150,6 +150,12 @@ defmodule Foreman.SessionsTest do
       ])
 
     assert eventually(fn -> Foreman.SessionTmux.attached?(session, c.opts) == {:ok, true} end)
+
+    assert eventually(fn ->
+             Foreman.SessionTmux.observe(session, c.opts) ==
+               {:ok, %{window: session.window, state: :ended}}
+           end)
+
     Sessions.reconcile(c.opts)
     current = Sessions.get({"sample", "x-1"})
     refute current.state == :parked
@@ -209,6 +215,12 @@ defmodule Foreman.SessionsTest do
 
     assert session.window in String.split(windows)
     assert resumed.window in String.split(windows)
+
+    assert eventually(fn ->
+             Foreman.SessionTmux.observe(resumed, c.opts) ==
+               {:ok, %{window: resumed.window, state: :ended}}
+           end)
+
     Sessions.reconcile(Keyword.put(c.opts, :idle_timeout, 0))
 
     assert {"", 0} = System.cmd("tmux", ["-L", c.socket, "list-sessions"])

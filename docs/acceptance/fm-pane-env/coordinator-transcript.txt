@@ -1,0 +1,22 @@
+scratch_socket=fm-coordinator-test-12002
+first=b59549ad-8762-4f13-bc5c-978d938bd65e
+fresh=27c2f8be-e8c9-4822-b560-d60f1ced2c82
+adopted=1edc88cf-b665-4ce3-adc4-f1bd434c64f2
+resume/fresh/adopt argv and /orient verified through real escript + HTTP + scratch tmux
+window name after foreman coordinator: coordinator (unchanged)
+
+foreman coordinator 
+CLAUDE --session-id b59549ad-8762-4f13-bc5c-978d938bd65e; prompt=/orient
+
+foreman coordinator 
+CLAUDE --resume b59549ad-8762-4f13-bc5c-978d938bd65e; prompt=/orient
+
+foreman coordinator --fresh
+CLAUDE --session-id 27c2f8be-e8c9-4822-b560-d60f1ced2c82; prompt=/orient
+
+foreman coordinator --adopt 1edc88cf-b665-4ce3-adc4-f1bd434c64f2
+1edc88cf-b665-4ce3-adc4-f1bd434c64f2
+
+foreman coordinator 
+CLAUDE --resume 1edc88cf-b665-4ce3-adc4-f1bd434c64f2; prompt=/orient
+<host>%

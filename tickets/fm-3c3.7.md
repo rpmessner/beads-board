@@ -2,7 +2,7 @@
 id: fm-3c3.7
 title: "Session panes start with the user's login environment, not the service's"
 type: bug
-status: open
+status: in_progress
 priority: 2
 parent: fm-3c3
 blocked_by: []
