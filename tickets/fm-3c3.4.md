@@ -2,7 +2,7 @@
 id: fm-3c3.4
 title: "Parking and relaunch"
 type: feature
-status: open
+status: in_progress
 priority: 2
 parent: fm-3c3
 blocked_by: ["fm-3c3.1","fm-3c3.2"]
