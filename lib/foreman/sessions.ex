@@ -49,6 +49,7 @@ defmodule Foreman.Sessions do
 
       {:ok, result} =
         Repo.transaction(fn ->
+          Foreman.SessionWaiting.lock(project)
           session = locked(key) |> observe(opts)
 
           if session.state == :parked do
@@ -75,10 +76,44 @@ defmodule Foreman.Sessions do
     end
   end
 
+  def signal({project, _} = key, id, event, tool \\ nil) when event in [:waiting, :resumed] do
+    Repo.transaction(fn ->
+      Foreman.SessionWaiting.lock(project)
+
+      case get(key) do
+        %PlanningSession{session_id: ^id} ->
+          session = locked(key)
+          pending = Foreman.SessionWaiting.pending(key, id)
+
+          matches =
+            is_nil(tool) or
+              Enum.any?(pending, fn request ->
+                request.facts["tool"] == tool or
+                  (tool == "activity" and is_nil(request.facts["tool"]) and
+                     request.facts["reason"] in ["input", "usage_limit"])
+              end)
+
+          {:ok, transition(session, event, %{resume_matches: matches})}
+
+        _ ->
+          {:error, :unknown_session}
+      end
+    end)
+    |> case do
+      {:ok, result} -> result
+      error -> error
+    end
+  end
+
   def reconcile(opts \\ []) do
+    Foreman.SessionWaiting.reconcile_external()
+
     Repo.all(from s in PlanningSession, where: s.state != :parked)
     |> Enum.each(fn s ->
-      Repo.transaction(fn -> locked({s.project, s.ticket}) |> observe(opts) end)
+      Repo.transaction(fn ->
+        Foreman.SessionWaiting.lock(s.project)
+        locked({s.project, s.ticket}) |> observe(opts)
+      end)
     end)
 
     :ok
@@ -99,11 +134,15 @@ defmodule Foreman.Sessions do
     end
   end
 
-  defp transition(session, event) do
-    {state, []} = SessionMachine.step(session.state, event, %{})
+  defp transition(session, event, context \\ %{}) do
+    {state, effects} = SessionMachine.step(session.state, event, context)
+
+    if {:clear, :waiting} in effects,
+      do: Foreman.SessionWaiting.clear({session.project, session.ticket}, session.session_id)
 
     if state != session.state do
       result = save(session, %{state: state, observed_at: DateTime.utc_now()})
+
       Foreman.Events.broadcast(:sessions_changed, session.project)
       result
     else

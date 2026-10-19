@@ -43,6 +43,7 @@ defmodule ForemanWeb.NeedsYouLive do
     end
   end
 
+  def resolve(%{"id" => id, "action" => "continue"}), do: Foreman.SessionWaiting.continue(id)
   def resolve(_), do: {:error, :invalid_action}
 
   def handle_info(:reconcile, socket) do
@@ -142,7 +143,48 @@ defmodule ForemanWeb.NeedsYouLive do
   def request_card(%{request: %{kind: kind}} = assigns) when kind in ["push", "open_pr", "merge"],
     do: action_card(assigns)
 
+  def request_card(%{request: %{kind: "session_waiting"}} = assigns), do: waiting_card(assigns)
   def request_card(assigns), do: decision_card(assigns)
+
+  def waiting_card(assigns) do
+    assigns = assign(assigns, :form, to_form(%{}, as: :waiting))
+
+    ~H"""
+    <article id={@id} class="rounded-xl border border-base bg-base p-5 shadow-sm sm:p-6">
+      <div class="mb-4 flex flex-wrap items-center gap-2 text-xs text-foreground-softer">
+        <Badge.badge>Session waiting</Badge.badge>
+        <.link
+          navigate={"/needs-you?" <> URI.encode_query(%{"ticket" => @request.repo_key <> ":" <> @request.bead_id})}
+          class="font-mono hover:underline"
+        >
+          {@request.bead_id}
+        </.link>
+        <span class="ml-auto"><ForemanWeb.TicketDetail.timestamp at={@request.inserted_at} /></span>
+      </div>
+      <ForemanWeb.RequestCard.waiting_facts request={@request} />
+      <.form
+        :if={@request.facts["reason"] == "usage_limit"}
+        for={@form}
+        id={@prefix <> "waiting-" <> @request.id}
+        phx-submit={@event}
+        phx-value-id={@request.id}
+        class="mt-4"
+      >
+        <Button.button
+          id={@prefix <> "continue-" <> @request.id}
+          type="submit"
+          name="action"
+          value="continue"
+          phx-disable-with="Continuing…"
+          variant="solid"
+          color="primary"
+        >
+          Continue
+        </Button.button>
+      </.form>
+    </article>
+    """
+  end
 
   attr :id, :string, required: true
   attr :request, :any, required: true

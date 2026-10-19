@@ -1,0 +1,3 @@
+PASS real Claude permission, one request <10s, parallel-tool isolation, one browser notification, answer clears
+PASS actual per-launch StopFailure command, Anthropic/reset facts, planning Continue and resume hook
+PASS coordinator usage limit, page/drawer light/dark 390/1440, click sends exactly continue+Enter, output clears, no browser errors

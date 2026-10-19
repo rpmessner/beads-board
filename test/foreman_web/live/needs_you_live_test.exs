@@ -23,6 +23,44 @@ defmodule ForemanWeb.NeedsYouLiveTest do
     %{request: request}
   end
 
+  test "waiting cards share attach and usage-only Continue on page and drawer", %{conn: conn} do
+    session =
+      Foreman.Repo.insert!(%Foreman.PlanningSession{
+        project: "sample",
+        ticket: "s-1",
+        workdir: "/tmp",
+        window: "@42",
+        state: :running,
+        launched_at: DateTime.utc_now()
+      })
+
+    {:ok, request} =
+      Requests.ask({"sample", "s-1"}, "session_waiting", %{
+        "session" => session.session_id,
+        "facts" => %{"reason" => "usage_limit", "provider" => "Codex", "reset_at" => "14:00"}
+      })
+
+    {:ok, view, _} = live(conn, "/needs-you")
+    assert has_element?(view, "#request-#{request.id} code", "tmux -L")
+    assert has_element?(view, "#continue-#{request.id}", "Continue")
+    assert has_element?(view, "#request-#{request.id}", "Codex")
+    assert has_element?(view, "#request-#{request.id}", "14:00")
+    refute has_element?(view, "#submit-approve-#{request.id}")
+    render_click(view, "open-request-drawer")
+    assert has_element?(view, "#drawer-continue-#{request.id}")
+
+    {:ok, input} =
+      Requests.ask({"sample", "s-1"}, "session_waiting", %{
+        "session" => session.session_id,
+        "facts" => %{"reason" => "input"}
+      })
+
+    send(view.pid, :reconcile)
+    render(view)
+    refute has_element?(view, "#continue-#{input.id}")
+    assert {:error, :invalid} = Foreman.SessionWaiting.continue(input.id)
+  end
+
   test "shared shell reconciles notification candidates without request facts", %{
     conn: conn,
     request: request

@@ -1,0 +1,18 @@
+Running ExUnit with seed: 822026, max_cases: 16
+
+...
+
+  1) test question tools stay input waits across the permission hook (Foreman.SessionHooksTest)
+     test/foreman/session_hooks_test.exs:4
+     Assertion with == failed
+     code:  assert Foreman.SessionHooks.facts("PostToolUse", answered) == {:resumed, facts["tool"]}
+     left:  {:resumed,
+             "6C5A81740E82A4AA654E8F7BED57566F1BA5EA732BE04A787D4150284F5450F1"}
+     right: {:resumed,
+             "BB6262F807AB1A957EFD340F3268864028BAA6A9206BFD284593212DA9BB0F56"}
+     stacktrace:
+       test/foreman/session_hooks_test.exs:13: (test)
+
+
+Finished in 0.05 seconds (0.05s async, 0.00s sync)
+4 tests, 1 failure

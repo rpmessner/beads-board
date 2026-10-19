@@ -1,0 +1,29 @@
+{
+  "permissionId": "c22219c0-3da3-40bd-9b17-37ed5495edcc",
+  "planningLimit": "fae35847-a1bf-4766-8a0e-7fbb4975add9",
+  "usageLimitId": "b65166cd-8585-4705-8a7b-15541657c813",
+  "notifications": [
+    {
+      "title": "Session waiting · scratch-1",
+      "tag": "foreman-request-c22219c0-3da3-40bd-9b17-37ed5495edcc"
+    },
+    {
+      "title": "Session waiting · scratch-1",
+      "tag": "foreman-request-4a8b33b1-da72-4624-aeb4-161bfcd2f0e3"
+    },
+    {
+      "title": "Session waiting · scratch-1",
+      "tag": "foreman-request-d7aaf970-6854-498a-ae34-5e898bc48f68"
+    },
+    {
+      "title": "Session waiting · scratch-1",
+      "tag": "foreman-request-fae35847-a1bf-4766-8a0e-7fbb4975add9"
+    },
+    {
+      "title": "Session waiting · scratch-pi",
+      "tag": "foreman-request-b65166cd-8585-4705-8a7b-15541657c813"
+    }
+  ],
+  "errors": [],
+  "received": "continue"
+}

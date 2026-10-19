@@ -1,0 +1,16 @@
+Running ExUnit with seed: 363813, max_cases: 16
+
+..
+
+  1) test tool-start activity clears a provider stop without clearing a tool-specific wait (Foreman.SessionWaitingTest)
+     test/foreman/session_waiting_test.exs:45
+     Assertion with == failed
+     code:  assert Requests.get(request.id).state == "superseded"
+     left:  "pending"
+     right: "superseded"
+     stacktrace:
+       test/foreman/session_waiting_test.exs:48: (test)
+
+..
+Finished in 0.4 seconds (0.00s async, 0.4s sync)
+5 tests, 1 failure

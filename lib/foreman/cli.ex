@@ -19,6 +19,9 @@ defmodule Foreman.CLI do
     "revive" => "revive"
   }
   @switches [
+    reason: :string,
+    provider: :string,
+    reset_at: :string,
     head: :string,
     body_file: :string,
     pr: :integer,
@@ -65,6 +68,7 @@ defmodule Foreman.CLI do
 
   def run(args, opts \\ []) do
     cond do
+      List.first(args) == "session-hook" -> session_hook(tl(args), opts)
       List.first(args) == "adopt" -> Foreman.AdoptCLI.run(tl(args), opts)
       Foreman.TicketCLI.command?(args, opts) -> Foreman.TicketCLI.run(args, opts)
       true -> run_overlay(List.delete(args, "--overlay"), opts)
@@ -74,6 +78,34 @@ defmodule Foreman.CLI do
   catch
     :exit, _ -> warn(args, "foreman unavailable; agent may continue")
   end
+
+  defp session_hook([event, id | args], opts) do
+    input = Keyword.get_lazy(opts, :hook_input, fn -> IO.read(:stdio, :eof) end)
+
+    with {:ok, input} <- Jason.decode(input),
+         {:ok, %{request: request}} <- parse(["ask", "session_waiting", id | args]) do
+      request =
+        request |> Map.put("request_id", Ecto.UUID.generate()) |> Map.put("transient", true)
+
+      case Foreman.SessionHooks.facts(event, input) do
+        {:waiting, facts} ->
+          Foreman.CLITransport.deliver(Map.put(request, "facts", facts), opts)
+
+        {:resumed, tool} ->
+          Foreman.CLITransport.deliver(
+            request |> Map.put("action", "session_resumed") |> Map.put("resume_tool", tool),
+            opts
+          )
+
+        :ignore ->
+          :ok
+      end
+    end
+
+    0
+  end
+
+  defp session_hook(_, _), do: 0
 
   defp run_overlay(args, opts) do
     case parse(args) do
@@ -152,6 +184,14 @@ defmodule Foreman.CLI do
       "cwd" => defaults[:cwd] || File.cwd!()
     }
   end
+
+  defp ask_facts("session_waiting", opts),
+    do: %{
+      "reason" => opts[:reason],
+      "window" => opts[:window],
+      "provider" => opts[:provider],
+      "reset_at" => opts[:reset_at]
+    }
 
   defp ask_facts("open_pr", opts) do
     %{

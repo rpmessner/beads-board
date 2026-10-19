@@ -5,9 +5,10 @@ defmodule Foreman.CLITransport do
     {event, body} = classify(http(request, opts))
 
     {event, body} =
-      if event == :unavailable and request["action"] in ["show", "ls", "wait"],
-        do: {:refused, %{"warning" => "foreman unavailable; read was not queued"}},
-        else: {event, body}
+      if event == :unavailable and
+           (request["transient"] == true or request["action"] in ["show", "ls", "wait"]),
+         do: {:refused, %{"warning" => "foreman unavailable; read was not queued"}},
+         else: {event, body}
 
     advance(:sending, event, body, request, opts)
   end

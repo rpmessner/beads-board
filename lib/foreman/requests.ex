@@ -5,7 +5,11 @@ defmodule Foreman.Requests do
   alias Foreman.Requests.{Request, Kind, Decision}
   alias Foreman.Request, as: Machine
 
-  def ask({repo, _} = key, kind, params) when is_map(params) do
+  def ask(key, "session_waiting", params), do: Foreman.SessionWaiting.ask(key, params)
+  def ask(key, kind, params), do: create(key, kind, params)
+
+  @doc false
+  def create({repo, _} = key, kind, params) when is_map(params) do
     transaction(fn ->
       lock(repo)
 

@@ -1,6 +1,112 @@
 defmodule Foreman.SessionTmux do
   @moduledoc "Non-destructive tmux adapter. Targets are resolved by exact names, then addressed by tmux IDs. No kill command is exposed."
 
+  def external_target(window, opts \\ []) do
+    format =
+      Enum.join(
+        [
+          ~S(#{session_name}),
+          ~S(#{window_name}),
+          ~S(#{window_id}),
+          ~S(#{pane_id}),
+          ~S(#{pane_pid}),
+          ~S(#{pane_active})
+        ],
+        "\t"
+      )
+
+    with true <- is_binary(window) and window != "",
+         {:ok, output} <- external_cmd(["list-panes", "-a", "-F", format], opts),
+         [[project, _name, wid, pane, pid, "1"]] <-
+           output
+           |> String.split("\n", trim: true)
+           |> Enum.map(&String.split(&1, "\t"))
+           |> Enum.filter(fn
+             [_, name, wid, _, _, "1"] -> window in [name, wid]
+             _ -> false
+           end),
+         {:ok, content} <- external_cmd(["capture-pane", "-p", "-J", "-t", pane], opts) do
+      {:ok,
+       %{
+         "target" => "external",
+         "window" => wid,
+         "pane" => pane,
+         "pid" => pid,
+         "snapshot" => digest(content),
+         "attach" =>
+           "tmux -L " <>
+             quote_arg(external_socket(opts)) <> " attach -t " <> quote_arg(project <> ":" <> wid)
+       }}
+    else
+      _ -> {:error, :invalid_window}
+    end
+  end
+
+  def continue_external(facts, opts \\ []) do
+    with :ok <- Foreman.Preview.allow_external_write(),
+         {:ok, current} <- external_target(facts["window"], opts),
+         true <-
+           Map.take(current, ~w(pane pid snapshot)) == Map.take(facts, ~w(pane pid snapshot)),
+         {:ok, _} <-
+           external_cmd(
+             [
+               "send-keys",
+               "-t",
+               facts["pane"],
+               "-l",
+               "continue",
+               ";",
+               "send-keys",
+               "-t",
+               facts["pane"],
+               "Enter"
+             ],
+             opts
+           ) do
+      :ok
+    else
+      _ -> {:error, :invalid_window}
+    end
+  end
+
+  defp digest(content), do: :crypto.hash(:sha256, content) |> Base.encode16()
+
+  defp external_socket(opts),
+    do:
+      Keyword.get(opts, :socket, Application.get_env(:foreman, :external_tmux_socket, "default"))
+
+  defp external_cmd(args, opts) do
+    prefix = ["-N", "-L", external_socket(opts)]
+
+    case System.cmd("tmux", prefix ++ args, stderr_to_stdout: true) do
+      {out, 0} -> {:ok, out}
+      _ -> {:error, :tmux_unavailable}
+    end
+  rescue
+    ErlangError -> {:error, :tmux_unavailable}
+  end
+
+  def continue_session(session, opts \\ []) do
+    with :ok <- Foreman.Preview.allow_external_write(),
+         {:ok, %{window: window, state: :running}} when window == session.window <-
+           observe(session, opts),
+         {:ok, identity} <-
+           cmd(
+             ["display-message", "-p", "-t", session.window, ~S(#{@foreman-session} #{pane_id})],
+             opts
+           ),
+         [id, pane] when id == session.session_id <- String.split(String.trim(identity), " "),
+         {:ok, _} <-
+           cmd(
+             ["send-keys", "-t", pane, "-l", "continue", ";", "send-keys", "-t", pane, "Enter"],
+             opts
+           ) do
+      :ok
+    else
+      _ -> {:error, :invalid_window}
+    end
+  end
+
   def launch(session, prompt, opts \\ []) do
     with :ok <- Foreman.Preview.allow_external_write(),
          :ok <- validate(session),
@@ -55,9 +161,21 @@ defmodule Foreman.SessionTmux do
     tmux = "tmux -L " <> quote_arg(socket(opts))
     claude = Keyword.get(opts, :executable, "claude")
     # All variable text becomes a single shell argument, including multiline prompts.
-    "#{tmux} set-option -w -t \"$TMUX_PANE\" automatic-rename off; " <>
+    "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-session #{quote_arg(s.session_id)}; " <>
+      "#{tmux} set-option -w -t \"$TMUX_PANE\" automatic-rename off; " <>
       "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-state running; " <>
-      Enum.map_join([claude, "--session-id", s.session_id, prompt], " ", &quote_arg/1) <>
+      Enum.map_join(
+        [
+          claude,
+          "--session-id",
+          s.session_id,
+          "--settings",
+          Jason.encode!(Foreman.SessionHooks.settings(s, opts)),
+          prompt
+        ],
+        " ",
+        &quote_arg/1
+      ) <>
       "; #{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-state ended; exec /bin/sh"
   end
 

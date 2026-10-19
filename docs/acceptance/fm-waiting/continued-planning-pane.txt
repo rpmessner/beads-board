@@ -1,0 +1,41 @@
+ ▐▛███▛█   Claude Code v2.1.303
+▝▜██████▀  Opus 5.5 · Claude Max
+ ▝▝   ▝▝   /tmp/fm-waiting-live
+
+
+ ▐▛███▛█   Claude Code v2.1.303
+▝▜██████▀  Opus 5.5 · Claude Max
+ ▝▝   ▝▝   /tmp/fm-waiting-live
+
+ ▐▛███▛█   Claude Code v2.1.303
+▝▜██████▀  Opus 5.5 · Claude Max
+ ▝▝   ▝▝   /tmp/fm-waiting-live
+
+
+❯ You are the coordinator for scratch-1 in project scratch.
+  Read AGENTS.md and tickets/scratch-1.md. Start flow for this ticket.
+  Keep planning scoped to this ticket. Follow the foreman skill for board
+  updates and the house workflow for specs, build dispatch, and review. Ask the
+  user when a decision is theirs.
+
+● Bash(printf permission-probe)
+  ⎿  permission-probe
+
+● User answered Claude's questions:
+  ⎿  · Did the permission probe work? → Yes
+
+● Probe complete
+
+✻ Brewed for 9s · done 8:54 PM
+
+❯ continue
+
+✻ Grooving…
+  ⎿  Tip: Use ctrl+v to paste images from your clipboard
+
+────────────────────────────────────────────────────────────────────────────────
+❯ 
+────────────────────────────────────────────────────────────────────────────────
+  ⏵⏵ auto mode on (shift+tab to cycle) · esc to interrupt
+  tmux focus-events off · add 'set -g focus-events on' to ~/.tmux.conf and re…
+

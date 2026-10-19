@@ -64,7 +64,7 @@ defmodule Foreman.SessionTmuxTest do
     assert eventually(fn -> File.exists?(Path.join(c.dir, "args")) end)
 
     assert File.read!(Path.join(c.dir, "args")) ==
-             "#{c.dir}\n--session-id\n#{c.session.session_id}\n#{prompt}\n"
+             "#{c.dir}\n--session-id\n#{c.session.session_id}\n--settings\n#{Jason.encode!(Foreman.SessionHooks.settings(c.session, c.opts))}\n#{prompt}\n"
 
     refute File.exists?(Path.join(c.dir, "BAD"))
 
@@ -73,6 +73,42 @@ defmodule Foreman.SessionTmuxTest do
            end)
 
     assert {_, 0} = System.cmd("tmux", ["-L", c.socket, "has-session", "-t", "=sample"])
+  end
+
+  test "Continue sends only the literal word and Enter to the identified planning window", c do
+    executable = Path.join(c.dir, "receiver")
+
+    File.write!(
+      executable,
+      "#!/bin/sh\nprintf ready > ready\nIFS= read -r line\nprintf '%s' \"$line\" > received\nread more\n"
+    )
+
+    File.chmod!(executable, 0o700)
+    opts = Keyword.put(c.opts, :executable, executable)
+    assert {:ok, window} = Tmux.launch(c.session, "flow", opts)
+    assert eventually(fn -> File.exists?(Path.join(c.dir, "ready")) end)
+    refute File.exists?(Path.join(c.dir, "received"))
+    assert :ok = Tmux.continue_session(Map.put(c.session, :window, window), opts)
+    assert eventually(fn -> File.exists?(Path.join(c.dir, "received")) end)
+    assert File.read!(Path.join(c.dir, "received")) == "continue"
+
+    assert {:error, _} =
+             Tmux.continue_session(
+               c.session
+               |> Map.put(:window, window)
+               |> Map.put(:session_id, Ecto.UUID.generate()),
+               opts
+             )
+  end
+
+  test "coordinator windows resolve exactly on the external socket", c do
+    assert {:ok, window} = Tmux.launch(c.session, "flow", c.opts)
+    assert {:ok, facts} = Tmux.external_target("x-1.2", c.opts)
+    assert facts["window"] == window
+    assert facts["target"] == "external"
+    assert facts["attach"] =~ "tmux -L '#{c.socket}' attach"
+    assert {:error, _} = Tmux.external_target("x-1", c.opts)
+    assert {:error, _} = Tmux.external_target("; send-keys bad", c.opts)
   end
 
   test "new tickets get separate windows without replacing existing ones", c do

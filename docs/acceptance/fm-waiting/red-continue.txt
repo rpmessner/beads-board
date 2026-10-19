@@ -1,0 +1,16 @@
+Running ExUnit with seed: 667682, max_cases: 16
+
+...
+
+  1) test Continue is a pending usage-limit-only effect, never an approval job (Foreman.RequestMachineTest)
+     test/foreman/request_machine_test.exs:5
+     Assertion with == failed
+     code:  assert Machine.step(:pending, :continue, context) == {:pending, send: :continue}
+     left:  {:error, {:invalid, :pending, :continue}}
+     right: {:pending, [send: :continue]}
+     stacktrace:
+       test/foreman/request_machine_test.exs:7: (test)
+
+
+Finished in 0.02 seconds (0.02s async, 0.00s sync)
+4 tests, 1 failure

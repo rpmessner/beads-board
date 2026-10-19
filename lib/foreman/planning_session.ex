@@ -7,7 +7,7 @@ defmodule Foreman.PlanningSession do
     field :ticket, :string
     field :window, :string
     field :workdir, :string
-    field :state, Ecto.Enum, values: [:starting, :running, :ended, :parked]
+    field :state, Ecto.Enum, values: [:starting, :running, :waiting, :ended, :parked]
     field :error, :string
     field :launched_at, :utc_datetime_usec
     field :observed_at, :utc_datetime_usec

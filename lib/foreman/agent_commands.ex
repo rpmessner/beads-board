@@ -90,6 +90,12 @@ defmodule Foreman.AgentCommands do
             {:error, reason} -> {422, %{error: reason}}
           end
 
+        "session_resumed" ->
+          case Foreman.Sessions.signal(key, request["session"], :resumed, request["resume_tool"]) do
+            {:ok, session} -> {200, %{state: session.state}}
+            {:error, reason} -> {422, %{error: reason}}
+          end
+
         "event" ->
           Agent.event(repo, id, request)
 

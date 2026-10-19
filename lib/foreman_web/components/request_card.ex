@@ -13,6 +13,7 @@ defmodule ForemanWeb.RequestCard do
         <span>{@request.actor}</span>
         <span class="ml-auto"><ForemanWeb.TicketDetail.timestamp at={@request.updated_at} /></span>
       </div>
+      <.waiting_facts :if={@request.kind == "session_waiting"} request={@request} />
       <.push_facts :if={@request.kind == "push"} request={@request} />
       <.open_pr_facts :if={@request.kind == "open_pr"} request={@request} />
       <.merge_facts :if={@request.kind == "merge"} request={@request} />
@@ -29,6 +30,25 @@ defmodule ForemanWeb.RequestCard do
         {String.replace(@request.outcome["reason"], "_", " ")}
       </p>
     </article>
+    """
+  end
+
+  attr :request, :any, required: true
+
+  def waiting_facts(assigns) do
+    ~H"""
+    <p class="break-words font-medium">
+      {%{
+        "input" => "Input needed",
+        "permission" => "Permission needed",
+        "usage_limit" => "Usage limit"
+      }[@request.facts["reason"]]}
+      <span :if={@request.facts["provider"]}>{" · " <> @request.facts["provider"]}</span>
+      <span :if={@request.facts["reset_at"]}>{" · resets " <> @request.facts["reset_at"]}</span>
+    </p>
+    <code class="mt-3 block select-all break-all rounded-lg bg-sunken p-3 text-xs">
+      {@request.facts["attach"]}
+    </code>
     """
   end
 

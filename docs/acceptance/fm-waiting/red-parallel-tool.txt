@@ -1,0 +1,16 @@
+Running ExUnit with seed: 152469, max_cases: 16
+
+...
+
+  1) test completion of an unrelated parallel tool does not clear a permission wait (Foreman.SessionWaitingTest)
+     test/foreman/session_waiting_test.exs:21
+     Assertion with == failed
+     code:  assert Requests.get(request.id).state == "pending"
+     left:  "superseded"
+     right: "pending"
+     stacktrace:
+       test/foreman/session_waiting_test.exs:25: (test)
+
+
+Finished in 0.3 seconds (0.00s async, 0.3s sync)
+4 tests, 1 failure

@@ -1,6 +1,6 @@
 // Permission transitions are declared by Foreman.NotificationPermission.
 const ledgerKey = "foreman:notifications:v1"
-const kindLabels = {decision: "Decision", push: "Push", open_pr: "Open PR", merge: "Merge"}
+const kindLabels = {decision: "Decision", push: "Push", open_pr: "Open PR", merge: "Merge", session_waiting: "Session waiting"}
 
 // Web Locks serializes all same-origin tabs, including background tabs. A durable
 // ledger survives navigation/reconnect and avoids heartbeat/election expiry races.

@@ -1,0 +1,8 @@
+{
+  "scratch_servers_stopped": {
+    "fm-waiting-live": true,
+    "fm-waiting-external": true
+  },
+  "claude_processes_stopped": true,
+  "port_4786_closed": true
+}

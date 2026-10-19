@@ -2,6 +2,24 @@ defmodule Foreman.RequestMachineTest do
   use ExUnit.Case, async: true
   alias Foreman.Request, as: Machine
 
+  test "Continue is a pending usage-limit-only effect, never an approval job" do
+    context = %{kind: "session_waiting", reason: "usage_limit"}
+    assert Machine.step(:pending, :continue, context) == {:pending, [send: :continue]}
+
+    for state <- Machine.__fsm__(:states), state != :pending do
+      assert {:error, _} = Machine.step(state, :continue, context)
+    end
+
+    for context <- [
+          %{kind: "session_waiting", reason: "input"},
+          %{kind: "session_waiting", reason: "permission"},
+          %{kind: "push", reason: "usage_limit"},
+          %{kind: "decision", reason: "usage_limit"}
+        ] do
+      assert {:error, _} = Machine.step(:pending, :continue, context)
+    end
+  end
+
   test "every request transition and its effects" do
     for {from, event, kind, to, effects} <- [
           {:new, :ask, "decision", :pending, [record: :request, notify: :pending]},

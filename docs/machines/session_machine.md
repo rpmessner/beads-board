@@ -7,30 +7,51 @@ stateDiagram-v2
     [*] --> new
     new --> starting: launch / open(window)
     starting --> running: started
-    running --> ended: exited
-    fsm_set_3 --> parked: window_gone
-    state "starting, running, ended" as fsm_set_3
+    fsm_set_2 --> waiting: waiting
+    waiting --> running: resumed [resume_matches?] / clear(waiting)
+    fsm_set_4 --> ended: exited / clear(waiting)
+    fsm_set_5 --> parked: window_gone / clear(waiting)
+    state "starting, running" as fsm_set_2
+    state "running, waiting" as fsm_set_4
+    state "starting, running, waiting, ended" as fsm_set_5
 ```
 
 | state | event | result | effects |
 | --- | --- | --- | --- |
 | new | launch | -> starting | open(window) |
 | new | started | ignored |  |
+| new | waiting | ignored |  |
+| new | resumed | ignored |  |
 | new | exited | ignored |  |
 | new | window_gone | ignored |  |
 | starting | launch | invalid |  |
 | starting | started | -> running |  |
+| starting | waiting | -> waiting |  |
+| starting | resumed | ignored |  |
 | starting | exited | ignored |  |
-| starting | window_gone | -> parked |  |
+| starting | window_gone | -> parked | clear(waiting) |
 | running | launch | invalid |  |
 | running | started | ignored |  |
-| running | exited | -> ended |  |
-| running | window_gone | -> parked |  |
+| running | waiting | -> waiting |  |
+| running | resumed | ignored |  |
+| running | exited | -> ended | clear(waiting) |
+| running | window_gone | -> parked | clear(waiting) |
+| waiting | launch | invalid |  |
+| waiting | started | ignored |  |
+| waiting | waiting | ignored |  |
+| waiting | resumed [resume_matches?] | -> running | clear(waiting) |
+| waiting | resumed | ignored |  |
+| waiting | exited | -> ended | clear(waiting) |
+| waiting | window_gone | -> parked | clear(waiting) |
 | ended | launch | invalid |  |
 | ended | started | ignored |  |
+| ended | waiting | ignored |  |
+| ended | resumed | ignored |  |
 | ended | exited | ignored |  |
-| ended | window_gone | -> parked |  |
+| ended | window_gone | -> parked | clear(waiting) |
 | parked | launch | invalid |  |
 | parked | started | ignored |  |
+| parked | waiting | ignored |  |
+| parked | resumed | ignored |  |
 | parked | exited | ignored |  |
 | parked | window_gone | ignored |  |

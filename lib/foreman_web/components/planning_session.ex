@@ -19,7 +19,7 @@ defmodule ForemanWeb.PlanningSession do
   def launch_button(assigns) do
     focus? =
       assigns.session && assigns.session.window != nil &&
-        assigns.session.state in [:starting, :running, :ended]
+        assigns.session.state in [:starting, :running, :waiting, :ended]
 
     assigns = assign(assigns, :focus?, !!focus?)
 
