@@ -2,7 +2,7 @@
 id: fm-3c3.7
 title: "Session panes start with the user's login environment, not the service's"
 type: bug
-status: in_progress
+status: closed
 priority: 2
 parent: fm-3c3
 blocked_by: []
@@ -11,8 +11,8 @@ supersedes: []
 discovered_from: null
 labels: []
 created: 2026-10-19
-closed: null
-close_reason: null
+closed: 2026-10-19
+close_reason: "merged 6c99dc21c62b8efecc5eb77b041bc7265eb8e10c; precommit 587/0; scratch pane transcript (CLI/mix on PATH, scrubbed env, shell after exit, window name, 13 refusal messages); deployed 20261019T040027"
 ---
 
 Panes foreman starts (the coordinator via `foreman coordinator`, board-launched planning sessions) inherit the foreman-web service environment: the release's `bin/` and `erts/bin` come first on PATH, so `foreman` runs the release launcher instead of the CLI escript and `escript` fails to boot (writing `erl_crash.dump` into the cwd); asdf shims are missing, so `mix`/`escript` are not found; service variables (`FOREMAN_DATABASE_URL`, `RELEASE_*`) leak into Claude and everything it launches (pi build windows included).
