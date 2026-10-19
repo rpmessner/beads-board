@@ -1,6 +1,67 @@
 defmodule Foreman.SessionTmux do
   @moduledoc "Dedicated-server adapter. Parking closes only an identified, unattached window; other operations preserve windows."
 
+  def respawn_coordinator(session, mode, pane, opts \\ []) do
+    with :ok <- Foreman.Preview.allow_external_write(),
+         {:ok, command} <- coordinator_wrapper(session, mode, opts),
+         {:ok, _} <-
+           cmd(["set-option", "-w", "-t", session.window, "@foreman-state", "starting"], opts),
+         {:ok, _} <- cmd(["respawn-pane", "-k", "-t", pane, "-c", session.workdir, command], opts),
+         {:ok, _} <-
+           cmd(
+             ["set-option", "-w", "-t", session.window, "@foreman-session", session.session_id],
+             opts
+           ) do
+      :ok
+    end
+  end
+
+  def coordinator_pane(request, opts \\ [])
+
+  def coordinator_pane(%{"socket" => expected, "pane" => pane}, opts) do
+    with true <- is_binary(pane) and Regex.match?(~r/\A%\d+\z/, pane),
+         {:ok, output} <-
+           cmd(
+             [
+               "display-message",
+               "-p",
+               "-t",
+               pane,
+               ~S(#{socket_path}|#{session_name}|#{window_name}|#{window_id})
+             ],
+             opts
+           ),
+         [^expected, "coordinator", _name, window] <- String.split(String.trim(output), "|") do
+      {:ok, window}
+    else
+      _ -> {:error, :invalid_coordinator_pane}
+    end
+  end
+
+  def coordinator_pane(_, _), do: {:error, :invalid_coordinator_pane}
+
+  def coordinator_wrapper(session, mode, opts \\ []) do
+    with :ok <- validate(session),
+         executable when is_binary(executable) <-
+           System.find_executable(Keyword.get(opts, :executable, "claude")) do
+      {:ok,
+       wrapper(
+         session,
+         "/orient",
+         opts |> Keyword.put(:executable, executable) |> Keyword.put(:resume, mode == :resume)
+       )}
+    else
+      _ -> {:error, :claude_unavailable}
+    end
+  end
+
+  def focus(session, opts \\ []) do
+    with :ok <- Foreman.Preview.allow_external_write(),
+         {:ok, %{window: window}} <- observe(session, opts),
+         {:ok, _} <- cmd(["select-window", "-t", window], opts),
+         do: :ok
+  end
+
   def external_target(window, opts \\ []) do
     format =
       Enum.join(
@@ -177,7 +238,7 @@ defmodule Foreman.SessionTmux do
   end
 
   def attach_command(session, opts \\ []) do
-    "tmux -L #{quote_arg(socket(opts))} attach -t #{quote_arg(session.project <> ":" <> (Map.get(session, :window) || session.ticket))}"
+    "tmux -L #{quote_arg(socket(opts))} attach -t #{quote_arg(tmux_project(session) <> ":" <> (Map.get(session, :window) || session.ticket))}"
   end
 
   defp create(s, prompt, windows, opts) do
@@ -191,9 +252,9 @@ defmodule Foreman.SessionTmux do
     command = wrapper(s, prompt, opts)
 
     args =
-      if Enum.any?(windows, &(&1.project == s.project)),
-        do: ["new-window", "-t", "=" <> s.project, "-n", s.ticket],
-        else: ["new-session", "-d", "-s", s.project, "-n", s.ticket]
+      if Enum.any?(windows, &(&1.project == tmux_project(s))),
+        do: ["new-window", "-t", "=" <> tmux_project(s) <> ":", "-n", s.ticket],
+        else: ["new-session", "-d", "-s", tmux_project(s), "-n", s.ticket]
 
     with {:ok, output} <-
            cmd(args ++ ["-P", "-F", ~S(#{window_id}), "-c", s.workdir, command], opts) do
@@ -230,6 +291,11 @@ defmodule Foreman.SessionTmux do
           Jason.encode!(Foreman.SessionHooks.settings(s, opts)),
           prompt
         ]
+
+    args =
+      if Foreman.Sessions.coordinator?(s) and Keyword.get(opts, :resume, false),
+        do: args ++ ["/orient"],
+        else: args
 
     # All variable text becomes a single shell argument, including multiline prompts.
     "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-session #{quote_arg(s.session_id)}; " <>
@@ -286,10 +352,13 @@ defmodule Foreman.SessionTmux do
   defp matches?(window, session) do
     target = Map.get(session, :window)
 
-    window.project == session.project and
+    window.project == tmux_project(session) and
       if(target, do: window.window == target, else: window.ticket == session.ticket) and
       window.identity == session.session_id
   end
+
+  defp tmux_project(s),
+    do: if(Foreman.Sessions.coordinator?(s), do: "coordinator", else: s.project)
 
   defp validate(s) do
     if Regex.match?(~r/\A[a-zA-Z0-9_-]+\z/, s.project) and

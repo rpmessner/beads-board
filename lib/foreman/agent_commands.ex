@@ -10,7 +10,7 @@ defmodule Foreman.AgentCommands do
   defp write(%{"request_id" => id} = request) do
     case Ecto.UUID.dump(id) do
       {:ok, uuid} ->
-        {:ok, result} =
+        result =
           Repo.transaction(
             fn ->
               Repo.query!("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [
@@ -24,6 +24,9 @@ defmodule Foreman.AgentCommands do
                    ) do
                 nil ->
                   {status, body} = command(request)
+
+                  if request["action"] == "coordinator" and status != 200,
+                    do: Repo.rollback({status, body})
 
                   if status not in [404, 503] do
                     Repo.insert_all("agent_receipts", [
@@ -43,7 +46,10 @@ defmodule Foreman.AgentCommands do
             timeout: 35_000
           )
 
-        result
+        case result do
+          {:ok, response} -> response
+          {:error, {status, body}} -> {status, body}
+        end
 
       _ ->
         {422, %{error: "invalid_request_id"}}
@@ -51,6 +57,13 @@ defmodule Foreman.AgentCommands do
   end
 
   defp write(request), do: write(Map.put(request, "request_id", Ecto.UUID.generate()))
+
+  defp command(%{"action" => "coordinator"} = request) do
+    case Foreman.Sessions.coordinator_command(request) do
+      {:ok, body} -> {200, body}
+      {:error, reason} -> {422, %{error: reason}}
+    end
+  end
 
   defp command(%{"action" => "wait", "id" => id}) do
     case Foreman.Requests.get(id) do
@@ -69,6 +82,29 @@ defmodule Foreman.AgentCommands do
           do: row
 
     {200, %{items: Enum.sort_by(rows, &{&1.repo, Foreman.Beads.Id.sort_key(&1.id)})}}
+  end
+
+  defp command(%{"project" => "__foreman__", "id" => "coordinator", "action" => action} = request)
+       when action in ["ask", "session_resumed", "session_activity"] do
+    key = Foreman.Sessions.coordinator_key()
+
+    result =
+      case action do
+        "ask" ->
+          if request["request_kind"] == "session_waiting",
+            do: Foreman.SessionWaiting.ask(key, request),
+            else: {:error, :invalid_command}
+
+        _ ->
+          event = if action == "session_activity", do: :activity, else: :resumed
+          Foreman.Sessions.signal(key, request["session"], event, request["resume_tool"])
+      end
+
+    case result do
+      {:ok, %Foreman.Requests.Request{} = ask} -> {200, %{id: ask.id, state: ask.state}}
+      {:ok, session} -> {200, %{state: session.state}}
+      {:error, reason} -> {422, %{error: reason}}
+    end
   end
 
   defp command(request) do

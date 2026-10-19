@@ -1,0 +1,6 @@
+Running ExUnit with seed: 589093, max_cases: 16
+
+.........................Generated escript foreman with MIX_ENV=test
+..............................
+Finished in 18.2 seconds (0.5s async, 17.6s sync)
+55 tests, 0 failures

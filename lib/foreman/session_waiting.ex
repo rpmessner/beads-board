@@ -167,6 +167,9 @@ defmodule Foreman.SessionWaiting do
            "attach" => SessionTmux.attach_command(s)
          })}
 
+      _ when key == {"__foreman__", "coordinator"} ->
+        {:error, :unknown_session}
+
       _ ->
         if match?({:ok, _}, Ecto.UUID.cast(id)) and not is_nil(Repo.get(PlanningSession, id)) do
           {:error, :unknown_session}

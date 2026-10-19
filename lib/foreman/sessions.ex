@@ -3,6 +3,170 @@ defmodule Foreman.Sessions do
   import Ecto.Query
   alias Foreman.{Repo, PlanningSession, SessionMachine, SessionTmux}
 
+  @coordinator_key {"__foreman__", "coordinator"}
+  def coordinator_key, do: @coordinator_key
+  def coordinator, do: get(@coordinator_key)
+  def coordinator?(session), do: {session.project, session.ticket} == @coordinator_key
+
+  def prepare_coordinator(mode, opts \\ []) do
+    with :ok <- Foreman.Preview.allow_external_write(),
+         true <- mode in [:resume, :fresh] or match?({:adopt, _}, mode),
+         {:ok, adopted} <- coordinator_id(mode) do
+      {:ok, result} =
+        Repo.transaction(fn ->
+          Foreman.SessionWaiting.lock(elem(@coordinator_key, 0))
+          current = coordinator()
+
+          current =
+            case current do
+              nil -> nil
+              %{window: nil} -> transition(current, :window_gone)
+              _ -> observe(current, opts)
+            end
+
+          event =
+            case mode do
+              :resume -> :coordinator_resume
+              :fresh -> :coordinator_fresh
+              {:adopt, _} -> :adopt
+            end
+
+          previous_state = if current, do: current.state, else: :new
+
+          case SessionMachine.step(previous_state, event, %{coordinator: true}) do
+            {:error, _} ->
+              {:error, :coordinator_active}
+
+            {state, effects} ->
+              identity = Keyword.fetch!(effects, :identity)
+
+              id =
+                case identity do
+                  :keep -> current.session_id
+                  :new -> Ecto.UUID.generate()
+                  :adopt -> adopted
+                end
+
+              if current && identity != :keep,
+                do: Foreman.SessionWaiting.clear(@coordinator_key, current.session_id)
+
+              attrs = %{
+                session_id: id,
+                state: state,
+                window: opts[:window],
+                error: nil,
+                workdir:
+                  Keyword.get(
+                    opts,
+                    :workdir,
+                    Application.get_env(
+                      :foreman,
+                      :coordinator_workdir,
+                      Path.expand("~/dev/music")
+                    )
+                  ),
+                launched_at: DateTime.utc_now(),
+                last_activity_at: DateTime.utc_now(),
+                previous_windows: []
+              }
+
+              session =
+                if current do
+                  save(current, attrs)
+                else
+                  struct(
+                    PlanningSession,
+                    Map.merge(attrs, %{
+                      project: elem(@coordinator_key, 0),
+                      ticket: elem(@coordinator_key, 1)
+                    })
+                  )
+                  |> Repo.insert!()
+                end
+
+              launch = %{new: :fresh, keep: :resume, adopt: :adopt}[identity]
+              {:ok, session, launch}
+          end
+        end)
+
+      Foreman.Events.broadcast(:sessions_changed, elem(@coordinator_key, 0))
+      result
+    else
+      false -> {:error, :invalid_coordinator_mode}
+      error -> error
+    end
+  end
+
+  def launch_coordinator(mode \\ :resume, opts \\ []) do
+    coordinator_transaction(fn ->
+      with {:ok, session, launch} <- prepare_coordinator(mode, opts) do
+        result =
+          if launch == :fresh,
+            do: SessionTmux.launch(session, "/orient", opts),
+            else: SessionTmux.resume(session, opts)
+
+        case result do
+          {:ok, window} ->
+            session = save(session, %{window: window})
+            Foreman.Events.broadcast(:sessions_changed, session.project)
+            {:ok, session}
+
+          {:error, reason} ->
+            save(session, %{error: error_message(reason)})
+            {:error, reason}
+        end
+      end
+    end)
+  end
+
+  def coordinator_command(%{"mode" => "adopt", "adopt" => id}) do
+    with {:ok, session, :adopt} <- prepare_coordinator({:adopt, id}),
+         do: {:ok, %{session_id: session.session_id}}
+  end
+
+  def coordinator_command(%{"mode" => mode} = request) when mode in ["resume", "fresh"] do
+    coordinator_transaction(fn ->
+      with {:ok, window} <- SessionTmux.coordinator_pane(request),
+           {:ok, session, launch} <-
+             prepare_coordinator(if(mode == "fresh", do: :fresh, else: :resume), window: window),
+           :ok <- SessionTmux.respawn_coordinator(session, launch, request["pane"]) do
+        {:ok, %{session_id: session.session_id}}
+      end
+    end)
+  end
+
+  def coordinator_command(_), do: {:error, :invalid_coordinator_mode}
+
+  defp coordinator_transaction(fun) do
+    Repo.transaction(fn ->
+      Foreman.SessionWaiting.lock(elem(@coordinator_key, 0))
+
+      case fun.() do
+        {:error, reason} -> Repo.rollback(reason)
+        result -> result
+      end
+    end)
+    |> case do
+      {:ok, result} -> result
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp coordinator_id({:adopt, id}) do
+    case Ecto.UUID.cast(id) do
+      {:ok, id} ->
+        case Repo.get(PlanningSession, id) do
+          nil -> {:ok, id}
+          session -> if coordinator?(session), do: {:ok, id}, else: {:error, :session_id_in_use}
+        end
+
+      :error ->
+        {:error, :invalid_session_id}
+    end
+  end
+
+  defp coordinator_id(_), do: {:ok, nil}
+
   def launchable?(%{type: "epic", stage: stage}), do: stage in [:idea, :draft]
 
   def launchable?(%{type: type, status: status, parent: nil}) when is_binary(type),
@@ -239,7 +403,10 @@ defmodule Foreman.Sessions do
         last = session.last_activity_at || session.launched_at
 
         if DateTime.diff(now, last, :second) >= timeout do
-          {_state, effects} = SessionMachine.step(session.state, :idle_timeout, %{})
+          {_state, effects} =
+            SessionMachine.step(session.state, :idle_timeout, %{
+              coordinator: coordinator?(session)
+            })
 
           if {:close, :window} in effects and SessionTmux.park(session, opts) == :ok,
             do: :parked,
@@ -269,7 +436,12 @@ defmodule Foreman.Sessions do
   end
 
   defp transition(session, event, context \\ %{}) do
-    {state, effects} = SessionMachine.step(session.state, event, context)
+    {state, effects} =
+      SessionMachine.step(
+        session.state,
+        event,
+        Map.put(context, :coordinator, coordinator?(session))
+      )
 
     if {:clear, :waiting} in effects,
       do: Foreman.SessionWaiting.clear({session.project, session.ticket}, session.session_id)
@@ -322,6 +494,7 @@ defmodule Foreman.Sessions do
     ErlangError -> {:error, :main_checkout_unavailable}
   end
 
+  def error_message(:coordinator_active), do: "Coordinator is still running; focus its window"
   def error_message("refused in preview"), do: "refused in preview"
   def error_message(:not_launchable), do: "Ticket cannot be launched"
   def error_message(:session_parked), do: "Session window is gone"

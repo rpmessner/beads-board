@@ -9,6 +9,9 @@ defmodule Foreman.SessionMachine do
   state(:ended)
   state(:parked)
   event(:launch)
+  event(:adopt)
+  event(:coordinator_resume)
+  event(:coordinator_fresh)
   event(:started, source: :observed)
   event(:waiting, source: :observed)
   event(:resumed, source: :observed)
@@ -17,11 +20,51 @@ defmodule Foreman.SessionMachine do
   event(:idle_timeout, source: :observed)
   event(:activity, source: :observed)
   event(:relaunch)
-  effects([:open, :clear, :close])
+  effects([:open, :clear, :close, :identity])
+  guard(:parkable?)
+  guard(:coordinator?)
+
+  transition(:adopt,
+    from: [:new, :ended],
+    to: :ended,
+    guard: :coordinator?,
+    do: [identity: :adopt]
+  )
+
+  transition(:coordinator_resume,
+    from: :new,
+    to: :starting,
+    guard: :coordinator?,
+    do: [identity: :new, open: :window]
+  )
+
+  transition(:coordinator_resume,
+    from: :ended,
+    to: :starting,
+    guard: :coordinator?,
+    do: [identity: :keep, open: :resume]
+  )
+
+  transition(:coordinator_fresh,
+    from: [:new, :ended],
+    to: :starting,
+    guard: :coordinator?,
+    do: [identity: :new, open: :window]
+  )
+
+  invalid([:adopt, :coordinator_resume, :coordinator_fresh], from: :any)
+
+  transition(:window_gone,
+    from: [:starting, :running, :waiting, :ended],
+    to: :ended,
+    guard: :coordinator?,
+    do: [clear: :waiting]
+  )
 
   transition(:idle_timeout,
     from: [:running, :waiting, :ended],
     to: :parked,
+    guard: :parkable?,
     do: [close: :window, clear: :waiting]
   )
 
@@ -53,5 +96,7 @@ defmodule Foreman.SessionMachine do
   invalid(:launch, from: :any)
   invalid(:relaunch, from: :any)
 
+  def coordinator?(context, _), do: Map.get(context, :coordinator, false)
+  def parkable?(context, _), do: not Map.get(context, :coordinator, false)
   def resume_matches?(context, _), do: Map.get(context, :resume_matches, true)
 end
