@@ -29,3 +29,6 @@ Ticketed epics that are not in flight (fe-lwp, fe-813, cdo-*) have no way to res
 - Done or abandoned epics show no Launch.
 - Board screenshot (light/dark, desktop and 390px) shows the control on an epic row and the epic page.
 - `mix precommit` green.
+
+## Notes
+- 2026-10-19 user: User 2026-10-18: the epic coordinator's pi builds open as new panes in the epic coordinator's own window, not new windows (dispatch pane mode, skills sk-fkb). The opening prompt tells the epic coordinator to dispatch in pane mode; Focus on a building ticket selects its pane. Main coordinator keeps windows.
