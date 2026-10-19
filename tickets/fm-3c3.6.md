@@ -2,7 +2,7 @@
 id: fm-3c3.6
 title: "Coordinator session: resume or launch from the coord command, tracked on the board"
 type: feature
-status: in_progress
+status: closed
 priority: 2
 parent: fm-3c3
 blocked_by: []
@@ -11,8 +11,8 @@ supersedes: []
 discovered_from: null
 labels: []
 created: 2026-10-19
-closed: null
-close_reason: null
+closed: 2026-10-19
+close_reason: "merged 02e6249; precommit 579/0; scratch-tmux resume/fresh/adopt transcript; deployed 20261019T024923; live adopt of the current coordinator conversation"
 ---
 
 The user's coordinator (the Claude Code session that plans, dispatches and closes out) is started by hand today and its conversation id is pasted around. Make it a board-tracked session like the planning sessions.
