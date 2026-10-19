@@ -6,6 +6,8 @@ defmodule Foreman.SessionTmux do
          {:ok, command} <- coordinator_wrapper(session, mode, opts),
          {:ok, _} <-
            cmd(["set-option", "-w", "-t", session.window, "@foreman-state", "starting"], opts),
+         {:ok, _} <-
+           cmd(["set-option", "-w", "-t", session.window, "automatic-rename", "off"], opts),
          {:ok, _} <- cmd(["respawn-pane", "-k", "-t", pane, "-c", session.workdir, command], opts),
          {:ok, _} <-
            cmd(
@@ -13,6 +15,9 @@ defmodule Foreman.SessionTmux do
              opts
            ) do
       :ok
+    else
+      {:error, {:tmux, _}} -> {:error, :tmux_unavailable}
+      error -> error
     end
   end
 
@@ -51,7 +56,8 @@ defmodule Foreman.SessionTmux do
          opts |> Keyword.put(:executable, executable) |> Keyword.put(:resume, mode == :resume)
        )}
     else
-      _ -> {:error, :claude_unavailable}
+      nil -> {:error, :claude_unavailable}
+      error -> error
     end
   end
 
@@ -254,7 +260,7 @@ defmodule Foreman.SessionTmux do
     args =
       if Enum.any?(windows, &(&1.project == tmux_project(s))),
         do: ["new-window", "-t", "=" <> tmux_project(s) <> ":", "-n", s.ticket],
-        else: ["new-session", "-d", "-s", tmux_project(s), "-n", s.ticket]
+        else: ["new-session", "-E", "-d", "-s", tmux_project(s), "-n", s.ticket]
 
     with {:ok, output} <-
            cmd(args ++ ["-P", "-F", ~S(#{window_id}), "-c", s.workdir, command], opts) do
@@ -297,16 +303,26 @@ defmodule Foreman.SessionTmux do
         do: args ++ ["/orient"],
         else: args
 
+    # Match a normal tmux window's interactive login startup, then remove service
+    # settings even if a local shell startup file reintroduces them.
+    scrub =
+      "for name in $(env | cut -d= -f1); do " <>
+        "case \"$name\" in RELEASE_*|PHX_*|FOREMAN_DATABASE_URL|SECRET_KEY_BASE) unset \"$name\";; esac; done; "
+
     # All variable text becomes a single shell argument, including multiline prompts.
-    "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-session #{quote_arg(s.session_id)}; " <>
-      "#{tmux} set-option -w -t \"$TMUX_PANE\" automatic-rename off; " <>
-      "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-state running; " <>
-      Enum.map_join(
-        args,
-        " ",
-        &quote_arg/1
-      ) <>
-      "; #{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-state ended; exec /bin/sh"
+    command =
+      scrub <>
+        "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-session #{quote_arg(s.session_id)}; " <>
+        "#{tmux} set-option -w -t \"$TMUX_PANE\" automatic-rename off; " <>
+        "#{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-state running; " <>
+        Enum.map_join(
+          args,
+          " ",
+          &quote_arg/1
+        ) <>
+        "; #{tmux} set-option -w -t \"$TMUX_PANE\" @foreman-state ended; exec \"$SHELL\" -l"
+
+    "exec \"$SHELL\" -ilc " <> quote_arg(command)
   end
 
   defp windows(opts) do
@@ -374,8 +390,11 @@ defmodule Foreman.SessionTmux do
   defp quote_arg(value), do: "'" <> String.replace(value, "'", "'\\''") <> "'"
 
   defp cmd(args, opts) do
-    case System.cmd("tmux", ["-N", "-L", socket(opts), "-f", "/dev/null"] ++ args,
-           stderr_to_stdout: true
+    case System.cmd("tmux", ["-u", "-N", "-L", socket(opts), "-f", "/dev/null"] ++ args,
+           stderr_to_stdout: true,
+           # tmux otherwise takes PATH from this client, overriding the clean
+           # server/session environment. Never send the web service environment.
+           env: Enum.map(System.get_env(), fn {key, _} -> {key, nil} end)
          ) do
       {out, 0} -> {:ok, out}
       {out, _} -> {:error, {:tmux, out}}

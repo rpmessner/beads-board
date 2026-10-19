@@ -182,7 +182,54 @@ defmodule Foreman.SessionTmuxTest do
              ])
 
     assert String.trim(selected) == first
-    assert {:ok, %{window: ^first, state: :running}} = Tmux.observe(c.session, c.opts)
+
+    assert eventually(fn ->
+             Tmux.observe(c.session, c.opts) == {:ok, %{window: first, state: :running}}
+           end)
+  end
+
+  test "service variables introduced by login startup are removed before Claude", c do
+    shell = Path.join(c.dir, "login-shell")
+
+    File.write!(
+      shell,
+      "#!/bin/sh\nif [ \"$1\" = -ilc ]; then\nexport RELEASE_LOGIN_ONLY=test PHX_LOGIN_ONLY=test\nexec /bin/sh -c \"$2\"\nfi\n"
+    )
+
+    File.chmod!(shell, 0o700)
+    executable = Path.join(c.dir, "env-probe")
+
+    File.write!(
+      executable,
+      "#!/bin/sh\nprintf '%s:%s' \"${RELEASE_LOGIN_ONLY-unset}\" \"${PHX_LOGIN_ONLY-unset}\" > '#{c.dir}/login-env'\n"
+    )
+
+    File.chmod!(executable, 0o700)
+
+    {:ok, command} =
+      Tmux.coordinator_wrapper(c.session, :fresh, Keyword.put(c.opts, :executable, executable))
+
+    System.cmd("/bin/sh", ["-c", command], env: [{"SHELL", shell}], stderr_to_stdout: true)
+    assert File.read!(Path.join(c.dir, "login-env")) == "unset:unset"
+  end
+
+  test "coordinator tmux failure returns a serializable refusal", c do
+    assert {:error, :tmux_unavailable} =
+             Tmux.respawn_coordinator(
+               Map.put(c.session, :window, "@9999"),
+               :fresh,
+               "%9999",
+               c.opts
+             )
+  end
+
+  test "coordinator refuses an unavailable working directory accurately", c do
+    assert {:error, :invalid_launch_target} =
+             Tmux.coordinator_wrapper(
+               %{c.session | workdir: Path.join(c.dir, "missing")},
+               :fresh,
+               c.opts
+             )
   end
 
   test "a missing Claude executable refuses without opening a window", c do

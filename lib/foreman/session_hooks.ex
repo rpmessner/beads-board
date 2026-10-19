@@ -2,8 +2,8 @@ defmodule Foreman.SessionHooks do
   @moduledoc "Per-launch settings for Claude Code 2.1.303. Hooks never control Claude's permission decision."
 
   def settings(session, opts \\ []) do
-    executable =
-      Keyword.get(opts, :hook_executable, System.find_executable("foreman") || "foreman")
+    # Resolve in the initialized pane, not against the web release's bin directory.
+    executable = Keyword.get(opts, :hook_executable, "foreman")
 
     url = Keyword.get(opts, :hook_url, System.get_env("FOREMAN_URL", "http://127.0.0.1:4747"))
 

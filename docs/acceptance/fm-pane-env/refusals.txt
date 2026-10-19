@@ -1,0 +1,38 @@
+claude_unavailable: exit=1
+Coordinator not launched: claude is not on the foreman service PATH.
+
+invalid_coordinator_pane: exit=1
+Coordinator not launched: run this command in the coordinator pane on the foreman tmux server.
+
+coordinator_active: exit=1
+Coordinator not launched: the coordinator is still running; stop it before replacing its conversation.
+
+session_id_in_use: exit=1
+Coordinator not launched: that conversation belongs to another session.
+
+invalid_session_id: exit=1
+Coordinator not launched: the conversation ID must be a UUID.
+
+invalid_coordinator_mode: exit=1
+Coordinator not launched: use foreman coordinator [--fresh | --adopt <uuid>].
+
+invalid_launch_target: exit=1
+Coordinator not launched: the coordinator working directory is unavailable.
+
+tmux_unavailable: exit=1
+Coordinator not launched: the foreman tmux server is unavailable.
+
+refused in preview: exit=1
+Coordinator not launched: this command is unavailable in a preview.
+
+unknown_future_error: exit=1
+Coordinator not launched: foreman refused the coordinator request.
+
+usage: exit=1
+Coordinator not launched: use foreman coordinator [--fresh | --adopt <uuid>].
+
+outside tmux: exit=1
+Coordinator not launched: run this command inside tmux.
+
+unavailable: exit=1
+Coordinator not launched: foreman is unavailable; check the service and CLI authentication.

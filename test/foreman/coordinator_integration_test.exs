@@ -14,6 +14,7 @@ defmodule Foreman.CoordinatorIntegrationTest do
     name = "fm-coordinator-test-#{System.unique_integer([:positive])}"
     dir = Path.expand("tmp/#{name}")
     File.mkdir_p!(dir)
+    File.write!(Path.join(dir, ".zshrc"), "")
     socket = name
     token = Path.join(dir, "token")
     File.write!(token, "scratch-coordinator-test-token")
@@ -38,25 +39,29 @@ defmodule Foreman.CoordinatorIntegrationTest do
     Application.put_env(:foreman, :token_file, token)
 
     {_, 0} =
-      System.cmd("tmux", [
-        "-L",
-        socket,
-        "-f",
-        "/dev/null",
-        "new-session",
-        "-x",
-        "500",
-        "-y",
-        "30",
-        "-d",
-        "-s",
-        "coordinator",
-        "-n",
-        "coordinator",
-        "-c",
-        dir,
-        "/bin/sh"
-      ])
+      System.cmd(
+        "tmux",
+        [
+          "-L",
+          socket,
+          "-f",
+          "/dev/null",
+          "new-session",
+          "-x",
+          "500",
+          "-y",
+          "30",
+          "-d",
+          "-s",
+          "coordinator",
+          "-n",
+          "coordinator",
+          "-c",
+          dir,
+          "/bin/sh"
+        ],
+        env: [{"ZDOTDIR", dir}]
+      )
 
     {socket, 0} =
       System.cmd("tmux", [
@@ -84,10 +89,16 @@ defmodule Foreman.CoordinatorIntegrationTest do
 
     server = start_supervised!({Bandit, plug: ForemanWeb.Endpoint, port: 0, ip: {127, 0, 0, 1}})
     {:ok, {_, port}} = ThousandIsland.listener_info(server)
+    old_url = System.get_env("FOREMAN_URL")
+    System.put_env("FOREMAN_URL", "http://127.0.0.1:#{port}")
 
     on_exit(fn ->
       System.cmd("tmux", ["-S", socket, "kill-server"], stderr_to_stdout: true)
       System.put_env("PATH", old_path)
+
+      if old_url,
+        do: System.put_env("FOREMAN_URL", old_url),
+        else: System.delete_env("FOREMAN_URL")
 
       for {key, value} <- old do
         if value,
@@ -114,6 +125,17 @@ defmodule Foreman.CoordinatorIntegrationTest do
     assert id == first.session_id
     assert Jason.decode!(settings)["hooks"]["StopFailure"]
     assert String.trim(File.read!(Path.join(c.dir, "cwd"))) == c.dir
+
+    assert {"coordinator\n", 0} =
+             System.cmd("tmux", [
+               "-S",
+               c.socket,
+               "display-message",
+               "-p",
+               "-t",
+               c.pane,
+               ~S(#{window_name})
+             ])
 
     launch(c, "")
     assert ["--resume", ^id, "--settings", _, "/orient"] = argv(c)
@@ -147,6 +169,7 @@ defmodule Foreman.CoordinatorIntegrationTest do
     transcript =
       "scratch_socket=#{Path.basename(c.socket)}\nfirst=#{id}\nfresh=#{fresh}\nadopted=#{adopted}\n" <>
         "resume/fresh/adopt argv and /orient verified through real escript + HTTP + scratch tmux\n" <>
+        "window name after foreman coordinator: coordinator (unchanged)\n" <>
         File.read!(Path.join(c.dir, "transcript"))
 
     File.mkdir_p!("tmp")
@@ -204,10 +227,19 @@ defmodule Foreman.CoordinatorIntegrationTest do
     assert ["--resume", ^id, "--settings", _, "/orient"] = argv(c)
     assert Sessions.prepare_coordinator(:fresh) == {:error, :coordinator_active}
 
-    hook =
-      "printf '%s' '{\"error\":\"rate_limit\"}' | '#{Path.expand("foreman")}' session-hook StopFailure coordinator --project __foreman__ --session #{id}"
+    ["--resume", ^id, "--settings", settings, "/orient"] = argv(c)
+    [entry] = Jason.decode!(settings)["hooks"]["StopFailure"]
+    [hook] = entry["hooks"]
+    command = "printf '%s' '{\"error\":\"rate_limit\"}' | " <> hook["command"]
 
-    assert {_, 0} = System.cmd("/bin/sh", ["-c", hook], env: env(c))
+    assert {_, 0} =
+             System.cmd("/bin/sh", ["-c", command],
+               env: [
+                 {"FOREMAN_URL", "http://127.0.0.1:1"},
+                 {"FOREMAN_TOKEN_FILE", "/missing/token"}
+               ]
+             )
+
     [request] = Foreman.SessionWaiting.pending(Sessions.coordinator_key(), id)
     request_id = request.id
     assert request.facts["reason"] == "usage_limit"
