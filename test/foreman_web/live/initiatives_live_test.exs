@@ -32,6 +32,17 @@ defmodule ForemanWeb.InitiativesLiveTest do
     :ok
   end
 
+  test "the global coordinator offers state, focus, resume and a separate fresh start", %{
+    conn: conn
+  } do
+    {:ok, _, :adopt} = Foreman.Sessions.prepare_coordinator({:adopt, Ecto.UUID.generate()})
+    {:ok, view, _} = live(conn, "/")
+    assert has_element?(view, "#coordinator-state", "ended")
+    assert has_element?(view, "#coordinator-focus")
+    assert has_element?(view, "#coordinator-relaunch")
+    assert has_element?(view, "#coordinator-fresh[data-confirm]")
+  end
+
   test "sheet preview is explicit and exposes running URL, logs and stop", %{conn: conn} do
     key = {"sample", "f"}
 

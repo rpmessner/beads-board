@@ -2,7 +2,7 @@
 id: fm-3c3.6
 title: "Coordinator session: resume or launch from the coord command, tracked on the board"
 type: feature
-status: open
+status: in_progress
 priority: 2
 parent: fm-3c3
 blocked_by: []

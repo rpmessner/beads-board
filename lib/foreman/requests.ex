@@ -14,7 +14,7 @@ defmodule Foreman.Requests do
       lock(repo)
 
       with {:ok, handler} <- Kind.fetch(kind),
-           row when not is_nil(row) <- Overlay.get(key),
+           row when not is_nil(row) <- request_subject(key, kind),
            true <- row.stage not in [:done, :abandoned],
            true <- Decision.text?(params["actor"] || "user"),
            true <- is_nil(params["session"]) or Decision.text?(params["session"]),
@@ -45,6 +45,13 @@ defmodule Foreman.Requests do
       end
     end)
   end
+
+  # The singleton coordinator has no ticket overlay. Only session attention may
+  # use this system identity; approvals still require an actual ticket.
+  defp request_subject({"__foreman__", "coordinator"}, "session_waiting"),
+    do: %{stage: :building, bead_id: "coordinator"}
+
+  defp request_subject(key, _kind), do: Overlay.get(key)
 
   def get(id) do
     case Ecto.UUID.cast(id) do

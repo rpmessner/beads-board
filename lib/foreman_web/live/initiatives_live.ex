@@ -58,6 +58,31 @@ defmodule ForemanWeb.InitiativesLive do
     {:noreply, push_patch(socket, to: Filters.path(filters))}
   end
 
+  def handle_event("coordinator", %{"action" => action}, socket) do
+    result =
+      case action do
+        "focus" ->
+          case Foreman.Sessions.coordinator() do
+            nil -> {:error, :not_relaunchable}
+            session -> Foreman.SessionTmux.focus(session)
+          end
+
+        "resume" ->
+          Foreman.Sessions.launch_coordinator(:resume)
+
+        "fresh" ->
+          Foreman.Sessions.launch_coordinator(:fresh)
+      end
+
+    socket =
+      case result do
+        {:error, reason} -> put_flash(socket, :error, Foreman.Sessions.error_message(reason))
+        _ -> socket
+      end
+
+    {:noreply, refresh(socket)}
+  end
+
   def handle_event("launch-session", params, socket),
     do: {:noreply, socket |> ForemanWeb.PlanningSession.launch(params) |> refresh()}
 
@@ -151,6 +176,7 @@ defmodule ForemanWeb.InitiativesLive do
 
     socket
     |> assign(
+      coordinator: Foreman.Sessions.coordinator(),
       repos: data.repos,
       columns: data.columns,
       views: data.views,
@@ -277,6 +303,48 @@ defmodule ForemanWeb.InitiativesLive do
           {@draft_count} drafts · {@epic_count} active · {@done_count} done · {@orphan_count} unplanned
         </span>
       </header>
+      <section
+        id="coordinator"
+        class="flex flex-wrap items-center gap-3 rounded-lg border border-foreground/10 px-4 py-3 text-sm"
+      >
+        <span class="font-medium">Coordinator</span>
+        <span id="coordinator-state" class="text-foreground-softer">
+          {if @coordinator, do: @coordinator.state, else: "Not started"}
+        </span>
+        <div class="ml-auto flex flex-wrap gap-2">
+          <Button.button
+            id="coordinator-focus"
+            size="sm"
+            variant="ghost"
+            phx-click="coordinator"
+            phx-value-action="focus"
+            disabled={is_nil(@coordinator) or is_nil(@coordinator.window)}
+          >
+            Focus
+          </Button.button>
+          <Button.button
+            id="coordinator-relaunch"
+            size="sm"
+            variant="outline"
+            phx-click="coordinator"
+            phx-value-action="resume"
+            disabled={@coordinator && @coordinator.state in [:starting, :running, :waiting]}
+          >
+            Relaunch
+          </Button.button>
+          <Button.button
+            id="coordinator-fresh"
+            size="sm"
+            variant="ghost"
+            phx-click="coordinator"
+            phx-value-action="fresh"
+            data-confirm="Start a new coordinator conversation?"
+            disabled={@coordinator && @coordinator.state in [:starting, :running, :waiting]}
+          >
+            Start fresh
+          </Button.button>
+        </div>
+      </section>
       <.form
         for={@form}
         id="initiative-filters"
