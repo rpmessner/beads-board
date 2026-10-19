@@ -3,7 +3,7 @@ Description=Foreman planning session tmux server
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/tmux -D -L foreman -f /dev/null
+ExecStart=/usr/bin/tmux -D -L foreman
 Restart=on-failure
 RestartSec=3
 

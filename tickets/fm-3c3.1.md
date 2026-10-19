@@ -2,7 +2,7 @@
 id: fm-3c3.1
 title: "Launch from the board into the board-owned tmux server"
 type: feature
-status: in_progress
+status: closed
 priority: 2
 parent: fm-3c3
 blocked_by: ["fm-c2w.17"]
@@ -10,8 +10,8 @@ related: []
 discovered_from: null
 labels: []
 created: 2026-10-18
-closed: null
-close_reason: null
+closed: 2026-10-19
+close_reason: "Merged 2e5954e; foreman-tmux installed with the user's tmux config (prefix C-s, theme) and running; Launch is live on the board."
 ---
 
 ## What to build
