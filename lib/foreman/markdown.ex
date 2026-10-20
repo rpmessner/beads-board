@@ -51,8 +51,24 @@ defmodule Foreman.Markdown do
     document =
       if resolver = opts[:link_paths], do: link_paths(document, resolver), else: document
 
+    document = if opts[:resolve_paths], do: unwrap_unresolved(document), else: document
     MDEx.to_html!(document)
   end
+
+  defp unwrap_unresolved(%{nodes: nodes} = node) when is_list(nodes) do
+    %{
+      node
+      | nodes:
+          Enum.flat_map(nodes, fn child ->
+            case unwrap_unresolved(child) do
+              %MDEx.Link{url: "", nodes: children} -> children
+              child -> [child]
+            end
+          end)
+    }
+  end
+
+  defp unwrap_unresolved(node), do: node
 
   # Bare Markdown paths in text or inline code become links when `resolver`
   # returns a URL for them. Existing links and code blocks are left alone.
@@ -132,6 +148,15 @@ defmodule Foreman.Markdown do
 
       is_nil(uri.path) or uri.path == "" ->
         url
+
+      opts[:resolve_paths] && String.downcase(Path.extname(uri.path)) == ".md" ->
+        case opts[:resolve_paths].(URI.decode(uri.path)) do
+          path when is_binary(path) ->
+            path <> if(uri.fragment, do: "#" <> URI.encode(uri.fragment), else: "")
+
+          _ ->
+            ""
+        end
 
       opts[:repo] && String.downcase(Path.extname(uri.path)) == ".md" ->
         case relative_path(URI.decode(uri.path), opts[:path] || "README.md") do

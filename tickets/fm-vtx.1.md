@@ -2,7 +2,7 @@
 id: fm-vtx.1
 title: "Ticket sheet links documents and lists them"
 type: task
-status: open
+status: in_progress
 priority: 2
 parent: fm-vtx
 blocked_by: []

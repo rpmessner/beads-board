@@ -28,6 +28,11 @@ defmodule ForemanWeb.TicketDetail do
         %{}
       )
 
+    requests = if ticket, do: Foreman.Requests.for_ticket(key), else: []
+
+    documents = if ticket, do: Foreman.TicketDocuments.collect(ticket, requests), else: []
+    ticket = if ticket, do: Map.put(ticket, :documents?, documents != []), else: nil
+
     socket
     |> assign(
       ticket:
@@ -44,7 +49,18 @@ defmodule ForemanWeb.TicketDetail do
     |> stream(:ticket_history, if(ticket, do: ticket.history, else: []), reset: true)
     |> stream(:ticket_sessions, if(ticket, do: ticket.sessions, else: []), reset: true)
     |> stream(:ticket_notes, if(ticket, do: ticket.notes, else: []), reset: true)
-    |> stream(:ticket_requests, if(ticket, do: Foreman.Requests.for_ticket(key), else: []),
+    |> stream(:ticket_requests, requests, reset: true)
+    |> stream(
+      :ticket_documents,
+      Enum.map(documents, fn {repo, path, source} ->
+        %{
+          id:
+            {repo, path, source} |> :erlang.term_to_binary() |> Base.url_encode64(padding: false),
+          repo: repo,
+          path: path,
+          source: source
+        }
+      end),
       reset: true
     )
   end
@@ -234,9 +250,27 @@ defmodule ForemanWeb.TicketDetail do
           >
             <h3 class="bb-label mb-2">{title}</h3>
             <div class="fm-markdown">
-              {Phoenix.HTML.raw(Foreman.Markdown.render(@ticket.raw[key], repo: @ticket.repo))}
+              {Phoenix.HTML.raw(Foreman.TicketDocuments.render(@ticket.raw[key], @ticket.repo))}
             </div>
           </div>
+          <section :if={@ticket.documents?} id="ticket-documents" class="space-y-2">
+            <h3 class="bb-label">Documents</h3>
+            <ul id="ticket-document-list" phx-update="stream" class="space-y-2">
+              <li
+                :for={{id, document} <- @streams.ticket_documents}
+                id={id}
+                class="flex flex-wrap items-baseline gap-x-3 gap-y-1"
+              >
+                <.link
+                  navigate={Foreman.Markdown.viewer_path(document.repo, document.path)}
+                  class="min-w-0 break-words font-mono text-xs underline decoration-current/30 underline-offset-4 hover:decoration-current"
+                >
+                  {document.path}
+                </.link>
+                <span class="text-xs text-foreground-softer">{document.repo} · main checkout</span>
+              </li>
+            </ul>
+          </section>
           <div :if={@ticket.raw["dependencies"] not in [nil, []]}>
             <h3 class="bb-label mb-2">Dependencies</h3>
             <div class="flex flex-wrap gap-2">
@@ -301,7 +335,9 @@ defmodule ForemanWeb.TicketDetail do
                   <%= if @ticket.raw["acceptance_progress"] && key in ~w(created_at closed_at) do %>
                     <.timestamp at={value} />
                   <% else %>
-                    <span class="whitespace-pre-wrap">{value_text(value)}</span>
+                    <div class="fm-markdown">
+                      {Phoenix.HTML.raw(Foreman.TicketDocuments.render(value, @ticket.repo))}
+                    </div>
                   <% end %>
                 </dd>
               <% end %>
@@ -340,7 +376,9 @@ defmodule ForemanWeb.TicketDetail do
               id={id}
               class="rounded-lg border border-base p-4"
             >
-              <h4 class="font-mono font-medium">{session.window}</h4>
+              <div role="heading" aria-level="4" class="fm-markdown font-mono font-medium">
+                {Phoenix.HTML.raw(Foreman.TicketDocuments.render(session.window, @ticket.repo))}
+              </div>
               <dl class="mt-3 grid grid-cols-[100px_minmax(0,1fr)] gap-2 text-xs">
                 <dt>Started</dt>
                 <dd><.timestamp at={session.started_at} /></dd>
@@ -350,7 +388,9 @@ defmodule ForemanWeb.TicketDetail do
                 <dd><.timestamp at={session.ended_at} /></dd>
                 <%= for {key, value} <- Enum.sort(session.details) do %>
                   <dt class="text-foreground-softer">{key}</dt>
-                  <dd class="break-all">{value_text(value)}</dd>
+                  <dd class="fm-markdown break-words">
+                    {Phoenix.HTML.raw(Foreman.TicketDocuments.render(value, @ticket.repo))}
+                  </dd>
                 <% end %>
               </dl>
             </article>
@@ -372,7 +412,7 @@ defmodule ForemanWeb.TicketDetail do
                 } /></span>
               </div>
               <div class="fm-markdown">
-                {Phoenix.HTML.raw(Foreman.Markdown.render(note.body, repo: @ticket.repo))}
+                {Phoenix.HTML.raw(Foreman.TicketDocuments.render(note.body, @ticket.repo))}
               </div>
             </article>
           </div>
@@ -404,12 +444,8 @@ defmodule ForemanWeb.TicketDetail do
       <dl :if={@payload != []} class="mt-2 grid grid-cols-[90px_minmax(0,1fr)] gap-2">
         <%= for {key, value} <- @payload do %>
           <dt class="text-foreground-softer">{key}</dt>
-          <dd class="whitespace-pre-wrap break-words">
-            <%= if key in ["Brief", "Report", "Spec", "Path"] do %>
-              <.document_link repo={@repo} path={value} />
-            <% else %>
-              {value_text(value)}
-            <% end %>
+          <dd class="fm-markdown break-words">
+            {Phoenix.HTML.raw(Foreman.TicketDocuments.render(value, @repo))}
           </dd>
         <% end %>
       </dl>
@@ -473,7 +509,7 @@ defmodule ForemanWeb.TicketDetail do
   end
 
   defp history_payload(event) do
-    [
+    labels = [
       {"title", "Title"},
       {"window", "Session"},
       {"branch", "Branch"},
@@ -488,10 +524,19 @@ defmodule ForemanWeb.TicketDetail do
       {"beads_epic_id", "Epic"},
       {"body", "Body"}
     ]
-    |> Enum.flat_map(fn {key, label} ->
+
+    fields =
+      labels ++
+        (event.payload
+         |> Map.keys()
+         |> Enum.reject(&List.keymember?(labels, &1, 0))
+         |> Enum.sort()
+         |> Enum.map(&{&1, &1 |> String.replace("_", " ") |> String.capitalize()}))
+
+    Enum.flat_map(fields, fn {key, label} ->
       case event.payload[key] do
-        value when is_binary(value) and value != "" -> [{label, value}]
-        _ -> []
+        value when value in [nil, "", [], %{}] -> []
+        value -> [{label, value}]
       end
     end)
   end
@@ -504,7 +549,4 @@ defmodule ForemanWeb.TicketDetail do
       )
       |> Enum.reject(fn {_key, value} -> value in [nil, [], ""] end)
       |> Enum.sort()
-
-  defp value_text(v) when is_binary(v), do: v
-  defp value_text(v), do: Jason.encode!(v)
 end
