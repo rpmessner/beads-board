@@ -14,6 +14,16 @@ defmodule Foreman.TicketDocumentsTest do
     %{root: root, repos: [%{"key" => "sample", "path" => root}]}
   end
 
+  test "collects worktree sources and dedupes relative and absolute mentions" do
+    f = Foreman.WorktreeDocs.fixture()
+    on_exit(fn -> File.rm_rf!(f.base) end)
+    ticket = %{f.ticket | raw: %{"description" => "docs/report.md #{f.tree}/docs/report.md"}}
+    assert [{"sample", "docs/report.md", source}] = TicketDocuments.collect(ticket, [], f.repos)
+    assert source == Foreman.DocumentSources.token(f.tree)
+    Foreman.ScratchDocs.write(f.root, %{"docs/report.md" => "# Main"})
+    assert TicketDocuments.collect(ticket, [], f.repos) == [{"sample", "docs/report.md", :main}]
+  end
+
   test "relative, dotted and absolute mentions identify the same document", %{
     repos: repos,
     root: root

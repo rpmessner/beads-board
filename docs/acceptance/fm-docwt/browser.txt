@@ -1,0 +1,56 @@
+[
+  {
+    "width": 1440,
+    "theme": "light",
+    "documents": true,
+    "panel": true,
+    "sourceRoundTrip": true,
+    "refresh": true,
+    "viewer": true,
+    "retainedTicket": true,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "theme": "dark",
+    "documents": true,
+    "panel": true,
+    "sourceRoundTrip": true,
+    "refresh": true,
+    "viewer": true,
+    "retainedTicket": true,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "theme": "light",
+    "documents": true,
+    "panel": true,
+    "sourceRoundTrip": true,
+    "refresh": true,
+    "viewer": true,
+    "retainedTicket": true,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "documents": true,
+    "panel": true,
+    "sourceRoundTrip": true,
+    "refresh": true,
+    "viewer": true,
+    "retainedTicket": true,
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "forgedSourceRefused": true,
+    "mainWins": true,
+    "removedTreeFallback": true,
+    "unavailableWhenAbsent": true
+  }
+]

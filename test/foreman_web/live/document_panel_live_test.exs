@@ -24,6 +24,93 @@ defmodule ForemanWeb.DocumentPanelLiveTest do
     %{root: root}
   end
 
+  test "worktree report links, panel and viewer carry the source and drop it after merge", %{
+    conn: conn
+  } do
+    f = Foreman.WorktreeDocs.fixture()
+    on_exit(fn -> File.rm_rf!(f.base) end)
+    ScratchDocs.configure(%{"sample" => f.root})
+
+    Foreman.Overlay.apply_event(
+      {"sample", "s-1"},
+      {:dispatch, %{window: "build", workdir: f.tree, report: "docs/report.md"}}
+    )
+
+    source = Foreman.DocumentSources.token(f.tree)
+    href = Foreman.TicketDocuments.viewer_path("sample", "docs/report.md", source)
+    {:ok, view, _} = live(conn, "/?ticket=sample:s-1")
+    assert has_element?(view, "#ticket-documents a[href='#{href}']")
+    assert has_element?(view, "#ticket-documents", "in worktree build-report")
+    assert has_element?(view, "#ticket-history a[href='#{href}']")
+    render_hook(view, "open-doc", %{"href" => href})
+    assert URI.decode_query(URI.parse(assert_patch(view)).query)["doc_source"] == source
+    assert has_element?(view, "#panel-document h1", "Worktree report")
+    assert has_element?(view, "#panel-worktree", "in worktree build-report")
+    assert has_element?(view, "#panel-open-viewer[href='#{href}']")
+    {:ok, viewer, _} = live(conn, href)
+    assert has_element?(viewer, "#document-content h1", "Worktree report")
+    assert has_element?(viewer, "#document-worktree", "in worktree build-report")
+
+    ScratchDocs.write(f.root, %{"docs/report.md" => "# Merged report"})
+    File.rm_rf!(f.tree)
+    Foreman.WorktreeDocs.git!(f.root, ["worktree", "prune"])
+
+    render_patch(
+      view,
+      "/?" <>
+        URI.encode_query(%{
+          "ticket" => "sample:s-1",
+          "doc" => "sample:docs/report.md",
+          "doc_source" => source
+        })
+    )
+
+    assert has_element?(view, "#panel-document h1", "Merged report")
+    refute has_element?(view, "#panel-worktree")
+    render_patch(viewer, href)
+    assert has_element?(viewer, "#document-content h1", "Merged report")
+    refute has_element?(viewer, "#document-worktree")
+    File.rm!(Path.join(f.root, "docs/report.md"))
+    render_patch(viewer, href)
+    assert has_element?(viewer, "#document-status", "Document unavailable")
+  end
+
+  test "panel and viewer reject forged, unrecorded and non-worktree sources", %{conn: conn} do
+    f = Foreman.WorktreeDocs.fixture()
+    on_exit(fn -> File.rm_rf!(f.base) end)
+    ScratchDocs.configure(%{"sample" => f.root})
+    other = ScratchDocs.write(Path.join(f.base, "outside"), %{"docs/report.md" => "# Secret"})
+    Foreman.Overlay.apply_event({"sample", "s-1"}, {:dispatch, %{window: "bad", workdir: other}})
+
+    for source <- [
+          Foreman.DocumentSources.token(f.tree),
+          Foreman.DocumentSources.token(other),
+          f.tree,
+          "forged"
+        ] do
+      href = Foreman.TicketDocuments.viewer_path("sample", "docs/report.md", source)
+      {:ok, viewer, _} = live(conn, href)
+      assert has_element?(viewer, "#document-status", "Document unavailable")
+
+      {:ok, panel, _} =
+        live(
+          conn,
+          "/?" <> URI.encode_query(%{"doc" => "sample:docs/report.md", "doc_source" => source})
+        )
+
+      assert has_element?(panel, "#panel-status", "Document unavailable")
+    end
+
+    for path <- [
+          f.tree <> "/docs/report.md",
+          other <> "/docs/report.md",
+          "../outside/docs/report.md"
+        ] do
+      {:ok, viewer, _} = live(conn, Foreman.Markdown.viewer_path("sample", path))
+      assert has_element?(viewer, "#document-status", "Document unavailable")
+    end
+  end
+
   test "Initiatives opens the document over the retained ticket", %{conn: conn} do
     {:ok, view, _} = live(conn, "/?ticket=sample:s-1&tab=overview&project=sample")
     href = "/documents/sample?path=docs%2Fspec.md"

@@ -2,7 +2,7 @@
 id: fm-vtx.3
 title: "Documents in build worktrees"
 type: task
-status: open
+status: in_progress
 priority: 2
 parent: fm-vtx
 blocked_by: ["fm-vtx.1","fm-vtx.2"]
