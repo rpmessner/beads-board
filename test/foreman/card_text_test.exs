@@ -134,6 +134,42 @@ defmodule Foreman.CardTextTest do
     end
   end
 
+  test "shared resolver rejects traversal before expanding home paths", %{
+    repos: repos,
+    root: root,
+    base: base
+  } do
+    ascent = String.duplicate("../", length(Path.split(System.user_home!())) - 1)
+    home_path = "~/" <> ascent <> String.trim_leading(root, "/") <> "/README.md"
+
+    for path <- [home_path, "../repo/README.md", "notes.txt", "missing.md", base <> "/outside.md"] do
+      assert CardText.resolve(path, "sample", repos) == nil, path
+    end
+
+    assert CardText.resolve("README.md", "sample", repos) == {"sample", "README.md"}
+  end
+
+  test "shared resolver prefers the ticket repo and never follows symlinks", %{
+    repos: repos,
+    root: root,
+    other: other,
+    base: base
+  } do
+    File.write!(Path.join(other, "README.md"), "# Other")
+    assert CardText.resolve("README.md", "other", repos) == {"other", "README.md"}
+    File.ln_s!(Path.join(base, "outside.md"), Path.join(root, "escape.md"))
+    File.ln_s!(other, Path.join(root, "linked"))
+
+    for path <- [
+          "escape.md",
+          "linked/README.md",
+          root <> "/escape.md",
+          root <> "/linked/README.md"
+        ] do
+      assert CardText.resolve(path, "sample", repos) == nil, path
+    end
+  end
+
   describe "docs/2 (--doc)" do
     test "repo-relative and absolute paths resolve to {repo, path}", %{
       repos: repos,

@@ -1,0 +1,42 @@
+[
+  {
+    "theme": "light",
+    "links": [
+      {
+        "text": "docs/research/addon-ideas.md",
+        "href": "/documents/wow-addons?path=docs%2Fresearch%2Faddon-ideas.md"
+      },
+      {
+        "text": "docs/briefs/wa-ideas.md",
+        "href": "/documents/wow-addons?path=docs%2Fbriefs%2Fwa-ideas.md"
+      }
+    ],
+    "handwrittenNote": false,
+    "historyLinked": true,
+    "notesLinked": true,
+    "fullViewer": true,
+    "errors": []
+  },
+  {
+    "theme": "dark",
+    "links": [
+      {
+        "text": "docs/research/addon-ideas.md",
+        "href": "/documents/wow-addons?path=docs%2Fresearch%2Faddon-ideas.md"
+      },
+      {
+        "text": "docs/briefs/wa-ideas.md",
+        "href": "/documents/wow-addons?path=docs%2Fbriefs%2Fwa-ideas.md"
+      }
+    ],
+    "handwrittenNote": false,
+    "historyLinked": true,
+    "notesLinked": true,
+    "fullViewer": true,
+    "errors": []
+  },
+  {
+    "viewport": 390,
+    "documentsOverflow": false
+  }
+]

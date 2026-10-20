@@ -36,14 +36,8 @@ defmodule Foreman.CardText do
     # Each distinct path is checked once, and only the first @max_paths are.
     links =
       text
-      |> Markdown.path_candidates()
-      |> Enum.take(@max_paths)
-      |> Enum.flat_map(fn path ->
-        case resolve(path, repo_key, repos) do
-          {repo, relative} -> [{path, Markdown.viewer_path(repo, relative)}]
-          nil -> []
-        end
-      end)
+      |> references(repo_key, repos)
+      |> Enum.map(fn {path, {repo, relative}} -> {path, Markdown.viewer_path(repo, relative)} end)
       |> Map.new()
 
     Markdown.render(text,
@@ -51,6 +45,19 @@ defmodule Foreman.CardText do
       header_ids: false,
       link_paths: &Map.get(links, &1)
     )
+  end
+
+  @doc "Existing document references, checking at most the first 50 distinct paths in a text."
+  def references(text, repo_key, repos) do
+    text
+    |> Markdown.path_candidates()
+    |> Enum.take(@max_paths)
+    |> Enum.flat_map(fn path ->
+      case resolve(path, repo_key, repos) do
+        nil -> []
+        document -> [{path, document}]
+      end
+    end)
   end
 
   @doc "Whether the text is long enough to show its first lines with Show more."
@@ -61,10 +68,11 @@ defmodule Foreman.CardText do
 
   @doc "A detected path as `{repo_key, repo-relative path}` when the file exists."
   def resolve(path, repo_key, repos) do
+    traversal? = ".." in Path.split(path)
     path = if String.starts_with?(path, "~/"), do: Path.expand(path), else: path
 
     cond do
-      ".." in Path.split(path) ->
+      traversal? ->
         nil
 
       Path.type(path) == :absolute ->

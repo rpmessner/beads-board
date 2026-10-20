@@ -6,8 +6,18 @@ defmodule ForemanWeb.InitiativesLiveTest do
     {:ok, config} =
       Foreman.Config.parse_layers([{"defaults", File.read!("priv/foreman.defaults.toml")}])
 
+    root = Foreman.ScratchDocs.dir("initiatives")
+
+    Foreman.ScratchDocs.write(root, %{
+      "docs/spec.md" => "# Spec",
+      "docs/brief.md" => "# Brief",
+      "docs/report.md" => "# Report"
+    })
+
+    on_exit(fn -> File.rm_rf!(root) end)
+
     config =
-      Map.put(config, "repos", [%{"key" => "sample", "path" => "/tmp/sample", "enabled" => true}])
+      Map.put(config, "repos", [%{"key" => "sample", "path" => root, "enabled" => true}])
 
     Foreman.Repo.insert_all("board_config", [
       %{
@@ -96,6 +106,44 @@ defmodule ForemanWeb.InitiativesLiveTest do
     refute has_element?(view, "#ticket-overview script")
   end
 
+  test "ticket sheet links every history payload value and lists documents without a note", %{
+    conn: conn
+  } do
+    Foreman.Overlay.apply_event({"sample", "f"}, {:dispatch, %{window: "docs"}})
+
+    Foreman.Overlay.apply_event(
+      {"sample", "f"},
+      {:progress, %{body: "Read docs/report.md", evidence: %{"nested" => "docs/spec.md"}}}
+    )
+
+    Foreman.Repo.insert!(%Foreman.Requests.Request{
+      repo_key: "sample",
+      bead_id: "f",
+      kind: "decision",
+      actor: "pi",
+      state: "answered",
+      facts: %{"question" => "Read docs/brief.md"},
+      outcome: %{"answer" => "Use docs/spec.md"}
+    })
+
+    {:ok, view, _} = live(conn, "/?ticket=sample:f")
+
+    assert has_element?(
+             view,
+             "#ticket-documents a[href='/documents/sample?path=docs%2Fbrief.md']"
+           )
+
+    assert has_element?(
+             view,
+             "#ticket-documents a[href='/documents/sample?path=docs%2Freport.md']"
+           )
+
+    assert has_element?(view, "#ticket-documents a[href='/documents/sample?path=docs%2Fspec.md']")
+    assert has_element?(view, "#ticket-documents", "main checkout")
+    assert has_element?(view, "#ticket-history a[href='/documents/sample?path=docs%2Freport.md']")
+    assert has_element?(view, "#ticket-history a[href='/documents/sample?path=docs%2Fspec.md']")
+  end
+
   test "overview omits absent fields and empty relationship sections", %{conn: conn} do
     raw =
       b("empty", "task") |> Map.merge(%{close_reason: nil, labels: [], closed_at: nil, notes: ""})
@@ -105,6 +153,7 @@ defmodule ForemanWeb.InitiativesLiveTest do
     refute has_element?(view, "#ticket-overview dt", "close reason")
     refute has_element?(view, "#ticket-overview dt", "labels")
     refute has_element?(view, "#ticket-overview dt", "closed at")
+    refute has_element?(view, "#ticket-documents")
     refute has_element?(view, "#ticket-overview h3", "Dependencies")
     refute has_element?(view, "#ticket-overview h3", "Linked CRs")
   end
@@ -329,7 +378,7 @@ defmodule ForemanWeb.InitiativesLiveTest do
          window: "worker",
          branch: "feature",
          brief_path: "docs/brief.md",
-         internal_token: "hidden-detail"
+         evidence: "Additional detail"
        }},
       %{actor: "builder"}
     )
@@ -367,7 +416,7 @@ defmodule ForemanWeb.InitiativesLiveTest do
 
     assert has_element?(view, "#ticket-history dd", "Verified result")
     refute has_element?(view, "#ticket-history [data-outcome=row] [data-history-outcome]")
-    refute has_element?(view, "#ticket-history", "hidden-detail")
+    assert has_element?(view, "#ticket-history dd", "Additional detail")
     refute has_element?(view, "#ticket-history", "record: session")
     refute has_element?(view, "#ticket-history", "emit: stage")
   end
