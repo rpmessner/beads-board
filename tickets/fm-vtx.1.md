@@ -2,7 +2,7 @@
 id: fm-vtx.1
 title: "Ticket sheet links documents and lists them"
 type: task
-status: in_progress
+status: closed
 priority: 2
 parent: fm-vtx
 blocked_by: []
@@ -11,8 +11,8 @@ supersedes: []
 discovered_from: null
 labels: []
 created: 2026-10-20
-closed: null
-close_reason: null
+closed: 2026-10-20
+close_reason: "Merged (82116d6, plus coordinator label capitalisation). Gate on merged main: 731 tests, 0 failures, no warnings. Deployed release 20261020T060200; live wa-x0z.5 lists addon-ideas.md and wa-ideas.md in Documents with no reliance on the hand note; 23 document links on its history tab."
 ---
 
 ## What to build
@@ -35,3 +35,9 @@ Spec: docs/specs/doc-links.md, decisions 1-4 and 9.
 - [ ] Non-existent, `..`, non-`.md` and outside-repo paths stay plain text.
 - [ ] Request cards on Needs you link exactly as before (existing tests green).
 - [ ] LiveView test at the ticket sheet component covers link render and the Documents section.
+
+## Notes
+- 2026-10-20 user: Documents:
+- [Report](docs/sessions/fm-doclinks.md)
+- [Brief](docs/briefs/fm-doclinks.md)
+- [Spec](docs/specs/doc-links.md)

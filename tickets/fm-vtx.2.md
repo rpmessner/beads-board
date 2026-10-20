@@ -2,7 +2,7 @@
 id: fm-vtx.2
 title: "Shared document slide-out panel"
 type: task
-status: in_progress
+status: closed
 priority: 2
 parent: fm-vtx
 blocked_by: []
@@ -11,8 +11,8 @@ supersedes: []
 discovered_from: null
 labels: []
 created: 2026-10-20
-closed: null
-close_reason: null
+closed: 2026-10-20
+close_reason: "Merged (c4a0f51). Gate on merged main: 731 tests, 0 failures. Live check on 4747: Documents link opens the panel with ?doc= added, ticket retained; Escape returns to the ticket; no page errors."
 ---
 
 ## What to build
@@ -47,3 +47,10 @@ Ticket layer is unchanged by document events.
 - [ ] A missing document shows the unavailable state, not an error page.
 - [ ] Needs you ticket panel behaviour unchanged (existing tests green).
 - [ ] Pure tests of the document-layer step table; LiveView test of open/close with the sheet retained and URL round-trip.
+
+## Notes
+- 2026-10-20 user: Documents:
+- [Report](docs/sessions/fm-docpanel.md)
+- [Brief](docs/briefs/fm-docpanel.md)
+- [Panel machine](docs/machines/document_panel.md)
+- [Spec](docs/specs/doc-links.md)
