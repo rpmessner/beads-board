@@ -2,7 +2,7 @@
 id: fm-vtx.2
 title: "Shared document slide-out panel"
 type: task
-status: open
+status: in_progress
 priority: 2
 parent: fm-vtx
 blocked_by: []

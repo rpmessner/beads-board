@@ -142,10 +142,12 @@ defmodule ForemanWeb.CardDocsLiveTest do
     assert has_element?(view, "#card-panel #ticket-overview", "Ticket body text")
     assert has_element?(view, "#request-#{request.id}")
 
-    # Opening a document replaces the ticket in the panel.
+    # The document layer sits over the ticket without discarding it.
     render_hook(view, "open-doc", %{"href" => doc_href("docs/spec.md")})
     assert has_element?(view, "#card-panel #panel-document h1", "Spec")
-    refute has_element?(view, "#card-panel #ticket-title")
+    assert has_element?(view, "#ticket-panel #ticket-title", "A ticket")
+    view |> element("#panel-close") |> render_click()
+    assert has_element?(view, "#card-panel #ticket-title", "A ticket")
 
     render_click(view, "open-request-drawer")
 

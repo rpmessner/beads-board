@@ -1,0 +1,70 @@
+// PREVIEW_URL is the URL printed by devserve; resolve playwright via NODE_PATH if needed.
+const {chromium} = require('playwright');
+const base = process.env.PREVIEW_URL;
+if (!/^http:\/\/127\.0\.0\.1:48[89]\d$/.test(base || '')) throw Error('requires a devserve preview URL');
+const fs = require('fs');
+(async()=>{
+ const browser=await chromium.launch({headless:true});
+ const out='docs/acceptance/fm-docpanel';fs.mkdirSync(out,{recursive:true});
+ const evidence=[];
+ for(const width of [1440,390]) for(const theme of ['light','dark']) {
+ const page=await browser.newPage({viewport:{width,height:1000},colorScheme:theme});
+ await page.addInitScript(theme=>localStorage.setItem('phx:theme',theme),theme);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(base+'/?ticket=docpanel:panel-1');
+ await page.waitForSelector('.phx-connected');
+ const link=page.locator('#ticket-overview a[href^="/documents/"]');
+ await link.click();
+ await page.locator('#panel-document h1').waitFor({state:'visible'});
+ if(new URL(page.url()).pathname!=='/')throw Error('path changed');
+ if(!new URL(page.url()).searchParams.has('ticket'))throw Error('ticket lost');
+ await page.locator('#panel-close').click({trial:true});
+ await page.screenshot({path:`${out}/panel-${width}-${theme}.png`});
+ await page.reload();await page.locator('#panel-document h1').waitFor({state:'visible'});
+ await page.locator('#panel-close').click();
+ await page.waitForFunction(()=>!new URL(location.href).searchParams.has('doc'));
+ await page.locator('#ticket-title').waitFor({state:'visible'});
+ await link.click();await page.locator('#panel-document h1').waitFor({state:'visible'});
+ await page.goBack();await page.waitForFunction(()=>!new URL(location.href).searchParams.has('doc'));
+ await page.locator('#ticket-title').waitFor({state:'visible'});
+ await link.click();await page.locator('#panel-document h1').waitFor({state:'visible'});
+ await page.keyboard.press('Escape');
+ await page.waitForFunction(()=>!new URL(location.href).searchParams.has('doc'));
+ if(!new URL(page.url()).searchParams.has('ticket'))throw Error('Escape removed ticket');
+ await page.goto(base+'/epics/docpanel/panel-epic');
+ await page.waitForSelector('.phx-connected');
+ await page.locator('#epic-documents a[href^="/documents/"]').first().click();
+ await page.locator('#panel-document h1').waitFor({state:'visible'});
+ if(new URL(page.url()).pathname!='/epics/docpanel/panel-epic')throw Error('epic path changed');
+ await page.locator('#panel-close').click({trial:true});
+ await page.screenshot({path:`${out}/epic-${width}-${theme}.png`});
+ evidence.push({width,theme,open:true,refresh:true,closeRetainsTicket:true,back:true,escape:true,epic:true,errors});
+ await page.close();
+ }
+ const reduced=await browser.newPage({reducedMotion:'reduce'});
+ await reduced.addInitScript(()=>{
+   window.motion=[];
+   const animate=Element.prototype.animate;
+   Element.prototype.animate=function(frames, options){
+     window.motion.push({frames, duration:options?.duration});
+     return animate.call(this,frames,options);
+   };
+ });
+ await reduced.goto(base+'/?ticket=docpanel:panel-1');
+ await reduced.locator('#ticket-overview a').click();
+ await reduced.locator('#panel-close').click({trial:true});
+ const motion=await reduced.evaluate(()=>window.motion.filter(x=>JSON.stringify(x.frames).includes('translate')));
+ if(!motion.length || motion.some(x=>x.duration!==0))throw Error('Reduced-motion slide not disabled');
+ if(await reduced.locator('#document-sheet [role=dialog]').getAttribute('aria-label')!=='Document')throw Error('Unnamed dialog');
+ await reduced.locator('#panel-open-viewer').click();
+ await reduced.waitForURL('**/documents/docpanel?path=**');
+ await reduced.locator('#document-content h1').waitFor({state:'visible'});
+ await reduced.goto(base+'/?ticket=docpanel:panel-1&doc=docpanel:missing.md');
+ await reduced.locator('#panel-status').waitFor({state:'visible'});
+ await reduced.locator('#panel-close').click({trial:true});
+ await reduced.screenshot({path:out+'/unavailable.png'});
+ await reduced.locator('#panel-close').click();
+ await reduced.locator('#ticket-title').waitFor({state:'visible'});
+ evidence.push({reducedMotion:true,slideDurations:motion.map(x=>x.duration),accessibleDialog:true,fullViewer:true,unavailableRetainsTicket:true});
+ await browser.close();fs.writeFileSync(out+'/browser.json',JSON.stringify(evidence,null,2)+'\n');console.log(evidence);
+})().catch(e=>{console.error(e);process.exit(1)});

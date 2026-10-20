@@ -1,0 +1,53 @@
+[
+  {
+    width: 1440,
+    theme: 'light',
+    open: true,
+    refresh: true,
+    closeRetainsTicket: true,
+    back: true,
+    escape: true,
+    epic: true,
+    errors: []
+  },
+  {
+    width: 1440,
+    theme: 'dark',
+    open: true,
+    refresh: true,
+    closeRetainsTicket: true,
+    back: true,
+    escape: true,
+    epic: true,
+    errors: []
+  },
+  {
+    width: 390,
+    theme: 'light',
+    open: true,
+    refresh: true,
+    closeRetainsTicket: true,
+    back: true,
+    escape: true,
+    epic: true,
+    errors: []
+  },
+  {
+    width: 390,
+    theme: 'dark',
+    open: true,
+    refresh: true,
+    closeRetainsTicket: true,
+    back: true,
+    escape: true,
+    epic: true,
+    errors: []
+  },
+  {
+    reducedMotion: true,
+    slideDurations: [ 0, 0 ],
+    accessibleDialog: true,
+    fullViewer: true,
+    unavailableRetainsTicket: true
+  }
+]
