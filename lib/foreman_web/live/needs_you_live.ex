@@ -16,58 +16,39 @@ defmodule ForemanWeb.NeedsYouLive do
   end
 
   def handle_params(params, uri, socket),
-    do: {:noreply, socket |> ForemanWeb.TicketDetail.load(params, uri) |> panel(params)}
+    do:
+      {:noreply,
+       socket
+       |> ForemanWeb.TicketDetail.load(params, uri)
+       |> ForemanWeb.DocumentPanel.load(params)
+       |> panel()}
 
-  defp panel(socket, params) do
-    {event, doc} =
-      cond do
-        socket.assigns.sheet_state == :open -> {:ticket, nil}
-        key = Foreman.CardPanel.doc_key(params["doc"]) -> panel_document(key)
-        true -> {:close, nil}
-      end
+  defp panel(socket) do
+    event = if socket.assigns.sheet_state == :open, do: :ticket, else: :close
 
     {panel, []} = Foreman.CardPanel.step(socket.assigns.panel, event, %{})
-    assign(socket, panel: panel, panel_doc: doc)
+    assign(socket, panel: panel)
   end
 
   # A ticket open in the panel can vanish on refresh; the document is left as read.
   defp refresh_panel(%{assigns: %{panel: :ticket, sheet_state: state}} = socket)
        when state != :open,
-       do: panel(socket, URI.decode_query(URI.parse(socket.assigns.page_uri).query || ""))
+       do: panel(socket)
 
   defp refresh_panel(socket), do: socket
-
-  defp panel_document({repo_key, path}) do
-    repo = Enum.find(Foreman.CardText.repos(), &(&1["key"] == repo_key))
-
-    case repo && Foreman.Documents.open(repo, path) do
-      {:ok, doc} ->
-        html =
-          Foreman.Markdown.render(doc.content, repo: repo_key, path: doc.path, header_ids: false)
-
-        {:document, %{repo: repo_key, path: doc.path, html: html}}
-
-      _ ->
-        {:missing, %{repo: repo_key, path: path}}
-    end
-  end
 
   def handle_event("resolve", params, socket), do: {:noreply, result(socket, resolve(params))}
 
   # Document links on cards and in the panel open in the side panel; the hook
   # leaves modified clicks (new tab) to the browser, which opens the viewer.
-  def handle_event("open-doc", %{"href" => href}, socket) do
-    case Foreman.CardPanel.doc_param(href) do
-      nil ->
-        {:noreply, socket}
+  def handle_event("open-doc", params, socket),
+    do: {:noreply, ForemanWeb.DocumentPanel.open(socket, params)}
 
-      doc ->
-        {:noreply, push_patch(socket, to: "/needs-you?" <> URI.encode_query(%{"doc" => doc}))}
-    end
-  end
+  def handle_event("close-document", _, socket),
+    do: {:noreply, ForemanWeb.DocumentPanel.close(socket)}
 
   def handle_event("close-panel", _, socket) do
-    if socket.assigns.panel == :closed,
+    if socket.assigns.panel == :closed or socket.assigns.document_state != :closed,
       do: {:noreply, socket},
       else: {:noreply, push_patch(socket, to: "/needs-you")}
   end
@@ -212,59 +193,63 @@ defmodule ForemanWeb.NeedsYouLive do
       pending_count={@pending_count}
       active={:needs_you}
     >
-      <div
-        id="needs-you"
-        phx-hook=".CardDocLinks"
-        class={[
-          "min-w-0",
-          @panel != :closed &&
-            "lg:grid lg:grid-cols-[minmax(0,48rem)_minmax(24rem,1fr)] lg:items-start lg:gap-6"
-        ]}
+      <ForemanWeb.DocumentPanel.surface
+        id="needs-you-documents"
+        state={@document_state}
+        doc={@panel_doc}
+        uri={@page_uri}
       >
-        <div class="min-w-0 space-y-5">
-          <header id="inbox-heading" class="flex items-center gap-3">
-            <h1 class="text-xl font-semibold">Needs you</h1>
-            <Badge.badge :if={@pending_count > 0}>{@pending_count}</Badge.badge>
-          </header>
-          <div id="pending-requests" phx-update="stream" class="max-w-3xl space-y-5">
-            <div
-              id="inbox-empty"
-              class="hidden only:block rounded-xl border border-dashed border-base p-10 text-center text-foreground-softer"
-            >
-              No pending requests
-            </div>
-            <.request_card
-              :for={{id, item} <- @streams.pending}
-              id={id}
-              request={item.request}
-              card={item.card}
-              repos={@card_repos}
-            />
-          </div>
-          <details id="recent-outcomes" class="max-w-3xl border-t border-base pt-4">
-            <summary class="cursor-pointer text-sm font-medium text-foreground-softer">
-              Recent outcomes
-            </summary>
-            <div id="recent-requests" phx-update="stream" class="mt-4 space-y-3">
-              <ForemanWeb.RequestCard.summary
-                :for={{id, request} <- @streams.recent}
+        <div
+          id="needs-you"
+          class={[
+            "min-w-0",
+            @panel != :closed &&
+              "lg:grid lg:grid-cols-[minmax(0,48rem)_minmax(24rem,1fr)] lg:items-start lg:gap-6"
+          ]}
+        >
+          <div class="min-w-0 space-y-5">
+            <header id="inbox-heading" class="flex items-center gap-3">
+              <h1 class="text-xl font-semibold">Needs you</h1>
+              <Badge.badge :if={@pending_count > 0}>{@pending_count}</Badge.badge>
+            </header>
+            <div id="pending-requests" phx-update="stream" class="max-w-3xl space-y-5">
+              <div
+                id="inbox-empty"
+                class="hidden only:block rounded-xl border border-dashed border-base p-10 text-center text-foreground-softer"
+              >
+                No pending requests
+              </div>
+              <.request_card
+                :for={{id, item} <- @streams.pending}
                 id={id}
-                request={request}
+                request={item.request}
+                card={item.card}
                 repos={@card_repos}
-                link={:patch}
               />
             </div>
-          </details>
-        </div>
-        <aside
-          :if={@panel != :closed}
-          id="card-panel"
-          aria-label={if(@panel == :ticket, do: "Ticket", else: "Document")}
-          phx-window-keydown="close-panel"
-          phx-key="Escape"
-          class="fixed inset-0 z-40 space-y-6 overflow-y-auto bg-base p-5 lg:sticky lg:inset-auto lg:top-6 lg:z-auto lg:max-h-[calc(100vh-3rem)] lg:rounded-xl lg:border lg:border-base lg:p-6 lg:shadow-sm"
-        >
-          <%= if @panel == :ticket do %>
+            <details id="recent-outcomes" class="max-w-3xl border-t border-base pt-4">
+              <summary class="cursor-pointer text-sm font-medium text-foreground-softer">
+                Recent outcomes
+              </summary>
+              <div id="recent-requests" phx-update="stream" class="mt-4 space-y-3">
+                <ForemanWeb.RequestCard.summary
+                  :for={{id, request} <- @streams.recent}
+                  id={id}
+                  request={request}
+                  repos={@card_repos}
+                  link={:patch}
+                />
+              </div>
+            </details>
+          </div>
+          <aside
+            :if={@panel != :closed}
+            id={if(@document_state == :closed, do: "card-panel", else: "ticket-panel")}
+            aria-label="Ticket"
+            phx-window-keydown="close-panel"
+            phx-key="Escape"
+            class="fixed inset-0 z-40 space-y-6 overflow-y-auto bg-base p-5 lg:sticky lg:inset-auto lg:top-6 lg:z-auto lg:max-h-[calc(100vh-3rem)] lg:rounded-xl lg:border lg:border-base lg:p-6 lg:shadow-sm"
+          >
             <ForemanWeb.TicketDetail.content
               ticket={@ticket}
               return_to={@sheet_return}
@@ -272,59 +257,9 @@ defmodule ForemanWeb.NeedsYouLive do
               tab={@ticket_tab}
               uri={@page_uri}
             />
-          <% else %>
-            <header class="flex items-center gap-3 text-xs text-foreground-softer">
-              <span>{@panel_doc.repo}</span>
-              <span class="min-w-0 flex-1 break-all font-mono" title={@panel_doc.path}>
-                {@panel_doc.path}
-              </span>
-              <a
-                :if={@panel == :document}
-                id="panel-open-viewer"
-                data-viewer
-                href={Foreman.Markdown.viewer_path(@panel_doc.repo, @panel_doc.path)}
-                class="rounded p-2 hover:bg-sunken"
-                aria-label="Open in Documents"
-                title="Open in Documents"
-              >
-                <.icon name="hero-arrow-top-right-on-square" class="size-5" />
-              </a>
-              <.link
-                id="panel-close"
-                patch="/needs-you"
-                class="rounded p-2 hover:bg-sunken"
-                aria-label="Close document"
-              >
-                <.icon name="hero-x-mark" class="size-5" />
-              </.link>
-            </header>
-            <div :if={@panel == :document} id="panel-document" class="fm-markdown">
-              {Phoenix.HTML.raw(@panel_doc.html)}
-            </div>
-            <p :if={@panel == :unavailable} id="panel-status" class="py-6 text-foreground-softer">
-              Document unavailable
-            </p>
-          <% end %>
-        </aside>
-      </div>
-      <script :type={Phoenix.LiveView.ColocatedHook} name=".CardDocLinks">
-        export default {
-          mounted() {
-            this.onClick = (event) => {
-              const link = event.target.closest("a[href^='/documents/']:not([data-viewer])")
-              const modified = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
-              if (!link || event.defaultPrevented || event.button !== 0 || modified) return
-              event.preventDefault()
-              event.stopPropagation()
-              this.pushEvent("open-doc", {href: link.getAttribute("href")})
-            }
-            this.el.addEventListener("click", this.onClick)
-          },
-          destroyed() {
-            this.el.removeEventListener("click", this.onClick)
-          }
-        }
-      </script>
+          </aside>
+        </div>
+      </ForemanWeb.DocumentPanel.surface>
     </Layouts.app>
     """
   end

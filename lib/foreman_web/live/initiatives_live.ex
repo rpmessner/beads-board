@@ -46,6 +46,7 @@ defmodule ForemanWeb.InitiativesLive do
       socket
       |> assign(filters: filters, filter_restore: state)
       |> ForemanWeb.TicketDetail.load(params, uri)
+      |> ForemanWeb.DocumentPanel.load(params)
       |> refresh()
 
     {:noreply,
@@ -88,6 +89,12 @@ defmodule ForemanWeb.InitiativesLive do
 
   def handle_event("preview", params, socket),
     do: {:noreply, ForemanWeb.TicketDetail.preview(socket, params)}
+
+  def handle_event("open-doc", params, socket),
+    do: {:noreply, ForemanWeb.DocumentPanel.open(socket, params)}
+
+  def handle_event("close-document", _, socket),
+    do: {:noreply, ForemanWeb.DocumentPanel.close(socket)}
 
   def handle_event("close-ticket", params, socket),
     do: {:noreply, ForemanWeb.TicketDetail.close(socket, params)}
@@ -289,294 +296,305 @@ defmodule ForemanWeb.InitiativesLive do
       repos={@repos}
       filters={@filters}
     >
-      <div
-        id="initiative-filter-memory"
-        phx-hook="InitiativeFilters"
-        data-filters={Jason.encode!(@filters)}
-        data-filters-open={to_string(@filter_disclosure == :expanded)}
-        hidden
+      <ForemanWeb.DocumentPanel.surface
+        id="initiative-documents"
+        state={@document_state}
+        doc={@panel_doc}
+        uri={@page_uri}
       >
-      </div>
-      <header class="flex items-center justify-between gap-4">
-        <h1 class="text-[22px] font-semibold text-foreground">Initiatives</h1>
-        <span class="text-xs text-foreground-softer">
-          {@draft_count} drafts · {@epic_count} active · {@done_count} done · {@orphan_count} unplanned
-        </span>
-      </header>
-      <section
-        id="coordinator"
-        class="flex flex-wrap items-center gap-3 rounded-lg border border-foreground/10 px-4 py-3 text-sm"
-      >
-        <span class="font-medium">Coordinator</span>
-        <span id="coordinator-state" class="text-foreground-softer">
-          {if @coordinator, do: @coordinator.state, else: "Not started"}
-        </span>
-        <div class="ml-auto flex flex-wrap gap-2">
-          <Button.button
-            id="coordinator-focus"
-            size="sm"
-            variant="ghost"
-            phx-click="coordinator"
-            phx-value-action="focus"
-            disabled={is_nil(@coordinator) or is_nil(@coordinator.window)}
-          >
-            Focus
-          </Button.button>
-          <Button.button
-            id="coordinator-relaunch"
-            size="sm"
-            variant="outline"
-            phx-click="coordinator"
-            phx-value-action="resume"
-            disabled={@coordinator && @coordinator.state in [:starting, :running, :waiting]}
-          >
-            Relaunch
-          </Button.button>
-          <Button.button
-            id="coordinator-fresh"
-            size="sm"
-            variant="ghost"
-            phx-click="coordinator"
-            phx-value-action="fresh"
-            data-confirm="Start a new coordinator conversation?"
-            disabled={@coordinator && @coordinator.state in [:starting, :running, :waiting]}
-          >
-            Start fresh
-          </Button.button>
-        </div>
-      </section>
-      <.form
-        for={@form}
-        id="initiative-filters"
-        phx-change="filter"
-        phx-submit="filter"
-        class="bb-filters space-y-3"
-      >
-        <div class="flex flex-wrap items-end gap-3">
-          <Button.button_group id="initiative-views" aria-label="Views">
-            <Button.button
-              :for={view <- @views}
-              id={"view-" <> view["key"]}
-              type="button"
-              phx-click="view"
-              phx-value-key={view["key"]}
-              aria-pressed={to_string(@filters["view"] == view["key"])}
-              variant={if @filters["view"] == view["key"], do: "solid", else: "outline"}
-            >
-              {view["title"]}
-            </Button.button>
-          </Button.button_group>
-          <.input
-            field={@form[:q]}
-            type="search"
-            class="bb-filter-control"
-            aria-label="Search"
-            placeholder="Search"
-            phx-debounce="200"
-          />
-        </div>
-        <button
-          type="button"
-          id="toggle-filters"
-          phx-click="toggle-filters"
-          aria-expanded={to_string(@filter_disclosure == :expanded)}
-          aria-controls="advanced-filters"
-          class="flex items-center gap-2 text-sm text-foreground-softer hover:text-foreground"
-        >
-          <.icon
-            name={
-              if @filter_disclosure == :expanded, do: "hero-chevron-down", else: "hero-chevron-right"
-            }
-            class="size-3"
-          /> Filters
-          <span
-            :if={@filter_disclosure == :collapsed and @advanced_count > 0}
-            id="advanced-filter-count"
-            class="rounded bg-sunken px-1.5 text-xs"
-          >
-            {@advanced_count}
-          </span>
-        </button>
         <div
-          id="advanced-filters"
-          hidden={@filter_disclosure == :collapsed}
-          class={
-            if @filter_disclosure == :collapsed, do: "hidden", else: "flex flex-wrap items-end gap-3"
-          }
+          id="initiative-filter-memory"
+          phx-hook="InitiativeFilters"
+          data-filters={Jason.encode!(@filters)}
+          data-filters-open={to_string(@filter_disclosure == :expanded)}
+          hidden
         >
-          <.input
-            field={@form[:status]}
-            type="select"
-            class="bb-filter-control"
-            label="Beads status"
-            options={[
-              {"View default", ""},
-              {"All", "all"},
-              {"Open", "open"},
-              {"Closed", "closed"},
-              {"In progress", "in_progress"},
-              {"Blocked", "blocked"},
-              {"Deferred", "deferred"}
-            ]}
-          />
-          <.input
-            field={@form[:type]}
-            type="select"
-            class="bb-filter-control"
-            label="Type"
-            options={[{"Any", ""} | Enum.map(@types, &{&1, &1})]}
-          />
-          <.input
-            field={@form[:label]}
-            type="select"
-            class="bb-filter-control"
-            label="Label"
-            options={[{"Any", ""} | Enum.map(@labels, &{&1, &1})]}
-          />
-          <.input
-            field={@form[:stale]}
-            type="select"
-            class="bb-filter-control"
-            label="Stale"
-            options={[{"View default", ""}, {"Only stale", "true"}, {"Any", "false"}]}
-          />
         </div>
-      </.form>
-      <div
-        :for={repo <- @repos}
-        :if={
-          repo["health"].state == "unreachable" and
-            @filters["project"] in [nil, "", "all", repo["key"]]
-        }
-        class="rounded-lg border border-warning bg-warning-soft px-4 py-3 text-sm"
-        role="status"
-      >
-        {repo["key"]} · unreachable
-      </div>
-      <section :if={@draft_count > 0} id="drafts-panel" class="bb-initiative-panel">
-        <h2 class="bb-section-title">
-          Drafts <span class="text-foreground-softer">{@draft_count}</span>
-        </h2>
-        <div id="drafts" phx-update="stream">
-          <div
-            :for={{id, draft} <- @streams.drafts}
-            id={id}
-            data-bead={elem(draft.key, 1)}
-            class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-base p-4 md:grid-cols-[100px_minmax(0,1fr)_100px_minmax(0,1fr)_auto]"
-          >
-            <span class="hidden text-xs md:block">{draft.repo}</span>
-            <div class="min-w-0">
-              <.link
-                navigate={epic_path(draft.key, @page_uri)}
-                class="block truncate font-medium hover:underline"
+        <header class="flex items-center justify-between gap-4">
+          <h1 class="text-[22px] font-semibold text-foreground">Initiatives</h1>
+          <span class="text-xs text-foreground-softer">
+            {@draft_count} drafts · {@epic_count} active · {@done_count} done · {@orphan_count} unplanned
+          </span>
+        </header>
+        <section
+          id="coordinator"
+          class="flex flex-wrap items-center gap-3 rounded-lg border border-foreground/10 px-4 py-3 text-sm"
+        >
+          <span class="font-medium">Coordinator</span>
+          <span id="coordinator-state" class="text-foreground-softer">
+            {if @coordinator, do: @coordinator.state, else: "Not started"}
+          </span>
+          <div class="ml-auto flex flex-wrap gap-2">
+            <Button.button
+              id="coordinator-focus"
+              size="sm"
+              variant="ghost"
+              phx-click="coordinator"
+              phx-value-action="focus"
+              disabled={is_nil(@coordinator) or is_nil(@coordinator.window)}
+            >
+              Focus
+            </Button.button>
+            <Button.button
+              id="coordinator-relaunch"
+              size="sm"
+              variant="outline"
+              phx-click="coordinator"
+              phx-value-action="resume"
+              disabled={@coordinator && @coordinator.state in [:starting, :running, :waiting]}
+            >
+              Relaunch
+            </Button.button>
+            <Button.button
+              id="coordinator-fresh"
+              size="sm"
+              variant="ghost"
+              phx-click="coordinator"
+              phx-value-action="fresh"
+              data-confirm="Start a new coordinator conversation?"
+              disabled={@coordinator && @coordinator.state in [:starting, :running, :waiting]}
+            >
+              Start fresh
+            </Button.button>
+          </div>
+        </section>
+        <.form
+          for={@form}
+          id="initiative-filters"
+          phx-change="filter"
+          phx-submit="filter"
+          class="bb-filters space-y-3"
+        >
+          <div class="flex flex-wrap items-end gap-3">
+            <Button.button_group id="initiative-views" aria-label="Views">
+              <Button.button
+                :for={view <- @views}
+                id={"view-" <> view["key"]}
+                type="button"
+                phx-click="view"
+                phx-value-key={view["key"]}
+                aria-pressed={to_string(@filters["view"] == view["key"])}
+                variant={if @filters["view"] == view["key"], do: "solid", else: "outline"}
               >
-                {draft.title}
-              </.link>
-              <span class="font-mono text-xs text-foreground-softer">{elem(draft.key, 1)}</span>
-            </div>
-            <Badge.badge color={stage_color(draft.stage)}>{draft.stage}</Badge.badge>
-            <span class="min-w-0 truncate font-mono text-xs">
-              <ForemanWeb.TicketDetail.document_link
-                :if={draft.spec_link}
-                repo={elem(draft.key, 0)}
-                path={draft.spec_link}
-              /><span :if={!draft.spec_link}>—</span>
-            </span>
-            <ForemanWeb.PlanningSession.launch_button
-              id={"launch-" <> id}
-              key={draft.key}
-              allowed={Foreman.Sessions.launchable?(draft)}
-              session={draft.planning_session}
+                {view["title"]}
+              </Button.button>
+            </Button.button_group>
+            <.input
+              field={@form[:q]}
+              type="search"
+              class="bb-filter-control"
+              aria-label="Search"
+              placeholder="Search"
+              phx-debounce="200"
             />
           </div>
-        </div>
-      </section>
-      <section id="epics-panel" class="bb-initiative-panel overflow-x-auto">
-        <h2 class="bb-section-title">
-          Epics <span class="text-foreground-softer">{@epic_count}</span>
-        </h2>
-        <.epic_list
-          id="epics"
-          rows={@streams.epics}
-          expanded={@expanded}
-          columns={@columns}
-          uri={@page_uri}
-        />
-      </section>
-      <section id="done-panel" class="bb-initiative-panel overflow-x-auto">
-        <button
-          id="toggle-done"
-          class="bb-section-title w-full text-left"
-          phx-click="toggle"
-          phx-value-id="done"
-          aria-expanded={to_string(expanded?(@expanded, "done"))}
-        >
-          <.icon
-            name={
-              if expanded?(@expanded, "done"), do: "hero-chevron-down", else: "hero-chevron-right"
+          <button
+            type="button"
+            id="toggle-filters"
+            phx-click="toggle-filters"
+            aria-expanded={to_string(@filter_disclosure == :expanded)}
+            aria-controls="advanced-filters"
+            class="flex items-center gap-2 text-sm text-foreground-softer hover:text-foreground"
+          >
+            <.icon
+              name={
+                if @filter_disclosure == :expanded,
+                  do: "hero-chevron-down",
+                  else: "hero-chevron-right"
+              }
+              class="size-3"
+            /> Filters
+            <span
+              :if={@filter_disclosure == :collapsed and @advanced_count > 0}
+              id="advanced-filter-count"
+              class="rounded bg-sunken px-1.5 text-xs"
+            >
+              {@advanced_count}
+            </span>
+          </button>
+          <div
+            id="advanced-filters"
+            hidden={@filter_disclosure == :collapsed}
+            class={
+              if @filter_disclosure == :collapsed,
+                do: "hidden",
+                else: "flex flex-wrap items-end gap-3"
             }
-            class="size-4"
-          /> Done <span id="done-count" class="text-foreground-softer">{@done_count}</span>
-        </button>
-        <.epic_list
-          :if={expanded?(@expanded, "done")}
-          id="done"
-          rows={@streams.done}
-          uri={@page_uri}
-          expanded={@expanded}
-          columns={@columns}
-        />
-      </section>
-      <section id="unplanned-panel" class="bb-initiative-panel">
-        <button
-          id="toggle-unplanned"
-          class="bb-section-title w-full text-left"
-          phx-click="toggle"
-          phx-value-id="unplanned"
-          aria-expanded={to_string(expanded?(@expanded, "unplanned"))}
-        >
-          <.icon
-            name={
-              if expanded?(@expanded, "unplanned"),
-                do: "hero-chevron-down",
-                else: "hero-chevron-right"
-            }
-            class="size-4"
-          />Unplanned <span class="text-foreground-softer">{@orphan_count}</span>
-        </button>
-        <div id="unplanned" phx-update="stream">
-          <div :for={{id, row} <- @streams.unplanned} id={id} data-bead={Map.get(row, :bead_id)}>
-            <%= if row.kind == :project do %>
-              <button
-                id={"toggle-" <> row.id}
-                class="flex w-full items-center gap-3 border-t border-base px-5 py-3 text-left"
-                phx-click="toggle"
-                phx-value-id={row.id}
-                aria-expanded={to_string(expanded?(@expanded, row.id))}
-              >
-                <.icon
-                  name={
-                    if expanded?(@expanded, row.id),
-                      do: "hero-chevron-down",
-                      else: "hero-chevron-right"
-                  }
-                  class="size-3"
-                />{row.repo}<span class="text-xs text-foreground-softer">{row.count}</span>
-              </button>
-            <% else %>
-              <.ticket row={row} uri={@page_uri} />
-            <% end %>
+          >
+            <.input
+              field={@form[:status]}
+              type="select"
+              class="bb-filter-control"
+              label="Beads status"
+              options={[
+                {"View default", ""},
+                {"All", "all"},
+                {"Open", "open"},
+                {"Closed", "closed"},
+                {"In progress", "in_progress"},
+                {"Blocked", "blocked"},
+                {"Deferred", "deferred"}
+              ]}
+            />
+            <.input
+              field={@form[:type]}
+              type="select"
+              class="bb-filter-control"
+              label="Type"
+              options={[{"Any", ""} | Enum.map(@types, &{&1, &1})]}
+            />
+            <.input
+              field={@form[:label]}
+              type="select"
+              class="bb-filter-control"
+              label="Label"
+              options={[{"Any", ""} | Enum.map(@labels, &{&1, &1})]}
+            />
+            <.input
+              field={@form[:stale]}
+              type="select"
+              class="bb-filter-control"
+              label="Stale"
+              options={[{"View default", ""}, {"Only stale", "true"}, {"Any", "false"}]}
+            />
           </div>
+        </.form>
+        <div
+          :for={repo <- @repos}
+          :if={
+            repo["health"].state == "unreachable" and
+              @filters["project"] in [nil, "", "all", repo["key"]]
+          }
+          class="rounded-lg border border-warning bg-warning-soft px-4 py-3 text-sm"
+          role="status"
+        >
+          {repo["key"]} · unreachable
         </div>
-      </section>
-      <ForemanWeb.TicketDetail.sheet
-        ticket={@ticket}
-        state={@sheet_state}
-        tab={@ticket_tab}
-        uri={@page_uri}
-        return_to={@sheet_return}
-        streams={@streams}
-      />
+        <section :if={@draft_count > 0} id="drafts-panel" class="bb-initiative-panel">
+          <h2 class="bb-section-title">
+            Drafts <span class="text-foreground-softer">{@draft_count}</span>
+          </h2>
+          <div id="drafts" phx-update="stream">
+            <div
+              :for={{id, draft} <- @streams.drafts}
+              id={id}
+              data-bead={elem(draft.key, 1)}
+              class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-base p-4 md:grid-cols-[100px_minmax(0,1fr)_100px_minmax(0,1fr)_auto]"
+            >
+              <span class="hidden text-xs md:block">{draft.repo}</span>
+              <div class="min-w-0">
+                <.link
+                  navigate={epic_path(draft.key, @page_uri)}
+                  class="block truncate font-medium hover:underline"
+                >
+                  {draft.title}
+                </.link>
+                <span class="font-mono text-xs text-foreground-softer">{elem(draft.key, 1)}</span>
+              </div>
+              <Badge.badge color={stage_color(draft.stage)}>{draft.stage}</Badge.badge>
+              <span class="min-w-0 truncate font-mono text-xs">
+                <ForemanWeb.TicketDetail.document_link
+                  :if={draft.spec_link}
+                  repo={elem(draft.key, 0)}
+                  path={draft.spec_link}
+                /><span :if={!draft.spec_link}>—</span>
+              </span>
+              <ForemanWeb.PlanningSession.launch_button
+                id={"launch-" <> id}
+                key={draft.key}
+                allowed={Foreman.Sessions.launchable?(draft)}
+                session={draft.planning_session}
+              />
+            </div>
+          </div>
+        </section>
+        <section id="epics-panel" class="bb-initiative-panel overflow-x-auto">
+          <h2 class="bb-section-title">
+            Epics <span class="text-foreground-softer">{@epic_count}</span>
+          </h2>
+          <.epic_list
+            id="epics"
+            rows={@streams.epics}
+            expanded={@expanded}
+            columns={@columns}
+            uri={@page_uri}
+          />
+        </section>
+        <section id="done-panel" class="bb-initiative-panel overflow-x-auto">
+          <button
+            id="toggle-done"
+            class="bb-section-title w-full text-left"
+            phx-click="toggle"
+            phx-value-id="done"
+            aria-expanded={to_string(expanded?(@expanded, "done"))}
+          >
+            <.icon
+              name={
+                if expanded?(@expanded, "done"), do: "hero-chevron-down", else: "hero-chevron-right"
+              }
+              class="size-4"
+            /> Done <span id="done-count" class="text-foreground-softer">{@done_count}</span>
+          </button>
+          <.epic_list
+            :if={expanded?(@expanded, "done")}
+            id="done"
+            rows={@streams.done}
+            uri={@page_uri}
+            expanded={@expanded}
+            columns={@columns}
+          />
+        </section>
+        <section id="unplanned-panel" class="bb-initiative-panel">
+          <button
+            id="toggle-unplanned"
+            class="bb-section-title w-full text-left"
+            phx-click="toggle"
+            phx-value-id="unplanned"
+            aria-expanded={to_string(expanded?(@expanded, "unplanned"))}
+          >
+            <.icon
+              name={
+                if expanded?(@expanded, "unplanned"),
+                  do: "hero-chevron-down",
+                  else: "hero-chevron-right"
+              }
+              class="size-4"
+            />Unplanned <span class="text-foreground-softer">{@orphan_count}</span>
+          </button>
+          <div id="unplanned" phx-update="stream">
+            <div :for={{id, row} <- @streams.unplanned} id={id} data-bead={Map.get(row, :bead_id)}>
+              <%= if row.kind == :project do %>
+                <button
+                  id={"toggle-" <> row.id}
+                  class="flex w-full items-center gap-3 border-t border-base px-5 py-3 text-left"
+                  phx-click="toggle"
+                  phx-value-id={row.id}
+                  aria-expanded={to_string(expanded?(@expanded, row.id))}
+                >
+                  <.icon
+                    name={
+                      if expanded?(@expanded, row.id),
+                        do: "hero-chevron-down",
+                        else: "hero-chevron-right"
+                    }
+                    class="size-3"
+                  />{row.repo}<span class="text-xs text-foreground-softer">{row.count}</span>
+                </button>
+              <% else %>
+                <.ticket row={row} uri={@page_uri} />
+              <% end %>
+            </div>
+          </div>
+        </section>
+        <ForemanWeb.TicketDetail.sheet
+          ticket={@ticket}
+          state={@sheet_state}
+          tab={@ticket_tab}
+          uri={@page_uri}
+          return_to={@sheet_return}
+          streams={@streams}
+        />
+      </ForemanWeb.DocumentPanel.surface>
     </Layouts.app>
     """
   end

@@ -7,8 +7,6 @@ stateDiagram-v2
     [*] --> closed
     fsm_any --> closed: close
     fsm_any --> ticket: ticket
-    fsm_any --> document: document
-    fsm_any --> unavailable: missing
     state "any state" as fsm_any
 ```
 
@@ -16,17 +14,5 @@ stateDiagram-v2
 | --- | --- | --- | --- |
 | closed | close | -> closed |  |
 | closed | ticket | -> ticket |  |
-| closed | document | -> document |  |
-| closed | missing | -> unavailable |  |
 | ticket | close | -> closed |  |
 | ticket | ticket | -> ticket |  |
-| ticket | document | -> document |  |
-| ticket | missing | -> unavailable |  |
-| document | close | -> closed |  |
-| document | ticket | -> ticket |  |
-| document | document | -> document |  |
-| document | missing | -> unavailable |  |
-| unavailable | close | -> closed |  |
-| unavailable | ticket | -> ticket |  |
-| unavailable | document | -> document |  |
-| unavailable | missing | -> unavailable |  |
