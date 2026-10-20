@@ -2,7 +2,7 @@
 id: fm-vtx
 title: "Tickets link the documents their sessions create or reference"
 type: epic
-status: open
+status: closed
 priority: 2
 parent: null
 blocked_by: []
@@ -11,8 +11,8 @@ supersedes: []
 discovered_from: null
 labels: []
 created: 2026-10-20
-closed: null
-close_reason: null
+closed: 2026-10-20
+close_reason: "All three slices merged and verified live: ticket text links documents, Documents section, shared slide-out panel, worktree documents with labels and server-side authorization."
 ---
 
 # Tickets link the documents their sessions create or reference

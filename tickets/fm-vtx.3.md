@@ -2,7 +2,7 @@
 id: fm-vtx.3
 title: "Documents in build worktrees"
 type: task
-status: in_progress
+status: closed
 priority: 2
 parent: fm-vtx
 blocked_by: ["fm-vtx.1","fm-vtx.2"]
@@ -11,8 +11,8 @@ supersedes: []
 discovered_from: null
 labels: []
 created: 2026-10-20
-closed: null
-close_reason: null
+closed: 2026-10-20
+close_reason: "Merged 9f6a0c0; gate 745 tests, 0 failures. Live on release 20261020T062351 (branch build, pre-merge): fm-vtx.3's report existed only in worktree fm-docwt, listed and opened in the panel labelled 'in worktree fm-docwt'; forged doc_source showed 'Document unavailable'. After merge, release 20261020T062416: same links show 'main checkout', no source in URL."
 ---
 
 ## What to build
