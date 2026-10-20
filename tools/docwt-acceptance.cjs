@@ -1,0 +1,68 @@
+// PREVIEW_URL from devserve. NODE_PATH may point at an installed Playwright module.
+const {chromium} = require('playwright');
+const fs = require('fs');
+const base = process.env.PREVIEW_URL;
+if (!/^http:\/\/127\.0\.0\.1:48[89]\d$/.test(base || '')) throw Error('requires devserve preview URL');
+const out = 'docs/acceptance/fm-docwt';
+fs.mkdirSync(out, {recursive:true});
+(async () => {
+  const browser = await chromium.launch({headless:true});
+  const evidence = [];
+  let href, opened;
+  for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
+    const page = await browser.newPage({viewport:{width,height:1000},colorScheme:theme});
+    await page.addInitScript(theme => localStorage.setItem('phx:theme', theme), theme);
+    const errors = []; page.on('pageerror', e => errors.push(e.message));
+    await page.goto(base + '/?ticket=docwt:wt-1');
+    await page.waitForSelector('.phx-connected');
+    const link = page.locator('#ticket-documents a');
+    if (await link.count() !== 1) throw Error('document dedupe failed');
+    if (!(await page.locator('#ticket-documents').innerText()).includes('in worktree fm-review-build')) throw Error('missing list label');
+    href = await link.getAttribute('href');
+    if (!new URL(base + href).searchParams.get('source')?.startsWith('wt-')) throw Error('missing source');
+    await page.screenshot({path:`${out}/documents-${width}-${theme}.png`});
+    await link.click();
+    await page.locator('#panel-document h1').waitFor({state:'visible'});
+    await page.locator('#panel-close').click({trial:true});
+    if (await page.locator('#panel-worktree').innerText() !== 'in worktree fm-review-build') throw Error('missing panel label');
+    if (await page.locator('#panel-open-viewer').getAttribute('href') !== href) throw Error('viewer dropped source');
+    opened = page.url();
+    await page.screenshot({path:`${out}/panel-${width}-${theme}.png`});
+    const overflow = await page.locator('#document-sheet [role=dialog]').evaluate(el => el.scrollWidth > el.clientWidth);
+    if (overflow) throw Error('panel horizontal overflow');
+    await page.reload(); await page.locator('#panel-document h1').waitFor({state:'visible'});
+    await page.locator('#panel-close').click();
+    await page.waitForFunction(() => !new URL(location.href).searchParams.has('doc'));
+    await page.locator('#ticket-title').waitFor({state:'visible'});
+    if (new URL(page.url()).searchParams.has('doc')) throw Error('close did not remove doc');
+    await page.goto(base + href);
+    await page.locator('#document-content h1').waitFor({state:'visible'});
+    if (await page.locator('#document-worktree').innerText() !== 'in worktree fm-review-build') throw Error('viewer missing worktree label');
+    evidence.push({width,theme,documents:true,panel:true,sourceRoundTrip:true,refresh:true,viewer:true,retainedTicket:true,overflow,errors});
+    if (errors.length) throw Error(errors.join('\n'));
+    await page.close();
+  }
+  const page = await browser.newPage();
+  const forged = new URL(opened); forged.searchParams.set('doc_source', 'wt-forged');
+  await page.goto(forged.href); await page.locator('#panel-status').waitFor({state:'visible'});
+  const forgedViewer = new URL(base + href); forgedViewer.searchParams.set('source', 'wt-forged');
+  await page.goto(forgedViewer.href); await page.locator('#document-status').waitFor({state:'visible'});
+  const root = '/tmp/foreman-docwt-browser/main';
+  const tree = '/tmp/foreman-docwt-browser/fm-review-build';
+  fs.mkdirSync(root + '/docs/sessions', {recursive:true});
+  fs.writeFileSync(root + '/docs/sessions/review.md', '# Merged report\n');
+  await page.goto(opened); await page.locator('#panel-document h1').waitFor({state:'visible'});
+  if (await page.locator('#panel-worktree').count()) throw Error('main did not win');
+  fs.rmSync(tree, {recursive:true}); // Scratch repo only, never the app checkout.
+  await page.reload(); await page.locator('#panel-document h1').waitFor({state:'visible'});
+  if (await page.locator('#panel-document h1').innerText() !== 'Merged report') throw Error('removed tree fallback failed');
+  await page.goto(base + href); await page.locator('#document-content h1').waitFor({state:'visible'});
+  if (await page.locator('#document-worktree').count()) throw Error('fallback label not cleared');
+  fs.unlinkSync(root + '/docs/sessions/review.md');
+  await page.goto(opened); await page.locator('#panel-status').waitFor({state:'visible'});
+  await page.goto(base + href); await page.locator('#document-status').waitFor({state:'visible'});
+  evidence.push({forgedSourceRefused:true,mainWins:true,removedTreeFallback:true,unavailableWhenAbsent:true});
+  await browser.close();
+  fs.writeFileSync(out + '/browser.json', JSON.stringify(evidence,null,2)+'\n');
+  console.log(JSON.stringify(evidence,null,2));
+})().catch(e => { console.error(e); process.exit(1); });

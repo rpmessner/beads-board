@@ -31,24 +31,15 @@ defmodule ForemanWeb.DocumentPanel do
   def close(socket), do: push_patch(socket, to: DocumentPanel.path(socket.assigns.page_uri))
 
   defp document(repo_key, path, source) do
-    repo = Enum.find(Foreman.CardText.repos(), &(&1["key"] == repo_key))
-
-    # Only configured roots here. Worktree sources must be explicitly validated
-    # by the source resolver before they can supply a root.
-    result =
-      with true <- is_nil(source),
-           %{"path" => root} <- repo,
-           false <- ".." in Path.split(path),
-           true <- Foreman.Documents.document?(root, path) do
-        Foreman.Documents.read(root, path)
-      end
+    result = Foreman.DocumentSources.open(repo_key, path, source)
 
     case result do
       {:ok, doc} ->
         html =
           Foreman.Markdown.render(doc.content, repo: repo_key, path: doc.path, header_ids: false)
 
-        {:open, %{repo: repo_key, path: doc.path, html: html}}
+        {:open,
+         %{repo: repo_key, path: doc.path, html: html, source: doc.source, worktree: doc.worktree}}
 
       _ ->
         {:missing, %{repo: repo_key, path: path}}
@@ -79,11 +70,11 @@ defmodule ForemanWeb.DocumentPanel do
           aria-label="Document"
           class="space-y-6"
         >
-          <header class="flex items-center gap-3 text-xs text-foreground-softer">
-            <span>{@doc.repo}</span>
+          <header class="flex flex-wrap items-center gap-3 text-xs text-foreground-softer">
+            <span class="flex-1 sm:flex-none">{@doc.repo}</span>
             <span
               id="document-heading"
-              class="min-w-0 flex-1 break-all font-mono"
+              class="order-last w-full min-w-0 break-all font-mono sm:order-none sm:w-auto sm:flex-1"
               title={@doc.path}
               phx-mounted={
                 JS.set_attribute({"aria-label", "Document"}, to: "#document-sheet [role=dialog]")
@@ -95,7 +86,7 @@ defmodule ForemanWeb.DocumentPanel do
               :if={Map.has_key?(@doc, :html)}
               id="panel-open-viewer"
               data-viewer
-              href={Foreman.Markdown.viewer_path(@doc.repo, @doc.path)}
+              href={Foreman.TicketDocuments.viewer_path(@doc.repo, @doc.path, @doc.source)}
               class="shrink-0 rounded p-2 hover:bg-sunken"
             >
               Open in viewer
@@ -109,6 +100,13 @@ defmodule ForemanWeb.DocumentPanel do
               <.icon name="hero-x-mark" class="size-5" />
             </.link>
           </header>
+          <p
+            :if={Map.get(@doc, :worktree)}
+            id="panel-worktree"
+            class="break-words text-xs text-foreground-softer"
+          >
+            in worktree {@doc.worktree}
+          </p>
           <div
             :if={Map.has_key?(@doc, :html)}
             id={if(@state == :open, do: "panel-document")}

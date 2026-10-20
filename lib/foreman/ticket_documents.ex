@@ -1,6 +1,6 @@
 defmodule Foreman.TicketDocuments do
-  @moduledoc "Computed document mentions for a ticket; entries are `{repo, path, :main}`."
-  alias Foreman.{CardText, Markdown}
+  @moduledoc "Computed document mentions; entries are `{repo, path, :main | source_token}`."
+  alias Foreman.{CardText, DocumentSources, Markdown}
 
   def collect(ticket, requests, repos \\ nil),
     do: do_collect(ticket, requests, repos || CardText.repos())
@@ -25,24 +25,25 @@ defmodule Foreman.TicketDocuments do
       |> strings()
       |> Enum.flat_map(fn text ->
         text
-        |> CardText.references(ticket.repo, repos)
-        |> Enum.map(fn {_, {repo, relative}} ->
-          {repo, Path.relative_to(Path.expand(relative, "/"), "/"), :main}
-        end)
+        |> references(ticket, repos)
+        |> Enum.map(fn {_, document} -> document end)
       end)
     end)
     |> Stream.uniq()
     |> Enum.take(50)
   end
 
-  def render(value, repo, repos \\ nil) do
+  def render(value, context, repos \\ nil) do
     text = if is_binary(value), do: value, else: Jason.encode!(value)
     repos = repos || CardText.repos()
+    ticket = if is_binary(context), do: %{repo: context, sessions: [], history: []}, else: context
 
     links =
       text
-      |> CardText.references(repo, repos)
-      |> Enum.map(fn {path, {key, relative}} -> {path, Markdown.viewer_path(key, relative)} end)
+      |> references(ticket, repos)
+      |> Enum.map(fn {path, {key, relative, source}} ->
+        {path, viewer_path(key, relative, source)}
+      end)
       |> Map.new()
 
     Markdown.render(text,
@@ -50,6 +51,32 @@ defmodule Foreman.TicketDocuments do
       link_paths: &Map.get(links, &1),
       resolve_paths: &Map.get(links, &1)
     )
+  end
+
+  def viewer_path(repo, path, :main), do: Markdown.viewer_path(repo, path)
+
+  def viewer_path(repo, path, source),
+    do: Markdown.viewer_path(repo, path) <> "&" <> URI.encode_query(%{"source" => source})
+
+  def label(:main, _ticket), do: "main checkout"
+
+  def label(source, ticket) do
+    case Enum.find(DocumentSources.recorded(ticket), &(DocumentSources.token(&1) == source)) do
+      nil -> "unavailable"
+      root -> "in worktree " <> Path.basename(root)
+    end
+  end
+
+  defp references(text, ticket, repos) do
+    text
+    |> Markdown.path_candidates()
+    |> Enum.take(50)
+    |> Enum.flat_map(fn path ->
+      case DocumentSources.resolve(path, ticket.repo, repos, ticket) do
+        nil -> []
+        document -> [{path, document}]
+      end
+    end)
   end
 
   defp strings(value) when is_binary(value), do: [value]

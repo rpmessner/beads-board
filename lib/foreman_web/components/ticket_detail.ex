@@ -38,6 +38,7 @@ defmodule ForemanWeb.TicketDetail do
       ticket:
         ticket &&
           ticket
+          |> Map.put(:document_roots, Foreman.DocumentSources.recorded(ticket))
           |> Map.drop([:history, :sessions, :notes])
           |> Map.put(:preview, Foreman.Previews.for_ticket(key)),
       ticket_key: key,
@@ -250,7 +251,7 @@ defmodule ForemanWeb.TicketDetail do
           >
             <h3 class="bb-label mb-2">{title}</h3>
             <div class="fm-markdown">
-              {Phoenix.HTML.raw(Foreman.TicketDocuments.render(@ticket.raw[key], @ticket.repo))}
+              {Phoenix.HTML.raw(Foreman.TicketDocuments.render(@ticket.raw[key], @ticket))}
             </div>
           </div>
           <section :if={@ticket.documents?} id="ticket-documents" class="space-y-2">
@@ -262,12 +263,16 @@ defmodule ForemanWeb.TicketDetail do
                 class="flex flex-wrap items-baseline gap-x-3 gap-y-1"
               >
                 <.link
-                  navigate={Foreman.Markdown.viewer_path(document.repo, document.path)}
+                  navigate={
+                    Foreman.TicketDocuments.viewer_path(document.repo, document.path, document.source)
+                  }
                   class="min-w-0 break-words font-mono text-xs underline decoration-current/30 underline-offset-4 hover:decoration-current"
                 >
                   {document.path}
                 </.link>
-                <span class="text-xs text-foreground-softer">{document.repo} · main checkout</span>
+                <span class="text-xs text-foreground-softer">
+                  {document.repo} · {Foreman.TicketDocuments.label(document.source, @ticket)}
+                </span>
               </li>
             </ul>
           </section>
@@ -336,7 +341,7 @@ defmodule ForemanWeb.TicketDetail do
                     <.timestamp at={value} />
                   <% else %>
                     <div class="fm-markdown">
-                      {Phoenix.HTML.raw(Foreman.TicketDocuments.render(value, @ticket.repo))}
+                      {Phoenix.HTML.raw(Foreman.TicketDocuments.render(value, @ticket))}
                     </div>
                   <% end %>
                 </dd>
@@ -364,6 +369,7 @@ defmodule ForemanWeb.TicketDetail do
               id={id}
               event={event}
               repo={@ticket.repo}
+              ticket={@ticket}
             />
           </div>
         </section>
@@ -377,7 +383,7 @@ defmodule ForemanWeb.TicketDetail do
               class="rounded-lg border border-base p-4"
             >
               <div role="heading" aria-level="4" class="fm-markdown font-mono font-medium">
-                {Phoenix.HTML.raw(Foreman.TicketDocuments.render(session.window, @ticket.repo))}
+                {Phoenix.HTML.raw(Foreman.TicketDocuments.render(session.window, @ticket))}
               </div>
               <dl class="mt-3 grid grid-cols-[100px_minmax(0,1fr)] gap-2 text-xs">
                 <dt>Started</dt>
@@ -389,7 +395,7 @@ defmodule ForemanWeb.TicketDetail do
                 <%= for {key, value} <- Enum.sort(session.details) do %>
                   <dt class="text-foreground-softer">{key}</dt>
                   <dd class="fm-markdown break-words">
-                    {Phoenix.HTML.raw(Foreman.TicketDocuments.render(value, @ticket.repo))}
+                    {Phoenix.HTML.raw(Foreman.TicketDocuments.render(value, @ticket))}
                   </dd>
                 <% end %>
               </dl>
@@ -412,7 +418,7 @@ defmodule ForemanWeb.TicketDetail do
                 } /></span>
               </div>
               <div class="fm-markdown">
-                {Phoenix.HTML.raw(Foreman.TicketDocuments.render(note.body, @ticket.repo))}
+                {Phoenix.HTML.raw(Foreman.TicketDocuments.render(note.body, @ticket))}
               </div>
             </article>
           </div>
@@ -425,6 +431,8 @@ defmodule ForemanWeb.TicketDetail do
   attr :id, :string, required: true
   attr :event, :map, required: true
   attr :repo, :string, required: true
+
+  attr :ticket, :map, default: nil
 
   def history_row(assigns) do
     assigns = assign(assigns, :payload, history_payload(assigns.event))
@@ -445,7 +453,7 @@ defmodule ForemanWeb.TicketDetail do
         <%= for {key, value} <- @payload do %>
           <dt class="text-foreground-softer">{key}</dt>
           <dd class="fm-markdown break-words">
-            {Phoenix.HTML.raw(Foreman.TicketDocuments.render(value, @repo))}
+            {Phoenix.HTML.raw(Foreman.TicketDocuments.render(value, @ticket || @repo))}
           </dd>
         <% end %>
       </dl>

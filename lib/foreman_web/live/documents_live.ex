@@ -16,7 +16,13 @@ defmodule ForemanWeb.DocumentsLive do
     path =
       Map.get(params, "path", if("README.md" in files, do: "README.md", else: List.first(files)))
 
-    result = if repo, do: Documents.open(repo, path), else: {:error, :refused}
+    result = Foreman.DocumentSources.open(params["repo"], path, params["source"])
+
+    worktree =
+      case result do
+        {:ok, doc} -> doc.worktree
+        _ -> nil
+      end
 
     {event, document, html} =
       case result do
@@ -38,6 +44,7 @@ defmodule ForemanWeb.DocumentsLive do
        repos: repos,
        repo_key: params["repo"],
        document: document,
+       worktree: worktree,
        html: html,
        viewer: viewer
      )
@@ -88,6 +95,9 @@ defmodule ForemanWeb.DocumentsLive do
           class="min-w-0 rounded-xl border border-base bg-base p-5 sm:p-8"
         >
           <div class="mb-6 break-all font-mono text-xs text-foreground-softer">{@document}</div>
+          <div :if={@worktree} id="document-worktree" class="mb-6 text-xs text-foreground-softer">
+            in worktree {@worktree}
+          </div>
           <div id="document-content" class="fm-markdown">{Phoenix.HTML.raw(@html)}</div>
         </article>
         <p :if={@viewer != :ready} id="document-status" class="py-6 text-foreground-softer">
